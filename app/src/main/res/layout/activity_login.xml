@@ -1,0 +1,51 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:prizm="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="0dp"
+    android:layout_margin="0dp"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:theme="@style/VerticalTheme"
+    tools:context="co.higheraltitude.prizm.LoginActivity">
+    <ImageButton
+        android:layout_gravity="center_horizontal"
+        android:layout_height="24dp"
+        android:layout_width="41dp"
+        android:layout_marginTop="30dp"
+        android:src="@drawable/btn_uparrow"
+        android:background="@color/ha_transparent_color"
+        />
+    <ImageView android:layout_height="180dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="180dp"
+        android:layout_centerHorizontal="true"
+        android:paddingTop="26dp"
+        android:src="@drawable/prizm_logo_main">
+    </ImageView>
+    <co.higheraltitude.prizm.UserLoginRow
+        android:id="@+id/loginpage_email"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        prizm:inputType="textEmailAddress"
+        prizm:rowTitle="Email"
+        prizm:rowImage="email"
+        />
+    <co.higheraltitude.prizm.UserLoginRow
+        android:id="@+id/loginpage_password"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginTop="2dp"
+        prizm:inputType="textPassword"
+        prizm:rowTitle="Password"
+        prizm:rowImage="password"
+        />
+
+
+
+
+
+</LinearLayout>

@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Prizm</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="DEBUG_TAG">co.higheraltitude.prizm</string>
+    <string name="title_activity_login">Login</string>
+
+    <string name="network_base_url">https://api.prizmapp.com</string>
+    <string name="network_auth_endpoint">/oauth2/authorize</string>
+    <string name="network_token_endpoint">/oauth2/token</string>
+    <string name="title_activity_profile">Profile</string>
+</resources>

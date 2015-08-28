@@ -1,0 +1,7 @@
+<resources>
+    <declare-styleable name="UserLoginRow">
+        <attr name="rowTitle" format="string"></attr>
+        <attr name="rowImage" format="string"></attr>
+        <attr name="inputType" format="string"></attr>
+    </declare-styleable>
+</resources>
