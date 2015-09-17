@@ -1,18 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="co.higheraltitude.prizm" >
+    package="co.higheraltitude.prizm"
+    android:versionCode="1"
+    android:versionName="1.0(2)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <service
+        android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService"
+        android:enabled="true" />
+
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/icon"
         android:label="@string/app_name" >
         <activity
             android:name=".LoginActivity"
+            android:label="Login"
+            android:parentActivityName=".Registration"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmRegistrationTheme" >
+        </activity>
+        <activity
+            android:name=".ProfileActivity"
+            android:label="@string/title_activity_profile"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
+
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="e70b092ac5acf46c6e8a86bc59e79c34df550f5f" />
+
+        <activity
+            android:name=".MainActivity"
             android:label="Prizm"
-            android:theme="@style/VerticalTheme" >
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmRegistrationTheme" >
+>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -20,8 +53,35 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ProfileActivity"
-            android:label="@string/title_activity_profile" >
+            android:name=".Registration"
+            android:label="@string/title_activity_registration"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmRegistrationTheme" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="co.higheraltitude.prizm.MainActivity" />
+        </activity>
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <provider
+            android:name="com.facebook.FacebookContentProvider"
+            android:authorities="com.facebook.app.FacebookContentProvider1234"
+            android:exported="true" />
+
+        <activity
+            android:name=".CreateAccountActivity"
+            android:label="@string/title_activity_create_account"
+            android:parentActivityName=".Registration"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmRegistrationTheme" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="co.higheraltitude.prizm.Registration" />
         </activity>
     </application>
 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="false" android:drawable="@drawable/radio_empty" />
+    <item android:state_checked="true" android:state_pressed="true">
+        <shape
+            android:shape="ring"
+            android:thicknessRatio="2"
+            android:innerRadius="0dp"
+            android:useLevel="false">
+            <solid android:color="@color/white" />
+            <stroke android:color="@color/warm_grey" android:width="1dp" />
+        </shape>
+    </item>
+</selector>

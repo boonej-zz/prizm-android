@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <style name="PrizmTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
+        <item name="android:textViewStyle">@style/PrizmTextViewStyle</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
+        <item name="popupMenuStyle">@style/PrizmPopupStyle</item>
+        <item name="android:editTextStyle">@android:style/Widget.Material.EditText</item>
+    </style>
+
+    <style name="PrizmRegistrationTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+        <item name="colorPrimary">@color/ha_transparent_color</item>
+        <item name="colorPrimaryDark">@color/grey_light_transparent</item>
+        <item name="android:colorPrimaryDark">@color/grey_light_transparent</item>
+        <item name="colorButtonNormal">@color/prizm_light_navy</item>
+        <item name="android:colorButtonNormal">@color/prizm_light_navy</item>
+        <item name="colorControlNormal">@android:color/white</item>
+        <item name="android:colorControlNormal">@android:color/white</item>
+        <item name="android:editTextStyle">@style/PrizmRegistrationEditTextStyle</item>
+    </style>
+
+    <style name="PrizmRegistrationSpinner" parent="android:Widget.Material.Spinner">
+        <item name="android:spinnerItemStyle">@style/PrizmRegistrationItemStyle</item>
+    </style>
+
+    <style name="PrizmRegistrationItemStyle" parent="android:Widget.Material.TextView.SpinnerItem">
+        <item name="android:paddingLeft">@dimen/padding_edit_text_left</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textColor">@color/warm_grey</item>
+    </style>
+
+    <style name="PrizmBlue" parent="PrizmTheme">
+
+        <item name="colorPrimary">@color/prizm_blue_primary</item>
+        <item name="colorPrimaryDark">@color/prizm_blue_dark</item>
+        <item name="android:colorPrimary">@color/prizm_blue_primary</item>
+        <item name="android:colorPrimaryDark">@color/prizm_blue_dark</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="android:colorAccent">@android:color/white</item>
+        <item name="android:textColor">@color/prizm_light_navy</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+        <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
+        <item name="popupMenuStyle">@style/PrizmPopupStyle</item>
+
+
+    </style>
+
+    <style name="PrizmRed" parent="PrizmTheme">
+
+        <item name="colorPrimary">@color/red_primary</item>
+        <item name="colorPrimaryDark">@color/red_dark</item>
+        <item name="android:colorPrimary">@color/red_primary</item>
+        <item name="android:colorPrimaryDark">@color/red_dark</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="android:colorAccent">@android:color/white</item>
+        <item name="android:textColor">@color/prizm_light_navy</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+        <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
+        <item name="popupMenuStyle">@style/PrizmPopupStyle</item>
+
+    </style>
+
+    <style name="PrizmActionBarTheme" parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/ha_darkened_background_color</item>
+        <item name="background">@color/ha_darkened_background_color</item>
+        <!--<item name="android:windowActionBarOverlay">true</item>-->
+        <!--<item name="windowActionBarOverlay">true</item>-->
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="PrizmButtonBlue" parent="android:style/Widget.Material.Button">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:drawable">@drawable/button_blue</item>
+    </style>
+
+</resources>

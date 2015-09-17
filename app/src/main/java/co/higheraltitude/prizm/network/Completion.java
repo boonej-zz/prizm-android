@@ -1,4 +1,4 @@
-package co.higheraltitude.prizm;
+package co.higheraltitude.prizm.network;
 
 /**
  * Created by boonej on 8/21/15.

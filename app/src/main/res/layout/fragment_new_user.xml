@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_height="wrap_content"
+    android:layout_width="fill_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="40.7dp"
+        android:layout_marginLeft="35dp"
+        android:layout_marginRight="33dp"
+        android:layout_marginBottom="36dp"
+        >
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/PrizmRegistrationHintTextStyle"
+            >
+            <EditText
+                android:id="@+id/registration_field_first"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="text"
+                android:hint="First Name" />
+
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_marginTop="8dp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_last"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="text"
+                android:hint="Last Name" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_email"
+                android:layout_width="fill_parent"
+                android:layout_height="48dp"
+                android:inputType="textEmailAddress"
+                android:hint="Email" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_password"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="text"
+                android:hint="Password" />
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_confirm"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="text"
+                android:hint="Confirm Password" />
+        </android.support.design.widget.TextInputLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bkg_registration_edit_text"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/font_size_small"
+                android:textColor="@color/warm_grey"
+                android:layout_gravity="center_vertical"
+                android:fontFamily="sans-serif-light"
+                android:text="Gender"
+                />
+            <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/registration_radio_gender"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="right"
+                android:orientation="horizontal">
+                <RadioButton android:id="@+id/radio_male"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/font_size_small"
+                    android:textColor="@color/warm_grey"
+                    android:fontFamily="sans-serif-light"
+                    android:text="M"
+                    android:layout_marginRight="21.7dp"
+                    android:buttonTint="@color/dark_sky_blue"
+                    />
+                <RadioButton android:id="@+id/radio_female"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/font_size_small"
+                    android:textColor="@color/warm_grey"
+                    android:fontFamily="sans-serif-light"
+                    android:text="F"
+                    android:layout_marginRight="19dp"
+                    android:buttonTint="@color/medium_pink"
+                    />
+            </RadioGroup>
+        </LinearLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_phone"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="phone"
+                android:hint="Phone Number" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_birthday"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="date"
+                android:hint="Birth Date" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_program_code"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="text"
+                android:hint="Program Code" />
+        </android.support.design.widget.TextInputLayout>
+        <Button
+            android:id="@+id/registration_button_ethnicity"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:layout_width="fill_parent"
+            android:gravity="left|center_vertical"
+            android:drawableRight="@drawable/arrow_dropdown"
+            android:paddingRight="22.3dp"
+            android:paddingBottom="12dp"
+
+            android:background="@drawable/bkg_registration_edit_text"
+            android:textAllCaps="false"
+
+            android:text="@string/ethnicity_prompt"
+            android:textSize="@dimen/font_size_small"
+            android:textColor="@color/warm_grey"
+            android:fontFamily="sans-serif-light"
+            />
+        <Button
+            android:id="@+id/registration_button_religion"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:layout_width="fill_parent"
+            android:background="@drawable/bkg_button_dropdown"
+            android:text="@string/religion_prompt"
+            android:textSize="@dimen/font_size_small"
+            android:textColor="@color/warm_grey"
+            android:fontFamily="sans-serif-light"
+            android:gravity="left|center_vertical"
+            android:drawableRight="@drawable/arrow_dropdown"
+            android:paddingRight="22.3dp"
+
+            android:textAllCaps="false"
+            android:paddingBottom="12dp"
+            />
+        
+        <Button
+            android:id="@+id/registration_button_save"
+            android:layout_width="fill_parent"
+            android:layout_marginLeft="34.7dp"
+            android:layout_marginRight="33.3dp"
+            android:layout_marginTop="36dp"
+            android:layout_height="52dp"
+            android:text="Save"
+            />
+
+
+
+    </LinearLayout>
+
+</LinearLayout>

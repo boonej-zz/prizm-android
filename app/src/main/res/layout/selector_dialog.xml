@@ -1,0 +1,17 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/co.higheraltitude.prizm"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <ListView android:layout_width="match_parent" android:layout_height="match_parent"
+        android:layout_marginBottom="40dp"
+        android:layout_marginTop="5dp"
+        android:id="@+id/listview_dialog" />
+    <Button
+        android:id="@+id/listview_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/action_cancel"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp" />
+</RelativeLayout>

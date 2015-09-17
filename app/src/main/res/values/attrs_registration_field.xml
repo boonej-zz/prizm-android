@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="RegistrationField">
+        <attr name="field_title" format="string" />
+        <attr name="field_type" format="integer" />
+    </declare-styleable>
+</resources>

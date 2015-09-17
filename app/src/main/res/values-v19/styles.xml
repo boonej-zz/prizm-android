@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="VerticalTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">@drawable/background_blue</item>
-        <item name="android:textColor">@color/ha_text_color</item>
-        <item name="android:windowTranslucentStatus">true</item>
+    <style name="PrizmRegistrationTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowTranslucentNavigation">true</item>
+        <!--<item name="android:windowTranslucentStatus">true</item>-->
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+        <item name="colorPrimary">@color/ha_transparent_color</item>
+        <item name="colorPrimaryDark">@color/grey_light_transparent</item>
+        <item name="android:editTextStyle">@style/PrizmRegistrationEditTextStyle</item>
     </style>
 </resources>

@@ -2,6 +2,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="co.higheraltitude.prizm.ProfileActivity">
-    <item android:id="@+id/action_settings" android:title="@string/action_settings"
-        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_blue_theme" android:title="Blue Theme"
+        android:orderInCategory="1" app:showAsAction="never" />
+    <item android:id="@+id/action_red_theme" android:title="Red Theme"
+        android:orderInCategory="1" app:showAsAction="never" />
+    <item android:id="@+id/action_logout" android:title="@string/action_logout"
+        android:orderInCategory="2" app:showAsAction="never" />
+    <!--<item android:id="@+id/action_settings" android:title="@string/action_settings"-->
+        <!--android:orderInCategory="100" app:showAsAction="never" />-->
 </menu>

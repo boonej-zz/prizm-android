@@ -1,7 +1,18 @@
 <resources>
     <string name="app_name">Prizm</string>
     <string name="hello_world">Hello world!</string>
+
     <string name="action_settings">Settings</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_logout">Logout</string>
+    <string name="action_upload">Upload</string>
+    <string name="action_cancel">Cancel</string>
+
+    <string name="registration_individual">Individual</string>
+    <string name="registration_partner">Partner</string>
+
+    <string name="cd_facebook">Login with Facebook</string>
+    <string name="cd_back">Go back</string>
 
     <string name="DEBUG_TAG">co.higheraltitude.prizm</string>
     <string name="title_activity_login">Login</string>
@@ -9,5 +20,80 @@
     <string name="network_base_url">https://api.prizmapp.com</string>
     <string name="network_auth_endpoint">/oauth2/authorize</string>
     <string name="network_token_endpoint">/oauth2/token</string>
+    <string name="network_preferences_file_key">co.higheraltitude.prizm.networkprefs</string>
+
+    <string name="facebook_app_id">1408826952716972</string>
+    <string name="aws_access_key">AKIAI7E5TSPROBCA4YWA</string>
+    <string name="aws_secret">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</string>
+
     <string name="title_activity_profile">Profile</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_registration">Registration</string>
+
+
+    <string name="error_login_error">Oops. It looks like there was a problem logging you in. Please try again.</string>
+    <string name="title_activity_create_account">CreateAccountActivity</string>
+    <string name="title_activity_user_signup">UserSignupActivity</string>
+    <string name="title_activity_partner_signup">PartnerSignupActivity</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="ethnicity_prompt">Ethnicity</string>
+    <string name="religion_prompt">Religion</string>
+    <string name="type_prompt">Type</string>
+    <string-array name="values_ethnicity">
+        <item>African-American or Black</item>
+        <item>American Indian or Alaska Native</item>
+        <item>Asian</item>
+        <item>Caucasian or White</item>
+        <item>Hispanic or Latino</item>
+        <item>Native Hawaiian or Other Pacific Islander"</item>
+    </string-array>
+    <string-array name="values_religion">
+        <item>Anglican (Episcopal)</item>
+        <item>Bahá\'í</item>
+        <item>Buddhist</item>
+        <item>Caodalist</item>
+        <item>Cheondoist</item>
+        <item>Christian</item>
+        <item>Christian Scientist</item>
+        <item>Church of World Messianity</item>
+        <item>Congregatonalist (UCC)</item>
+        <item>Disciples of Christ</item>
+        <item>Friend (Quaker)</item>
+        <item>Hindu</item>
+        <item>Jain</item>
+        <item>Jehovah\'s Witness</item>
+        <item>Jewish</item>
+        <item>Latter-day Saint (Mormon)</item>
+        <item>Lutheran</item>
+        <item>Methodist</item>
+        <item>Moravian</item>
+        <item>Muslim</item>
+        <item>None</item>
+        <item>Orthodox</item>
+        <item>Other - Non-Christian</item>
+        <item>Pentacostal</item>
+        <item>Presbyterian</item>
+        <item>Rastafari</item>
+        <item>Reformed</item>
+        <item>Roman Catholic</item>
+        <item>Seicho-no-le-ist</item>
+        <item>Seventh Day Adventist</item>
+        <item>Sikh</item>
+        <item>Taoist</item>
+        <item>Unitarian Universalist (UU)</item>
+        <item>Wiccan (Pagan)</item>
+        <item>Yazidi</item>
+    </string-array>
+    <string-array name="values_type">
+        <item>Community</item>
+        <item>Corporate</item>
+        <item>Education</item>
+        <item>Foundation</item>
+        <item>Military</item>
+    </string-array>
+
+
 </resources>

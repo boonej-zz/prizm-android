@@ -1,38 +1,62 @@
 package co.higheraltitude.prizm;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.os.Message;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.os.Handler;
 
-import com.joanzapata.android.asyncservice.api.annotation.InjectService;
-import com.joanzapata.android.asyncservice.api.annotation.OnMessage;
+import com.crashlytics.android.Crashlytics;
 import com.joanzapata.android.asyncservice.api.internal.AsyncService;
 
-import org.json.JSONObject;
+import co.higheraltitude.prizm.views.UserLoginRow;
+import io.fabric.sdk.android.Fabric;
 
 import co.higheraltitude.prizm.models.User;
-import co.higheraltitude.prizm.network.HAAPIService;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends Activity {
     public final static String EXTRA_PROFILE = "co.higheraltitude.prizm.PROFILE";
     private UserLoginRow emailRow = null;
     private UserLoginRow passwordRow = null;
-    @InjectService HAAPIService service;
+    private View backButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_login);
         emailRow = (UserLoginRow)findViewById(R.id.loginpage_email);
         passwordRow = (UserLoginRow)findViewById(R.id.loginpage_password);
+
         AsyncService.inject(this);
         configureListeners();
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (emailRow.editText.requestFocus()) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(getCurrentFocus()!=null) {
+            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        }
     }
 
     @Override
@@ -63,21 +87,27 @@ public class LoginActivity extends AppCompatActivity {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent keyEvent) {
                 String email = emailRow.getText();
                 String password = passwordRow.getText();
-                service.getLogin(email, password);
+                User.login(email, password, new Handler() {
+                    @Override
+                    public void handleMessage(Message message) {
+                        if (message.obj != null) {
+                            User user = (User) message.obj;
+                            Intent intent = new Intent(getApplicationContext(), Registration.class);
+                            intent.putExtra(EXTRA_PROFILE, user);
+                            setResult(RESULT_OK, intent);
+                            finish();
+                        }
+                    }
+                });
 
                 return true;
             }
         });
     }
 
-    @OnMessage public void onLogin(User profile) {
-        try {
-            Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-            intent.putExtra(EXTRA_PROFILE, profile);
-            startActivity(intent);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void back(View view){
+        finish();
     }
+
 
 }

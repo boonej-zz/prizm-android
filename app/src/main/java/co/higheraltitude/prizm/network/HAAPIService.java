@@ -2,6 +2,7 @@ package co.higheraltitude.prizm.network;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
@@ -31,6 +32,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -42,6 +49,7 @@ import java.util.Set;
 
 import co.higheraltitude.prizm.ProfileActivity;
 import co.higheraltitude.prizm.R;
+import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.models.User;
 
 /**
@@ -51,7 +59,7 @@ import co.higheraltitude.prizm.models.User;
 public class HAAPIService {
     @ApplicationContext
     static public Context context;
-    static private JSONObject authorizationCode = null;
+    static private String authorizationCode = null;
     static private String clientID = "67e1fe4f-db1b-4d5c-bdc7-56270b0832e2";
     static private String clientSecret = "f27198fb-689d-4965-acb0-0e9c5d61ddec";
     static private String redirectUrl = "https://api.prizmapp.com/callback";
@@ -60,9 +68,11 @@ public class HAAPIService {
     static private Date tokenExpires = null;
     static private String authorizationString = null;
     static private RestTemplate restTemplate = null;
+    static private String currentUserID = null;
 
     private RestTemplate restTemplate() {
         if (restTemplate == null) {
+            loadData();
             restTemplate = new RestTemplate();
             restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
             restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
@@ -96,15 +106,42 @@ public class HAAPIService {
                 JSONObject object = new JSONObject(returnString);
                 JSONArray dataArray = object.getJSONArray("data");
                 if (dataArray.length() > 0) {
-                    authorizationCode = dataArray.getJSONObject(0);
+                    authorizationCode = dataArray.getJSONObject(0).getString("authorization_code");
                 }
-                Log.d("DEBUG", authorizationCode.getString("authorization_code"));
+                Log.d("DEBUG", authorizationCode);
 
             } catch (Exception e) {
                 Log.d("DEBUG", e.getMessage());
             }
 
         fetchAccessToken();
+    }
+
+    private void storeTokens() {
+        PrizmCache cache = PrizmCache.getInstance();
+        if (accessToken != null)
+            cache.objectCache.put("network_access_token", accessToken);
+        if (refreshToken != null)
+            cache.objectCache.put("network_refresh_token", refreshToken);
+        if (authorizationCode != null)
+            cache.objectCache.put("network_authorization_code", authorizationCode);
+        if (tokenExpires != null)
+            cache.objectCache.put("network_token_expires", tokenExpires);
+        if (currentUserID != null)
+            cache.objectCache.put("current_user_id", currentUserID);
+    }
+
+    private void loadData() {
+        PrizmCache cache = PrizmCache.getInstance();
+        try {
+            accessToken = (String) cache.objectCache.get("network_access_token");
+            refreshToken = (String) cache.objectCache.get("network_refresh_token");
+            authorizationCode = (String) cache.objectCache.get("network_authorization_code");
+            currentUserID = (String) cache.objectCache.get("current_user_id");
+            tokenExpires = (Date) cache.objectCache.get("network_token_expires");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void fetchAccessToken(){
@@ -114,7 +151,7 @@ public class HAAPIService {
             RestTemplate rt = restTemplate();
 
             MultiValueMap<String, String> paramMap = new LinkedMultiValueMap<>();
-            paramMap.add("code", authorizationCode.getString("authorization_code"));
+            paramMap.add("code", authorizationCode);
             paramMap.add("grant_type", "authorization_code");
             paramMap.add("redirect_uri", redirectUrl);
             HttpHeaders headers = getHeaders("token");
@@ -135,6 +172,7 @@ public class HAAPIService {
                 tokenExpires = calendar.getTime();
             }
             Log.d("DEBUG", responseString);
+            storeTokens();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -171,6 +209,7 @@ public class HAAPIService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        storeTokens();
     }
 
     private String getAuthorizationString(){
@@ -214,49 +253,92 @@ public class HAAPIService {
         return headers;
     }
 
-    private Object performAuthorizedRequest(String path, Object params) {
-        if (tokenExpires != null) {
-            Calendar now = Calendar.getInstance();
-            if (!now.getTime().before(tokenExpires)) {
-                refreshToken();
-            }
-        } else {
+    public Object performAuthorizedRequest(String path, Object params) {
+        Object object = null;
+        if (authorizationCode == null) {
             getToken();
+            object = performAuthorizedRequest(path, params);
+        } else {
+            if (tokenExpires != null && refreshToken != null) {
+                Calendar now = Calendar.getInstance();
+                if (!now.getTime().before(tokenExpires)) {
+                    refreshToken();
+                }
+            } else {
+                getToken();
+            }
+            try {
+                path = context.getString(R.string.network_base_url)
+                        + path;
+                RestTemplate template = restTemplate();
+                HttpHeaders headers = getHeaders("bearer");
+                HttpEntity<?> request = new HttpEntity<Object>(params, headers);
+                ResponseEntity<String> response = template.exchange(path, HttpMethod.POST, request, String.class);
+                String responseString = response.getBody();
+                object = new JSONObject(responseString);
+                Log.d("DEBUG", object.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-        try {
-            path = context.getString(R.string.network_base_url)
-                    + path;
-            RestTemplate template = restTemplate();
-            HttpHeaders headers = getHeaders("bearer");
-            HttpEntity<?> request = new HttpEntity<Object>(params, headers);
-            ResponseEntity<String> response = template.exchange(path, HttpMethod.POST, request, String.class);
-            String responseString = response.getBody();
-            JSONObject object = new JSONObject(responseString);
-            Log.d("DEBUG", object.toString());
-            return object;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return object;
     }
 
     public User getLogin(String email, String password){
+        User user = null;
         MultiValueMap<String, String> login = new LinkedMultiValueMap<>();
         login.add("email", email);
         login.add("password", password);
-        JSONObject returnData = (JSONObject)performAuthorizedRequest("/oauth2/login", login);
+
+
+        JSONObject returnData = (JSONObject) performAuthorizedRequest("/oauth2/login", login);
         JSONObject userProfile = null;
+        PrizmCache cache = PrizmCache.getInstance();
+
         try {
             JSONArray dataArray = returnData.getJSONArray("data");
             if (dataArray.length() > 0) {
                 userProfile = dataArray.getJSONObject(0);
-                return new User(userProfile);
+                user = new User(userProfile);
+                currentUserID = user.uniqueID;
+                storeTokens();
+                User.setCurrentUser(user);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return null;
 
+        return user;
+
+    }
+
+    public User getLoginWithTwitter(long id, String token) {
+        HAAPIService service = new HAAPIService();
+        User user = null;
+        String[] aToken = token.split("-");
+        if (aToken.length == 2) {
+            token = aToken[1];
+        }
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        post.add("provider_token", Long.toString(id));
+        post.add("provider_token_secret", token);
+        post.add("provider", "twitter");
+        JSONObject returnData = (JSONObject) performAuthorizedRequest("/oauth2/login", post);
+        JSONObject userProfile = null;
+        PrizmCache cache = PrizmCache.getInstance();
+        try {
+            JSONArray dataArray = returnData.getJSONArray("data");
+            if (dataArray.length() > 0) {
+                userProfile = dataArray.getJSONObject(0);
+                user = new User(userProfile);
+                currentUserID = user.uniqueID;
+                storeTokens();
+                User.setCurrentUser(user);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return user;
     }
 
 

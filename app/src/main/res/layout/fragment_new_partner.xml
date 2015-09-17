@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_height="wrap_content"
+    android:layout_width="fill_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="40.7dp"
+        android:layout_marginLeft="35dp"
+        android:layout_marginRight="33dp"
+        android:layout_marginBottom="36dp"
+        >
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/PrizmRegistrationHintTextStyle"
+            >
+            <EditText
+                android:id="@+id/registration_field_first"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="textCapWords"
+                android:hint="Organization" />
+
+
+        </android.support.design.widget.TextInputLayout>
+        <Button
+            android:id="@+id/registration_button_type"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
+            android:layout_width="fill_parent"
+            android:gravity="left|center_vertical"
+            android:paddingBottom="12dp"
+            android:drawableRight="@drawable/arrow_dropdown"
+            android:paddingRight="22.3dp"
+            android:background="@drawable/bkg_button_dropdown"
+            android:textAllCaps="false"
+
+            android:text="@string/type_prompt"
+            android:textSize="@dimen/font_size_small"
+            android:textColor="@color/warm_grey"
+            android:fontFamily="sans-serif-light"
+            />
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_email"
+                android:layout_width="fill_parent"
+                android:layout_height="48dp"
+                android:inputType="textEmailAddress"
+                android:hint="Email" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_password"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="textPassword"
+                android:hint="Password" />
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_confirm"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="textPassword"
+                android:hint="Confirm Password" />
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_zipcode"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="number"
+                android:hint="Zip Code" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_website"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="textUri"
+                android:hint="Website" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_contact_first"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="textCapWords"
+                android:hint="Contact First Name" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_contact_last"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="textCapWords"
+                android:hint="Contact Last Name" />
+        </android.support.design.widget.TextInputLayout>
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:theme="@style/PrizmRegistrationHintTextStyle">
+            <EditText
+                android:id="@+id/registration_field_contact_email"
+                android:layout_width="fill_parent"
+                android:layout_height="44dp"
+                android:inputType="textEmailAddress"
+                android:hint="Contact Email" />
+        </android.support.design.widget.TextInputLayout>
+
+        <Button
+            android:id="@+id/registration_button_save"
+            android:layout_width="fill_parent"
+            android:layout_marginLeft="34.7dp"
+            android:layout_marginRight="33.3dp"
+            android:layout_marginTop="36dp"
+            android:layout_height="52dp"
+            android:text="Save"
+            />
+
+
+
+    </LinearLayout>
+
+</LinearLayout>

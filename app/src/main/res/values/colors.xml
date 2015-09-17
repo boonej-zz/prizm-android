@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="ha_text_color" type="color">#C0C1D5</item>
+    <item name="ha_translucent_background_color" type="color">#4DFFFFFF</item>
+    <item name="ha_darkened_background_color" type="color">#4D000000</item>
+    <item name="grey_light_transparent" type="color">#26000000</item>
+    <item name="five_percent_grey" type="color">#0D000000</item>
+    <item name="five_percent_white" type="color">#26FFFFFF</item>
+    <item name="ha_transparent_color" type="color">#00000000</item>
+    <item name="prizm_blue_primary" type="color">#323A9C</item>
+    <item name="prizm_blue_dark" type="color">#272D7B</item>
+    <item name="prizm_dominant_background" type="color">#F4F5F7</item>
+    <item name="prizm_dark_text" type="color">#373737</item>
+    <item name="prizm_light_navy" type="color">#334B8F</item>
+    <item name="prizm_grey" type="color">#979797</item>
+    <item name="red_primary" type="color">#EC0926</item>
+    <item name="red_dark" type="color">#C2041D</item>
+    <item name="cool_blue" type="color">#5188B9</item>
+    <item name="warm_grey" type="color">#7C7C7C</item>
+    <item name="light_navy" type="color">#334B8F</item>
+    <item name="white" type="color">#F3F3F3</item>
+    <item name="dark_sky_blue" type="color">#4A90E2</item>
+    <item name="medium_pink" type="color">#EE7AAA</item>
+
+</resources>
