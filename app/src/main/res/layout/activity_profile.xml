@@ -28,6 +28,13 @@
         android:scaleType="centerCrop"
         />
     <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="182dp"
+        android:layout_marginTop="60dp"
+        android:background="@drawable/cover_gradient"
+        android:alpha="0.5"
+        />
+    <ImageView
         android:id="@+id/profile_avatar_photo"
         android:layout_width="64dp"
         android:layout_height="64dp"

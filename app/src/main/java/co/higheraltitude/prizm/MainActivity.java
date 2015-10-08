@@ -33,8 +33,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     // Note: Your consumer key and secret should be obfuscated in your source code before shipping.
     private static final String TWITTER_KEY = "MzIoqUFCk7BYUNpCNxtGuhuLu";
     private static final String TWITTER_SECRET = "yGhuwPvSljoVJoD4il2qtHZG0q4hWlXC87Mcdly0pxaFrMHEaf";
-    private static boolean didStart = false;
-    public static boolean messagesStarted = false;
+    private static boolean didStart;
+    public static boolean messagesStarted;
     private static GoogleApiClient mGoogleApiClient;
     public static Location lastLocation;
 
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Fabric.with(this, new Twitter(authConfig), new Crashlytics());
         Resources.Theme current = this.getTheme();
 
-        MainActivity.messagesStarted = true;
+
 
         setContentView(R.layout.activity_main);
         DualCacheContextUtils.setContext(getApplicationContext());
@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         User user = User.getCurrentUser();
         if (user != null) {
             Intent intent = new Intent(getApplicationContext(), MessageGroupsActivity.class);
+            MainActivity.messagesStarted = true;
             intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
             startActivity(intent);
         } else {
@@ -89,6 +90,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
                 intent.putExtra(LoginActivity.EXTRA_PROFILE, (User)obj);
                 mActivity.startActivity(intent);
+                didStart = true;
+                messagesStarted = true;
             }
         }
     }
@@ -96,11 +99,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onResume(){
         super.onResume();
-        User user = User.getCurrentUser();
-        if (messagesStarted || didStart && user == null) {
+
+        if (messagesStarted || didStart ) {
             this.finish();
         }
-        didStart = true;
+
     }
 
     @Override
@@ -132,6 +135,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 User.fetchUserCore(profile, new RefreshProfileHandler(getApplicationContext(), this));
 
             }
+
         }
     }
 

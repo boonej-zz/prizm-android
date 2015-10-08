@@ -335,10 +335,14 @@ public class ReadMessagesActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         int resource;
-        if (role.equals("leader")||role.equals("owner")) {
-            resource = R.menu.menu_read_messages_owner;
-        } else if (role.equals("ambassador")) {
-            resource = R.menu.menu_read_messages_ambassador;
+        if (role != null) {
+            if (role.equals("leader") || role.equals("owner")) {
+                resource = R.menu.menu_read_messages_owner;
+            } else if (role.equals("ambassador")) {
+                resource = R.menu.menu_read_messages_ambassador;
+            } else {
+                resource = R.menu.menu_read_messages;
+            }
         } else {
             resource = R.menu.menu_read_messages;
         }

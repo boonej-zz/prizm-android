@@ -387,12 +387,9 @@ public class MessageGroupsActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(Bitmap image) {
-
             AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
             Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(Bitmap.createScaledBitmap(image, 128, 128, false));
             avatarView.setImageDrawable(avatarDrawable);
-
-
         }
     }
 
