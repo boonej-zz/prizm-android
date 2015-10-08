@@ -123,7 +123,7 @@ public class MessageGroupsActivity extends AppCompatActivity {
 
     private void loadGroups() {
         if (currentUser != null && currentUser.primaryOrganization != null) {
-            if (!currentUser.role.equals("owner") && !currentUser.role.equals("leader")) {
+            if (currentUser.role == null || ( !currentUser.role.equals("owner") && !currentUser.role.equals("leader"))) {
                 newGroupView.setVisibility(View.GONE);
             }
             progressBar.setIndeterminate(true);

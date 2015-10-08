@@ -127,7 +127,7 @@ public class User implements Parcelable {
         HashMap<String, String> map = map();
         Set<String> keys = map.keySet();
         Iterator iterator = keys.iterator();
-        HashMap<String, String> returnObject = new HashMap<>();
+        HashMap<String, Object> returnObject = new HashMap<>();
         Class<?> c = User.class;
         while (iterator.hasNext()) {
             String destKey = (String)iterator.next();
@@ -135,7 +135,7 @@ public class User implements Parcelable {
             try {
                 Field field = c.getField(key);
                 Object value = field.get(user);
-                returnObject.put(destKey, (String) value);
+                returnObject.put(destKey, value);
             } catch (Exception e) {
                 e.printStackTrace();
             }
