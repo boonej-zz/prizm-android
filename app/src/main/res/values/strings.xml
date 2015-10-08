@@ -1,4 +1,11 @@
 <resources>
+    <string name="network_base_url">https://api.prizmapp.com</string>
+    <string name="network_auth_endpoint">/oauth2/authorize</string>
+    <string name="network_token_endpoint">/oauth2/token</string>
+    <string name="network_base_url_v2">https://api.prizmapp.com/v2</string>
+    <string name="network_preferences_file_key">co.higheraltitude.prizm.networkprefs</string>
+
+
     <string name="app_name">Prizm</string>
     <string name="hello_world">Hello world!</string>
 
@@ -7,6 +14,20 @@
     <string name="action_logout">Logout</string>
     <string name="action_upload">Upload</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_done">Done</string>
+    <string name="action_edit_group">Edit Group</string>
+    <string name="action_edit_members">Edit Members</string>
+    <string name="action_mute">Mute</string>
+
+    <string name="label_group_name">Group Name</string>
+    <string name="label_group_leader">Group Leader</string>
+    <string name="label_group_description">Group Description</string>
+    <string name="label_group_member_search">Search by member</string>
+
+    <string name="notify_upload">Upload Started</string>
+
+    <string name="error_invalid_group">Uh oh! You must provide a name and description for your group.</string>
 
     <string name="registration_individual">Individual</string>
     <string name="registration_partner">Partner</string>
@@ -17,18 +38,20 @@
     <string name="DEBUG_TAG">co.higheraltitude.prizm</string>
     <string name="title_activity_login">Login</string>
 
-    <string name="network_base_url">https://api.prizmapp.com</string>
-    <string name="network_auth_endpoint">/oauth2/authorize</string>
-    <string name="network_token_endpoint">/oauth2/token</string>
-    <string name="network_preferences_file_key">co.higheraltitude.prizm.networkprefs</string>
+
 
     <string name="facebook_app_id">1408826952716972</string>
     <string name="aws_access_key">AKIAI7E5TSPROBCA4YWA</string>
     <string name="aws_secret">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</string>
 
     <string name="title_activity_profile">Profile</string>
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">Prizm</string>
     <string name="title_activity_registration">Registration</string>
+    <string name="title_activity_message_groups">Message</string>
+    <string name="title_activity_direct_picker">\@Direct</string>
+    <string name="title_activity_direct_selector">Create Direct Message</string>
+
+
 
 
     <string name="error_login_error">Oops. It looks like there was a problem logging you in. Please try again.</string>
@@ -94,6 +117,20 @@
         <item>Foundation</item>
         <item>Military</item>
     </string-array>
+
+    <string-array name="left_drawer_items">
+        <item>Test</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string name="title_activity_read_messages">ReadMessagesActivity</string>
+
+    <string name="title_activity_full_screen_image">FullScreenImageActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="title_activity_new_group">Create Group</string>
+    <string name="title_activity_edit_group">Edit Group</string>
+    <string name="title_activity_view_members">Members</string>
 
 
 </resources>

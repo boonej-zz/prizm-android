@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<co.higheraltitude.prizm.views.UserTagView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:orientation="horizontal">
+        <ImageView
+            android:id="@+id/user_avatar"
+            android:layout_width="30.7dp"
+            android:layout_height="30.7dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="8.7dp"
+            android:layout_marginBottom="8.7dp"
+            android:layout_marginLeft="18.3dp"
+            />
+        <TextView
+            android:id="@+id/user_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="5dp"
+            android:textSize="13.3sp"
+            android:textColor="@color/brownish_grey" />
+    </LinearLayout>
+
+</co.higheraltitude.prizm.views.UserTagView>

@@ -20,9 +20,9 @@ android {
     buildToolsVersion "23.0.0"
     defaultConfig {
         applicationId "co.higheraltitude.prizm"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 23
-        versionCode 6
+        versionCode 19
         versionName '1.0'
     }
     buildTypes {
@@ -48,22 +48,12 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.0.0'
-    compile 'com.android.support:design:23.0.0'
-    compile 'com.google.android.gms:play-services-location:7.8.0'
-    compile 'com.amazonaws:aws-android-sdk-core:2.+'
-    compile 'com.amazonaws:aws-android-sdk-cognito:2.+'
-    compile 'com.amazonaws:aws-android-sdk-s3:2.+'
     compile('org.codehaus.jackson:jackson-core-asl:1.9.2') { transitive = true }
     compile('org.codehaus.jackson:jackson-mapper-asl:1.9.2') { transitive = true }
     compile('com.vincentbrison.openlibraries.android:dualcache:2.1.0@aar') { transitive = true }
     compile('org.springframework.android:spring-android-rest-template:2.0.0.M1') {
         transitive = true
     }
-    compile('com.joanzapata.android.asyncservice:android-asyncservice:0.0.5@aar') {
-        transitive = true
-    }
-    compile 'com.google.code.gson:gson:2.2.4'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.2@aar') {
         transitive = true;
     }
@@ -71,5 +61,14 @@ dependencies {
     compile('com.twitter.sdk.android:twitter:1.7.2@aar') {
         transitive = true;
     }
+    compile 'com.android.support:appcompat-v7:23.0.0'
+    compile 'com.android.support:design:23.0.0'
+    compile 'com.google.android.gms:play-services-location:7.8.0'
+    compile 'com.amazonaws:aws-android-sdk-core:2.+'
+    compile 'com.amazonaws:aws-android-sdk-cognito:2.+'
+    compile 'com.amazonaws:aws-android-sdk-s3:2.+'
+    compile 'org.ocpsoft.prettytime:prettytime:3.2.7.Final'
+    compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.facebook.android:facebook-android-sdk:4.5.0'
+    compile 'com.android.support:support-v4:23.0.0'
 }

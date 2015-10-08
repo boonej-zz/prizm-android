@@ -6,6 +6,7 @@
     <item name="grey_light_transparent" type="color">#26000000</item>
     <item name="five_percent_grey" type="color">#0D000000</item>
     <item name="five_percent_white" type="color">#26FFFFFF</item>
+    <item name="ninety_percent_white" type="color">#E6FFFFFF</item>
     <item name="ha_transparent_color" type="color">#00000000</item>
     <item name="prizm_blue_primary" type="color">#323A9C</item>
     <item name="prizm_blue_dark" type="color">#272D7B</item>
@@ -21,5 +22,19 @@
     <item name="white" type="color">#F3F3F3</item>
     <item name="dark_sky_blue" type="color">#4A90E2</item>
     <item name="medium_pink" type="color">#EE7AAA</item>
+    <item name="dusk_blue" type="color">#2F38A2</item>
+    <item name="dusk_blue_50_percent" type = "color">#802F38A2</item>
+    <item name="brownish_grey" type="color">#616161</item>
+    <item name="darkish_purple" type="color">#771C62</item>
+    <item name="warm_purple" type="color">#932379</item>
+    <item name="grape" type="color">#592771</item>
+    <item name="grape_purple" type="color">#431D56</item>
+    <color name="black_overlay">#66000000</color>
+    <item name="dark_turquoise" type="color">#045E48</item>
+    <item name="evergreen" type="color">#034232</item>
+    <item name="dull_orange" type="color">#df8832</item>
+    <item name="copper" type="color">#C1762B</item>
+    <item name="charcoal_grey" type="color">#33333A</item>
+    <item name="charcoal_grey_dark" type="color">#27272E</item>
 
 </resources>

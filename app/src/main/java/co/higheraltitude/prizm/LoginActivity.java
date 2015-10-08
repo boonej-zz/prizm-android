@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.os.Handler;
 
 import com.crashlytics.android.Crashlytics;
-import com.joanzapata.android.asyncservice.api.internal.AsyncService;
 
 import co.higheraltitude.prizm.views.UserLoginRow;
 import io.fabric.sdk.android.Fabric;
@@ -36,7 +35,6 @@ public class LoginActivity extends Activity {
         emailRow = (UserLoginRow)findViewById(R.id.loginpage_email);
         passwordRow = (UserLoginRow)findViewById(R.id.loginpage_password);
 
-        AsyncService.inject(this);
         configureListeners();
 
     }

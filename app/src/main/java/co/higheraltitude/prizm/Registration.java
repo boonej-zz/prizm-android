@@ -175,7 +175,7 @@ public class Registration extends AppCompatActivity {
                     public void handleMessage(Message msg) {
                         if (msg != null && msg.obj != null) {
                             User user = (User) msg.obj;
-                            Intent intent = new Intent(getApplicationContext(), Registration.class);
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                             intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
                             setResult(RESULT_OK, intent);
                             finish();

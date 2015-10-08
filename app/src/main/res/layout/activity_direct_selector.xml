@@ -1,0 +1,94 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    tools:context="co.higheraltitude.prizm.DirectSelectorActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/profile_nav_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:minHeight="60dp"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        >
+    </android.support.v7.widget.Toolbar>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary">
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginLeft="8.7dp"
+            android:layout_marginRight="8.3dp"
+            android:layout_marginBottom="10dp"
+            android:focusableInTouchMode="true"
+            android:focusable="true"
+            android:background="@drawable/button_white">
+            <ImageButton
+                android:layout_marginLeft="19dp"
+                android:src="@drawable/search"
+                android:layout_width="17.5dp"
+                android:layout_height="17.5dp"
+                android:layout_gravity="center_vertical"
+                android:onClick="searchClicked"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                />
+            <EditText
+                android:id="@+id/search_users"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:gravity="center_vertical"
+                android:layout_weight="1"
+                android:nextFocusRight="@id/search_users"
+                android:nextFocusLeft="@id/search_users"
+                android:layout_marginTop="4dp"
+                android:background="#00000000"
+                android:textCursorDrawable="@null"
+
+                android:drawablePadding="21dp"
+
+
+                android:layout_marginBottom="10dp" />
+            <ImageButton
+                android:layout_marginRight="19dp"
+                android:src="@drawable/mic"
+                android:layout_width="14dp"
+                android:layout_height="19dp"
+                android:layout_gravity="center_vertical"
+                android:onClick="micClicked"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                />
+        </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="fill_parent"
+            android:layout_height="5dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:indeterminateDrawable="@drawable/progress_bar"
+            android:indeterminateDuration="800"
+            android:indeterminate="true"/>
+        <ListView
+            android:id="@+id/user_list"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+    </RelativeLayout>
+
+</LinearLayout>

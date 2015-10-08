@@ -4,9 +4,11 @@
     <dimen name="activity_vertical_margin">0dp</dimen>
     <dimen name="button_elevation_material">10dp</dimen>
     <dimen name="button_pressed_z_material">2dp</dimen>
+    <dimen name="button_circle_size">56.7dp</dimen>
     <integer name="button_pressed_animation_duration">1</integer>
     <integer name="button_pressed_animation_delay">0</integer>
     <dimen name="font_size_small">14.7sp</dimen>
     <dimen name="font_size_regular">16sp</dimen>
     <dimen name="padding_edit_text_left">19.3dp</dimen>
+    <dimen name="messages_post_bar_height">52dp</dimen>
 </resources>

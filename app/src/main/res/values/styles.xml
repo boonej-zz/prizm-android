@@ -56,7 +56,7 @@
     </style>
 
     <style name="PrizmBlue" parent="PrizmTheme">
-        <item name="colorPrimary">@color/prizm_blue_primary</item>
+        <item name="colorPrimary">@color/dusk_blue</item>
         <item name="colorPrimaryDark">@color/prizm_blue_dark</item>
         <item name="colorAccent">@android:color/white</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
@@ -66,6 +66,38 @@
     <style name="PrizmRed" parent="PrizmTheme">
         <item name="colorPrimary">@color/red_primary</item>
         <item name="colorPrimaryDark">@color/red_dark</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="android:textColor">@color/prizm_light_navy</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+    </style>
+
+    <style name="PrizmPurple" parent="PrizmTheme">
+        <item name="colorPrimary">@color/grape</item>
+        <item name="colorPrimaryDark">@color/grape_purple</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="android:textColor">@color/prizm_light_navy</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+    </style>
+
+    <style name="PrizmPink" parent="PrizmTheme">
+        <item name="colorPrimary">@color/warm_purple</item>
+        <item name="colorPrimaryDark">@color/darkish_purple</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="android:textColor">@color/prizm_light_navy</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+    </style>
+
+    <style name="PrizmGreen" parent="PrizmTheme">
+        <item name="colorPrimary">@color/dark_turquoise</item>
+        <item name="colorPrimaryDark">@color/evergreen</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="android:textColor">@color/prizm_light_navy</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+    </style>
+
+    <style name="PrizmOrange" parent="PrizmTheme">
+        <item name="colorPrimary">@color/dull_orange</item>
+        <item name="colorPrimaryDark">@color/copper</item>
         <item name="colorAccent">@android:color/white</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
@@ -88,6 +120,35 @@
         <item name="android:textColor">@android:color/white</item>
         <item name="android:background">@drawable/button_blue</item>
     </style>
+
+    <style name="PrizmCircleButton" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/circle_large_blue</item>
+    </style>
+
+    <style name="FullscreenTheme" parent="PrizmTheme">
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@null</item>
+        <item name="metaButtonBarStyle">@style/ButtonBar</item>
+        <item name="metaButtonBarButtonStyle">@style/ButtonBarButton</item>
+    </style>
+
+    <!-- Backward-compatible version of ?android:attr/buttonBarStyle -->
+    <style name="ButtonBar">
+        <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingRight">2dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:background">@android:drawable/bottom_bar</item>
+    </style>
+
+    <!-- Backward-compatible version of ?android:attr/buttonBarButtonStyle -->
+    <style name="ButtonBarButton" />
+
+    <style name="OverlayStyle">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:alpha">0.5</item>
+    </style>
+
 
 
 

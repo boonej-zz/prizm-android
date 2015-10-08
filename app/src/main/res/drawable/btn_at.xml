@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+            android:shape="ring"
+            android:innerRadius="0dp"
+            android:thicknessRatio="2"
+            android:useLevel="false"
+            >
+            <solid android:color="?attr/colorPrimary" />
+            <size android:height="40.8dp" android:width="40.8dp" />
+
+        </shape>
+    </item>
+    <item>
+        <bitmap android:src="@drawable/atsymbol" android:gravity="center" />
+    </item>
+
+</layer-list>

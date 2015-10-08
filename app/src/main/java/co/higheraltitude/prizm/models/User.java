@@ -15,6 +15,7 @@ import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.facebook.AccessToken;
 import com.google.gson.Gson;
@@ -30,6 +31,8 @@ import org.springframework.util.MultiValueMap;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Field;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,6 +43,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import co.higheraltitude.prizm.MainActivity;
+import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.network.PrizmAPIService;
 
@@ -66,12 +70,26 @@ public class User implements Parcelable {
     public String zipPostal;
     public String coverPhotoURL;
     public String profilePhotoURL;
-    public String active;
+    public Boolean active;
+    public String primaryOrganization;
+    public String role;
+    public Boolean isMember;
+    public String theme;
 
     public static String PrizmCurrentUserCacheKey = "current_user";
     private static final String PRIZM_LOGIN_ENDPOINT = "/oauth2/login";
     private static final String PRIZM_USER_ENDPOINT = "/users";
+    private static final String PRIZM_MESSAGE_USER_FORMAT = "/organizations/%s/users/%s/messages?format=digest";
+    private static final String PRIZM_MESSAGE_USER_FORMAT_2 = "/organizations/%s/users/%s/contacts";
+    private static final String PRIZM_GROUP_USER_FORMAT = "/organizations/%s/groups/%s/members";
 
+    public static String ROLE_LEADER = "leader";
+    public static String ROLE_OWNER = "owner";
+    public static String ROLE_AMBASSADOR = "ambassador";
+
+    public User() {
+
+    }
 
     @Override
     public int describeContents() {
@@ -91,10 +109,12 @@ public class User implements Parcelable {
             try {
                 Field field = c.getField(key);
                 Object value = field.get(this);
-                if (value.getClass() == boolean.class) {
-                    bundle.putBoolean(key, (boolean) value);
-                } else if (value.getClass() == String.class) {
-                    bundle.putString(key, (String)value);
+                if (value != null) {
+                    if (value.getClass() == boolean.class) {
+                        bundle.putBoolean(key, (boolean) value);
+                    } else if (value.getClass() == String.class) {
+                        bundle.putString(key, (String) value);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -165,6 +185,10 @@ public class User implements Parcelable {
             put("cover_photo_url", "coverPhotoURL");
             put("profile_photo_url", "profilePhotoURL");
             put("active", "active");
+            put("primary_organization", "primaryOrganization");
+            put("role", "role");
+            put("is_member", "isMember");
+            put("theme", "theme");
         }};
         return map;
     }
@@ -215,12 +239,32 @@ public class User implements Parcelable {
                     field = c.getDeclaredField((String) pair.getValue());
                     field.setAccessible(true);
                     Object value = object.get((String) pair.getKey());
-                    if (value != null) {
+                    if (value != null && value != JSONObject.NULL) {
                         field.set(this, value);
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
+            }
+        }
+        if (!object.has("primary_organization")) {
+            try {
+                if (object.has("org_status")) {
+                    JSONArray orgStatus = object.getJSONArray("org_status");
+                    int length = orgStatus.length();
+                    JSONObject status = null;
+                    for (int i = 0; i != length; ++i) {
+                        JSONObject temp = orgStatus.getJSONObject(i);
+                        if (temp.getString("status").equals("active")) {
+                            status = temp;
+                        }
+                    }
+                    if (status != null) {
+                        primaryOrganization = status.getString("organization");
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -241,11 +285,32 @@ public class User implements Parcelable {
         return gson.toJson(this);
     }
 
+    private static void setTheme(User user) {
+        PrizmCache.getInstance();
+        if (user != null && user.theme != null) {
+            if (user.theme.equals("purple")) {
+                PrizmCache.objectCache.put("theme", R.style.PrizmPurple);
+            } else if (user.theme.equals("red")) {
+                PrizmCache.objectCache.put("theme", R.style.PrizmRed);
+            } else if (user.theme.equals("green")) {
+                PrizmCache.objectCache.put("theme", R.style.PrizmGreen);
+            } else if (user.theme.equals("pink")) {
+                PrizmCache.objectCache.put("theme", R.style.PrizmPink);
+            } else if (user.theme.equals("orange")) {
+                PrizmCache.objectCache.put("theme", R.style.PrizmOrange);
+            } else if (user.theme.equals("black")) {
+                PrizmCache.objectCache.put("theme", R.style.PrizmBlack);
+            } else {
+                PrizmCache.objectCache.put("theme", R.style.PrizmBlue);
+            }
+        }
+    }
+
     public static User getCurrentUser() {
         PrizmCache cache = PrizmCache.getInstance();
         User user = null;
         try {
-            Object object = cache.objectCache.get(PrizmCurrentUserCacheKey);
+            Object object = PrizmCache.objectCache.get(PrizmCurrentUserCacheKey);
             if (object != null) {
                 JSONObject obj = new JSONObject((String)object);
                 user = new User(obj);
@@ -253,15 +318,20 @@ public class User implements Parcelable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        if (user != null && user.theme != null) {
+            setTheme(user);
+        }
+
         return user;
     }
 
     public static void setCurrentUser(User user) {
+        setTheme(user);
         Gson gson = new Gson();
         Object cacheable = cacheableObject(user);
         String json = gson.toJson(cacheable);
         PrizmCache cache = PrizmCache.getInstance();
-        cache.objectCache.put(PrizmCurrentUserCacheKey, json);
+        PrizmCache.objectCache.put(PrizmCurrentUserCacheKey, json);
     }
 
     public static void login(String email, String password, final Handler handler) {
@@ -269,27 +339,35 @@ public class User implements Parcelable {
         MultiValueMap<String, String> login = new LinkedMultiValueMap<>();
         login.add("email", email);
         login.add("password", password);
-        service.performAuthorizedRequest(PRIZM_LOGIN_ENDPOINT, login, HttpMethod.POST, new Handler() {
-            @Override
-            public void handleMessage(Message message) {
+        service.performAuthorizedRequest(PRIZM_LOGIN_ENDPOINT, login, HttpMethod.POST, new HandleLoginMessage(handler));
+    }
+
+
+    private static class HandleLoginMessage extends Handler {
+        private Handler mHandler;
+
+        public HandleLoginMessage(Handler handler) {
+            mHandler = handler;
+        }
+        @Override
+        public void handleMessage(Message message) {
+            try {
                 JSONObject userObject = (JSONObject) message.obj;
-                try {
-                    JSONArray dataArray = userObject.getJSONArray("data");
-                    if (dataArray.length() > 0) {
-                        JSONObject userProfile = dataArray.getJSONObject(0);
-                        User user = new User(userProfile);
-                        setCurrentUser(user);
-                        Message message1 = handler.obtainMessage(1, user);
-                        handler.sendMessage(message1);
-                    } else {
-                        handler.sendEmptyMessage(1);
-                    }
-                } catch (JSONException ex) {
-                    ex.printStackTrace();
-                    handler.sendEmptyMessage(1);
+                JSONArray dataArray = userObject.getJSONArray("data");
+                if (dataArray.length() > 0) {
+                    JSONObject userProfile = dataArray.getJSONObject(0);
+                    User user = new User(userProfile);
+                    setCurrentUser(user);
+                    Message message1 = mHandler.obtainMessage(1, user);
+                    mHandler.sendMessage(message1);
+                } else {
+                    mHandler.sendEmptyMessage(1);
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                mHandler.sendEmptyMessage(1);
             }
-        });
+        }
     }
 
     public static void login(TwitterAuthToken token, final Handler handler) {
@@ -394,6 +472,198 @@ public class User implements Parcelable {
             }
         });
 
+    }
+
+    public static User fetchUserCore(User user, final Handler handler) {
+        PrizmCache cache = PrizmCache.getInstance();
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        Object data = cache.performCachedRequest(PRIZM_USER_ENDPOINT + '/' + user.uniqueID, post, HttpMethod.GET, new CoreUserHandler(handler));
+        User u = null;
+        if (data != null) {
+            if (data instanceof JSONObject) {
+                u = new User((JSONObject)data);
+            }
+        }
+        return u;
+    }
+
+    public static ArrayList<User> searchUsers(HashMap<String, String> query, final Handler handler) {
+        PrizmCache cache = PrizmCache.getInstance();
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        String search = null;
+        String organization = null;
+        String group = null;
+        String queryString = null;
+        if (query.containsKey("search")) {
+            search = query.get("search");
+        }
+        if (query.containsKey("organization")) {
+            organization = query.get("organization");
+        }
+        if (query.containsKey("group")) {
+            group = query.get("group");
+        }
+
+        if (search != null) {
+            if (organization != null) {
+                if (group != null) {
+                    queryString = String.format("?search=%s&organization=%s&group=%s",
+                            search, organization, group);
+                } else {
+                    queryString = String.format("?search=%s&organization=%s", search, organization);
+                }
+            } else {
+                queryString = String.format("?search=%s", search);
+            }
+        } else if (organization != null) {
+            if (group != null) {
+                queryString = String.format("?organization=%s&group=%s",
+                        organization, group);
+            } else {
+                queryString = String.format("?organization=%s",
+                        organization);
+            }
+        }
+
+        String path = String.format("%s%s", PRIZM_USER_ENDPOINT, queryString);
+        Object object = cache.performCachedRequest(path, post, HttpMethod.GET, new UserListHandler(handler));
+        ArrayList<User> userList = new ArrayList<>();
+        if (object instanceof JSONArray) {
+            for (int i = 0; i != ((JSONArray)object).length(); ++i) {
+                try {
+                    JSONObject o = ((JSONArray) object).getJSONObject(i);
+                    User u = new User(o);
+                    userList.add(u);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return userList;
+    }
+
+    public static ArrayList<User> fetchAvailableMessageRecipients(String oid, final Handler handler) {
+        User user = User.getCurrentUser();
+        String path = String.format(PRIZM_MESSAGE_USER_FORMAT, oid, user.uniqueID);
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        Object data = PrizmCache.getInstance().performCachedRequest(path, post, HttpMethod.GET, new UserListHandler(handler));
+        ArrayList<User> userList = new ArrayList<>();
+        if (data instanceof JSONArray) {
+            for (int i = 0; i != ((JSONArray)data).length(); ++i) {
+                try {
+                    JSONObject o = ((JSONArray) data).getJSONObject(i);
+                    User u = new User(o);
+                    userList.add(u);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return userList;
+    }
+
+    public static void fetchUserContacts(String oid, String lastItem, final Handler handler) {
+        User user = User.getCurrentUser();
+        String path = String.format(PRIZM_MESSAGE_USER_FORMAT_2, oid, user.uniqueID);
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        if (lastItem != null) {
+            try {
+                lastItem = URLEncoder.encode(lastItem, "UTF-8");
+                path = path + "?last=" + lastItem;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.GET, new UserListHandler(handler), true);
+
+    }
+
+    public static ArrayList<User> fetchGroupMembers(String gid, String lastItem, boolean allUsers, final Handler handler) {
+        String path =  String.format(PRIZM_GROUP_USER_FORMAT, getCurrentUser().primaryOrganization, gid);
+        if (allUsers) {
+            path = path + "?show_all=true&";
+        }
+        if (lastItem != null) {
+            try {
+                lastItem = URLEncoder.encode(lastItem, "UTF-8");
+                path = path + "last=" + lastItem;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        } else if (allUsers){
+            path = path.substring(0, path.length() - 1);
+        }
+        Log.d("DEBUG", path);
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        Object data = PrizmCache.getInstance().performCachedRequest(path, post, HttpMethod.GET, new UserListHandler(handler));
+        if (data instanceof JSONObject) {
+            if (((JSONObject) data).has("values")) {
+                try {
+                    data = ((JSONObject) data).get("values");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        ArrayList<User> userList = new ArrayList<>();
+        if (data instanceof JSONArray) {
+            for (int i = 0; i != ((JSONArray)data).length(); ++i) {
+                try {
+                    JSONObject o = ((JSONArray) data).getJSONObject(i);
+                    User u = new User(o);
+                    userList.add(u);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return userList;
+    }
+
+    private static class CoreUserHandler extends Handler {
+        private Handler mHandler;
+
+        public CoreUserHandler(Handler handler) {
+            mHandler = handler;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Object obj = msg.obj;
+            User user = null;
+            if (obj instanceof JSONObject) {
+                user = new User((JSONObject)obj);
+            }
+            Message message = mHandler.obtainMessage(1, user);
+            mHandler.sendMessage(message);
+        }
+    }
+
+    private static class UserListHandler extends Handler {
+        private Handler mHandler;
+
+        public UserListHandler(Handler handler) {
+            mHandler = handler;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Object obj = msg.obj;
+            ArrayList<User> userList = new ArrayList<>();
+            if (obj instanceof  JSONArray) {
+                for (int i = 0; i != ((JSONArray)obj).length(); ++i) {
+                    try {
+                        JSONObject o = ((JSONArray) obj).getJSONObject(i);
+                        User u = new User(o);
+                        userList.add(u);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                Message message = mHandler.obtainMessage(1, userList);
+                mHandler.sendMessage(message);
+            }
+        }
     }
 
 

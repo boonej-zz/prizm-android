@@ -1,0 +1,179 @@
+<android.support.v4.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:fitsSystemWindows="true"
+
+        tools:context="co.higheraltitude.prizm.MessageGroupsActivity">
+
+
+        <ListView android:layout_width="fill_parent"
+            android:paddingTop="?attr/actionBarSize"
+            android:layout_height="fill_parent"
+            android:id="@+id/group_list" />
+
+
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_marginTop="?attr/actionBarSize"
+            android:layout_width="fill_parent"
+            android:layout_height="5dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:indeterminateDrawable="@drawable/progress_bar"
+            android:indeterminateDuration="800"
+            android:indeterminate="true"/>
+        <RelativeLayout
+            android:id="@+id/action_overlay"
+            android:visibility="invisible"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:clipChildren="false"
+            android:background="@color/ninety_percent_white">
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:clipChildren="false"
+                android:layout_marginBottom="94dp">
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:orientation="vertical"
+                    android:gravity="right">
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clipChildren="false"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="20dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="@dimen/font_size_regular"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="@string/title_activity_direct_selector"
+                            android:layout_marginRight="20.2dp"/>
+                        <android.support.design.widget.FloatingActionButton
+                            android:layout_width="40.8dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginRight="28.2dp"
+                            android:onClick="onDirectClick"
+                            android:src="@drawable/btn_at"
+                            android:scaleType="center"
+
+                            app:backgroundTint="?attr/colorPrimary"
+                            />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/new_group_button"
+                        android:layout_width="wrap_content"
+                        android:clipChildren="false"
+                        android:layout_height="wrap_content" android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="@dimen/font_size_regular"
+                            android:layout_gravity="center_vertical"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="@string/title_activity_new_group"
+                            android:layout_marginRight="20.2dp"/>
+                        <android.support.design.widget.FloatingActionButton
+                            android:layout_width="40.8dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginRight="28.2dp"
+                            android:scaleType="center"
+                            android:onClick="onNewGroupClick"
+                            android:src="@drawable/btn_hashtag"
+                            app:backgroundTint="?attr/colorPrimary"
+                            />
+                    </LinearLayout>
+                </LinearLayout>
+            </RelativeLayout>
+
+        </RelativeLayout>
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/floating_action_button"
+            android:layout_width="56.7dp"
+            android:layout_height="56.7dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:scaleType="center"
+            app:backgroundTint="?attr/colorPrimary"
+            android:src="@drawable/shape"
+            android:layout_marginRight="20dp"
+            android:onClick="onFABClick"
+            android:layout_marginBottom="16.3dp" />
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/profile_nav_bar"
+            android:layout_width="fill_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:minHeight="60dp"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            >
+        </android.support.v7.widget.Toolbar>
+
+
+
+    </RelativeLayout>
+    <LinearLayout android:id="@+id/left_drawer"
+        android:layout_width="299.3dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:clickable="true">
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="172.7dp">
+            <ImageView
+                android:id="@+id/menu_cover_view"
+                android:layout_height="fill_parent"
+                android:layout_width="fill_parent"
+                android:scaleType="centerCrop"
+                android:clickable="true"
+                android:onClick="profileClicked"
+                />
+            <ImageView
+                android:id="@+id/menu_overlay"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                style="@style/OverlayStyle"/>
+            <ImageView
+                android:id="@+id/menu_avatar_view"
+                android:layout_width="57.3dp"
+                android:layout_height="57.3dp"
+                android:layout_marginTop="16.3dp"
+                android:layout_marginLeft="20dp"
+                android:clickable="true"
+                />
+            <TextView
+                android:id="@+id/menu_name"
+                android:textSize="@dimen/font_size_regular"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="75.5dp"
+                android:layout_marginLeft="21.3dp"
+                android:layout_width="wrap_content"
+                android:clickable="true"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+
+
+    </LinearLayout>
+
+
+    </android.support.v4.widget.DrawerLayout>

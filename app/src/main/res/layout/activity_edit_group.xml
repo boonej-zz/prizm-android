@@ -1,0 +1,121 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    tools:context="co.higheraltitude.prizm.EditGroupActivity"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/profile_nav_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:minHeight="60dp"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        >
+        <Button
+            android:id="@+id/action_done_button"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:textAllCaps="false"
+            android:layout_gravity="right|center_vertical"
+            android:text="@string/action_done"
+            />
+    </android.support.v7.widget.Toolbar>
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="fill_parent"
+            android:layout_height="5dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:indeterminateDrawable="@drawable/progress_bar"
+
+            android:indeterminateDuration="800"
+            android:indeterminate="true"/>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:fillViewport="true">
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:background="@color/prizm_dominant_background"
+                android:clickable="true"
+                android:elevation="6dp">
+                <EditText
+                    android:id="@+id/group_name"
+                    android:layout_width="fill_parent"
+                    android:layout_height="60dp"
+                    android:nextFocusLeft="@+id/group_description"
+                    android:nextFocusRight="@+id/leader_dropdown"
+                    android:background="@drawable/edit_text_grey_bar"
+                    android:hint="@string/label_group_name"
+                    android:textSize="16.7sp"
+                    android:textColor="@color/warm_grey"
+                    android:paddingLeft="19.3dp"
+                    />
+                <Button
+                    android:id="@id/leader_dropdown"
+                    android:focusable="true"
+                    android:nextFocusLeft="@id/group_name"
+                    android:nextFocusRight="@id/group_description"
+                    android:layout_width="fill_parent"
+                    android:layout_height="60dp"
+                    android:background="@drawable/bkg_button_dropdown"
+                    android:drawableRight="@drawable/arrow_dropdown"
+                    android:paddingRight="22.3dp"
+                    android:gravity="left|center_vertical"
+                    android:textColor="@color/warm_grey"
+                    android:textSize="16.7sp"
+                    android:fontFamily="sans-serif"
+                    android:textAllCaps="false"
+                    android:onClick="onGroupLeaderClicked"
+                    android:paddingLeft="19.3dp"
+                    android:hint="@string/label_group_leader"/>
+                <EditText
+                    android:id="@id/group_description"
+                    android:layout_width="fill_parent"
+                    android:nextFocusLeft="@id/leader_dropdown"
+                    android:nextFocusRight="@id/group_name"
+                    android:layout_height="60dp"
+                    android:background="@drawable/edit_text_grey_bar"
+                    android:hint="@string/label_group_description"
+                    android:textSize="16.7sp"
+                    android:paddingLeft="19.3dp"
+                    android:textColor="@color/warm_grey"
+                    />
+                <co.higheraltitude.prizm.views.UserSearchBox
+                    android:id="@+id/search_members_box"
+                    android:layout_width="fill_parent"
+                    android:layout_height="60dp"
+                    android:background="@android:color/white"
+                    />
+                <ListView
+                    android:id="@+id/user_list"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:choiceMode="multipleChoice"
+
+                    />
+
+
+
+
+
+
+            </LinearLayout>
+        </ScrollView>
+    </RelativeLayout>
+
+
+</LinearLayout>

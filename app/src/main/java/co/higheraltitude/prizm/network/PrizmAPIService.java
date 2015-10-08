@@ -8,6 +8,7 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.springframework.http.HttpAuthentication;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -84,16 +85,20 @@ public class PrizmAPIService {
 
     private void storeTokens() {
         PrizmCache cache = PrizmCache.getInstance();
-        if (accessToken != null)
-            cache.objectCache.put("network_access_token", accessToken);
-        if (refreshToken != null)
-            cache.objectCache.put("network_refresh_token", refreshToken);
-        if (authorizationCode != null)
-            cache.objectCache.put("network_authorization_code", authorizationCode);
-        if (tokenExpires != null)
-            cache.objectCache.put("network_token_expires", tokenExpires);
-        if (currentUserID != null)
-            cache.objectCache.put("current_user_id", currentUserID);
+        try {
+            if (accessToken != null)
+                cache.objectCache.put("network_access_token", accessToken);
+            if (refreshToken != null)
+                cache.objectCache.put("network_refresh_token", refreshToken);
+            if (authorizationCode != null)
+                cache.objectCache.put("network_authorization_code", authorizationCode);
+            if (tokenExpires != null)
+                cache.objectCache.put("network_token_expires", tokenExpires);
+            if (currentUserID != null)
+                cache.objectCache.put("current_user_id", currentUserID);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     private void loadData() {
@@ -216,11 +221,20 @@ public class PrizmAPIService {
     }
 
     public void performAuthorizedRequest(String path, final MultiValueMap<String, String> parameters, final HttpMethod method, final Handler handler) {
-        final String urlPath = context.getString(R.string.network_base_url) + path;
+        performAuthorizedRequest(path, parameters, method, handler, false);
+    }
+
+    public void performAuthorizedRequest(String path, final MultiValueMap<String, String> parameters, final HttpMethod method, final Handler handler, boolean useV2) {
+        String baseUrl;
+        if (useV2) {
+            baseUrl = context.getString(R.string.network_base_url_v2);
+        } else {
+            baseUrl = context.getString(R.string.network_base_url);
+        }
+        final String urlPath = baseUrl + path;
         Thread thread = new Thread(){
             @Override
             public void run() {
-                JSONObject object = null;
                 if (accessToken == null || refreshToken == null) {
                     try {
                         authorize();
@@ -250,12 +264,13 @@ public class PrizmAPIService {
                 RestTemplate template = restTemplate();
                 HttpHeaders headers = getHeaders("bearer");
                 HttpEntity<?> request = new HttpEntity<Object>(parameters, headers);
+                Object object = null;
                 try {
                     ResponseEntity<String> response = template.exchange(urlPath, method, request, String.class);
 
                     String responseString = response.getBody();
                     try {
-                        object = new JSONObject(responseString);
+                        object = new JSONTokener(responseString).nextValue();
                     } catch (JSONException ex) {
                         ex.printStackTrace();
                         return;

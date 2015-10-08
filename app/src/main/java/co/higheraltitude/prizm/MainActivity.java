@@ -1,7 +1,12 @@
 package co.higheraltitude.prizm;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.location.Location;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +21,7 @@ import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.TwitterAuthConfig;
 import com.vincentbrison.openlibraries.android.dualcache.lib.DualCacheContextUtils;
 
+import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.network.PrizmAPIService;
@@ -28,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private static final String TWITTER_KEY = "MzIoqUFCk7BYUNpCNxtGuhuLu";
     private static final String TWITTER_SECRET = "yGhuwPvSljoVJoD4il2qtHZG0q4hWlXC87Mcdly0pxaFrMHEaf";
     private static boolean didStart = false;
+    public static boolean messagesStarted = false;
     private static GoogleApiClient mGoogleApiClient;
     public static Location lastLocation;
 
@@ -46,12 +53,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
         FacebookSdk.sdkInitialize(getApplicationContext());
         Fabric.with(this, new Twitter(authConfig), new Crashlytics());
+        Resources.Theme current = this.getTheme();
+
+        MainActivity.messagesStarted = true;
+
         setContentView(R.layout.activity_main);
         DualCacheContextUtils.setContext(getApplicationContext());
         PrizmAPIService.registerContext(getApplicationContext());
         User user = User.getCurrentUser();
         if (user != null) {
-            Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+            Intent intent = new Intent(getApplicationContext(), MessageGroupsActivity.class);
             intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
             startActivity(intent);
         } else {
@@ -62,11 +73,31 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //        startActivity(intent);
     }
 
+    private static class RefreshProfileHandler extends Handler {
+        private Context mContext;
+        private Activity mActivity;
+        public RefreshProfileHandler(Context context, Activity activity){
+            mContext = context;
+            mActivity = activity;
+        }
+        @Override
+        public void handleMessage(Message msg) {
+            Object obj = msg.obj;
+            if (obj != null) {
+                User.setCurrentUser((User)obj);
+                Intent intent = new Intent(mContext, MessageGroupsActivity.class);
+
+                intent.putExtra(LoginActivity.EXTRA_PROFILE, (User)obj);
+                mActivity.startActivity(intent);
+            }
+        }
+    }
+
     @Override
     protected void onResume(){
         super.onResume();
         User user = User.getCurrentUser();
-        if (didStart && user == null) {
+        if (messagesStarted || didStart && user == null) {
             this.finish();
         }
         didStart = true;
@@ -98,9 +129,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         if (requestCode == DO_LOGIN) {
             if (resultCode == RESULT_OK) {
                 User profile = data.getParcelableExtra(LoginActivity.EXTRA_PROFILE);
-                Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-                intent.putExtra(LoginActivity.EXTRA_PROFILE, profile);
-                startActivity(intent);
+                User.fetchUserCore(profile, new RefreshProfileHandler(getApplicationContext(), this));
+
             }
         }
     }
@@ -128,4 +158,5 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onConnectionFailed(ConnectionResult result) {
         Log.d("DEBUG", "Connection failed: " + result.toString());
     }
+
 }

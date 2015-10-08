@@ -19,7 +19,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
 
-import com.snappydb.MainActivity;
 
 import net.sectorsieteg.avatars.AvatarDrawableFactory;
 
@@ -27,6 +26,8 @@ import java.io.InputStream;
 import java.net.URL;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.listeners.BackClickListener;
+import co.higheraltitude.prizm.listeners.MenuClickListener;
 import co.higheraltitude.prizm.models.User;
 
 public class ProfileActivity extends AppCompatActivity {
@@ -51,7 +52,8 @@ public class ProfileActivity extends AppCompatActivity {
 //        actionBar.hideOverflowMenu();
 
         setSupportActionBar(actionBar);
-        getSupportActionBar().setHomeButtonEnabled(true);
+        actionBar.setNavigationIcon(R.drawable.backarrow_icon);
+        actionBar.setNavigationOnClickListener(new BackClickListener(this));
 
         Intent intent = getIntent();
         User profile = intent.getParcelableExtra(LoginActivity.EXTRA_PROFILE);

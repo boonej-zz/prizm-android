@@ -174,7 +174,7 @@ public class ImageHelper {
 
 //    private static Handler uploadHandler = new Handler(){
 //        @Override
-//        public void handleMessage(Message message) {
+//        public void handleMessage(Peep message) {
 //            File out = (File)message.obj;
 //
 //            TransferUtility transferUtility = new TransferUtility(s3Client, mContext);
@@ -216,7 +216,7 @@ public class ImageHelper {
 //                    File out = File.createTempFile(UUID.randomUUID().toString(), ".jpg");
 //                    FileOutputStream os = new FileOutputStream(out);
 //                    image.compress(Bitmap.CompressFormat.JPEG, 100, os);
-//                    Message message = uploadHandler.obtainMessage(1, out);
+//                    Peep message = uploadHandler.obtainMessage(1, out);
 //                    uploadHandler.sendMessage(message);
 //                } catch (Exception ex) {
 //                    ex.printStackTrace();
@@ -351,14 +351,26 @@ public class ImageHelper {
 //            uploadThread.start();
         }
     }
+
     public String uploadImage(final Bitmap image) {
+        return uploadImage(image, null);
+    }
+
+    public String uploadImage(Bitmap bmp, final Handler handler) {
 //        saveTempFile(image, new UploadHandler());
 
 //                File file = null;
 
 //                    file = File.createTempFile(UUID.randomUUID().toString(), ".jpg");
+
+        if (bmp.getWidth() > 1000) {
+            double ratio = 1000.00 / (double) bmp.getWidth();
+            int height = (int) ((double) bmp.getHeight() * ratio);
+            bmp = Bitmap.createBitmap(bmp, 0, 0, 1000, height);
+        }
+        final Bitmap image = bmp;
         final String path = UUID.randomUUID() + ".jpg";
-        String finalPath = "https://s3.amazonaws.com/higheraltitude.prizm.test/"+ path;
+        String finalPath = "https://s3.amazonaws.com/haandroid/"+ path;
         Thread backgroundThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -372,7 +384,7 @@ public class ImageHelper {
                     metadata.setContentType("image/jpeg");
                     metadata.setContentLength(os.size());
 
-                    PutObjectRequest request = new PutObjectRequest("higheraltitude.prizm.test", fp, is, metadata);
+                    PutObjectRequest request = new PutObjectRequest("haandroid", fp, is, metadata);
                     AmazonS3Client client = s3Client();
                     client.putObject(request.withCannedAcl(CannedAccessControlList.PublicRead));
                     try {
@@ -383,6 +395,9 @@ public class ImageHelper {
                     }
                 } catch (Exception exception) {
                     exception.printStackTrace();
+                }
+                if (handler != null) {
+                    handler.sendEmptyMessage(1);
                 }
             }
         });
