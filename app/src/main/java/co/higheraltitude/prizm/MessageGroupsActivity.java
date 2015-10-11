@@ -73,10 +73,12 @@ public class MessageGroupsActivity extends AppCompatActivity {
     private View actionOverlay;
     private View newGroupView;
     private static int themeLoaded;
+    private JSONArray messageCounts;
 
     public static DrawerLayout mDrawerLayout;
 
     private ImageView avatarView;
+    private static int[] countArray;
 
 
     @Override
@@ -253,6 +255,37 @@ public class MessageGroupsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void processCounts() {
+        countArray = new int[groupAdapter.getCount()];
+        if (messageCounts != null) {
+            for (int i = 0; i != messageCounts.length(); ++i) {
+                try {
+                    JSONObject object = messageCounts.getJSONObject(i);
+                    int total = object.getInt("total");
+                    JSONObject j = object.getJSONObject("_id");
+                    String org = j.getString("organization");
+                    String groupId = j.getString("group");
+
+                    if (!org.equals("null")) {
+                        if (!groupId.equals("null")) {
+                            int index = groupAdapter.indexOf(groupId);
+                            if (index != -1) {
+                                countArray[i + 2] = total;
+                            }
+                        } else {
+                            countArray[1] = total;
+                        }
+                    } else {
+                        countArray[0] = total;
+                    }
+                    groupAdapter.notifyDataSetChanged();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
     private static class GroupCountsHandler extends Handler {
         private MessageGroupsActivity mActivity;
 
@@ -265,15 +298,10 @@ public class MessageGroupsActivity extends AppCompatActivity {
             if (msg.obj != null) {
                 if (msg.obj instanceof JSONArray) {
                     JSONArray array = (JSONArray)msg.obj;
+                    mActivity.messageCounts = array;
+                    mActivity.processCounts();
+                        Log.d("DEBUG", "Fetched Counts");
 
-                    for (int i = 0; i!= array.length(); ++i) {
-                        try {
-                            JSONObject object = array.getJSONObject(i);
-                            Log.d("DEBUG", object.toString());
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }
                 }
             }
         }
@@ -340,6 +368,7 @@ public class MessageGroupsActivity extends AppCompatActivity {
     }
 
     public static class GroupAdapter extends ArrayAdapter<Group> {
+
         public GroupAdapter(Context c, List<Group> items) {
             super(c, 0, items);
         }
@@ -357,7 +386,38 @@ public class MessageGroupsActivity extends AppCompatActivity {
             } else {
                 groupView.setGroup(getItem(position - 2));
             }
+            if (countArray != null && countArray.length > position) {
+                groupView.setCount(countArray[position]);
+            }
             return groupView;
+        }
+
+        public View getView(String groupId) {
+            int idx = -1;
+            for (int i = 0; i != getCount() - 2; ++i) {
+                Group group = getItem(i);
+                if (group.uniqueID.equals(groupId)) {
+                    idx = i;
+                    break;
+                }
+            }
+            View view = null;
+            if (idx != -1) {
+                view = getView(idx + 2, null, null);
+            }
+            return view;
+        }
+
+        public int indexOf(String groupId) {
+            int idx = -1;
+            for (int i = 0; i != getCount() - 2; ++i) {
+                Group group = getItem(i);
+                if (group.uniqueID.equals(groupId)) {
+                    idx = i;
+                    break;
+                }
+            }
+            return idx;
         }
 
         @Override

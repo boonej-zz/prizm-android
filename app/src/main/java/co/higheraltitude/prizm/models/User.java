@@ -75,6 +75,7 @@ public class User implements Parcelable {
     public String role;
     public Boolean isMember;
     public String theme;
+    public String subtype;
 
     public static String PrizmCurrentUserCacheKey = "current_user";
     private static final String PRIZM_LOGIN_ENDPOINT = "/oauth2/login";
@@ -189,6 +190,7 @@ public class User implements Parcelable {
             put("role", "role");
             put("is_member", "isMember");
             put("theme", "theme");
+            put("subtype", "subtype");
         }};
         return map;
     }

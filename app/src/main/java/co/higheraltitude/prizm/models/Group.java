@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -43,6 +44,7 @@ public class Group implements Parcelable {
     public String description;
     public String leaderName;
     public String leader;
+    public int memberCount;
 
     private static String ENDPOINT_USER_GROUPS = "/organizations/%s/users/%s/groups";
     private static String FORMAT_GROUPS = "/organizations/%s/groups";
@@ -64,6 +66,9 @@ public class Group implements Parcelable {
                         field.set(this, value);
                     } else if (field.getType() == String.class) {
                         value = bundle.getString(key);
+                        field.set(this, value);
+                    } else if (field.getType() == int.class) {
+                        value = bundle.getInt(key);
                         field.set(this, value);
                     }
                 } catch (Exception ex) {
@@ -98,6 +103,8 @@ public class Group implements Parcelable {
                         bundle.putBoolean(key, (boolean) value);
                     } else if (value.getClass() == String.class) {
                         bundle.putString(key, (String) value);
+                    } else if (key.equals("memberCount")) {
+                        bundle.putInt(key, (int)value);
                     }
                 }
             } catch (Exception e) {
@@ -128,6 +135,7 @@ public class Group implements Parcelable {
             put("description", "description");
             put("leader_name", "leaderName");
             put("leader_id", "leader");
+            put("member_count", "memberCount");
         }};
         return map;
     }
@@ -151,6 +159,9 @@ public class Group implements Parcelable {
                     field = c.getDeclaredField((String) pair.getValue());
                     field.setAccessible(true);
                     Object value = object.get((String) pair.getKey());
+                    if (pair.getKey().equals("member_count")) {
+                        Log.d("DEBUG", String.valueOf(value));
+                    }
                     if (value != null && !value.equals(JSONObject.NULL)) {
                         field.set(this, value);
                     }

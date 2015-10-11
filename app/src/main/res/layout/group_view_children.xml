@@ -3,7 +3,8 @@
     <LinearLayout android:layout_height="52dp" android:layout_width="fill_parent" android:orientation="horizontal">
         <TextView
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_gravity="start|center_vertical"
             android:id="@+id/group_view_title"
             android:paddingLeft="18.3dp"
@@ -11,5 +12,25 @@
             android:textSize="@dimen/font_size_regular"
             android:textColor="@color/warm_grey"
             />
+        <RelativeLayout
+            android:id="@+id/message_count_badge"
+            android:layout_width="16.6dp"
+            android:layout_height="16.6dp"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginRight="18.4dp"
+            android:visibility="invisible">
+            <ImageView
+                android:layout_width="16.6dp"
+                android:layout_height="16.6dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/circle_badge"/>
+            <TextView
+                android:id="@+id/message_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:layout_centerInParent="true"/>
+        </RelativeLayout>
     </LinearLayout>
 </merge>

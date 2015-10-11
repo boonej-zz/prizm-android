@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -37,6 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
     private ImageView coverPhotoView = null;
     private Bitmap coverImage = null;
     private ImageView avatarView = null;
+    private ImageView badgeView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,10 +62,19 @@ public class ProfileActivity extends AppCompatActivity {
         textView = (TextView)findViewById(R.id.profile_name);
         avatarView = (ImageView)findViewById(R.id.profile_avatar_photo);
         locationView = (TextView)findViewById(R.id.profile_location);
-        User test = User.getCurrentUser();
 
         coverPhotoView = (ImageView)findViewById(R.id.profile_cover_photo);
-        textView.setText(profile.firstName + " " + profile.lastName);
+        badgeView = (ImageView)findViewById(R.id.avatar_badge);
+        if (profile.role.equals("ambassador")) {
+            badgeView.setImageResource(R.drawable.ambassador_badge);
+        } else if (profile.role.equals("leader")) {
+            badgeView.setImageResource(R.drawable.leader_badge);
+        } else if (profile.subtype.equals("luminary")) {
+            badgeView.setImageResource(R.drawable.luminary_badge);
+        } else {
+            badgeView.setVisibility(View.GONE);
+        }
+        textView.setText(profile.name);
 
         String locationString = "";
         if (profile.city != null) {
@@ -96,6 +107,7 @@ public class ProfileActivity extends AppCompatActivity {
         if (profile.profilePhotoURL != null && !profile.profilePhotoURL.isEmpty()) {
             new LoadImage().execute(profile.profilePhotoURL, "avatar");
         }
+
     }
 
 
@@ -160,7 +172,7 @@ public class ProfileActivity extends AppCompatActivity {
                     coverPhotoView.setImageBitmap(image);
                 } else if (field == "avatar") {
                     AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
-                    Drawable avatarDrawable = avatarDrawableFactory.getBorderedRoundedAvatarDrawable(Bitmap.createScaledBitmap(image, 128, 128, false));
+                    Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(Bitmap.createScaledBitmap(image, 128, 128, false));
                     avatarView.setImageDrawable(avatarDrawable);
                 }
             }else{

@@ -31,6 +31,7 @@ import android.widget.Filter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -151,7 +152,7 @@ public class ReadMessagesActivity extends AppCompatActivity {
                 finish();
             }
         });
-        ImageButton ib = (ImageButton)findViewById(R.id.action_members_button);
+        View ib = findViewById(R.id.action_members_button);
         ib.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -162,6 +163,9 @@ public class ReadMessagesActivity extends AppCompatActivity {
         });
         if (group == null) {
             ib.setVisibility(View.GONE);
+        } else {
+            TextView groupCount = (TextView)findViewById(R.id.badge_count);
+            groupCount.setText(String.valueOf(group.memberCount));
         }
 
         role = User.getCurrentUser().role;

@@ -17,6 +17,8 @@ import co.higheraltitude.prizm.models.Group;
 public class GroupView extends RelativeLayout {
 
     private TextView mTitleTextView;
+    private View mCountBadgeView;
+    private TextView mCount;
 
 
     public static GroupView inflate(ViewGroup parent) {
@@ -37,6 +39,8 @@ public class GroupView extends RelativeLayout {
         super(context, attrs, defStyle);
         LayoutInflater.from(context).inflate(R.layout.group_view_children, this, true);
         mTitleTextView = (TextView)findViewById(R.id.group_view_title);
+        mCountBadgeView = findViewById(R.id.message_count_badge);
+        mCount = (TextView)findViewById(R.id.message_count);
     }
 
     public void setGroup(Group group) {
@@ -44,6 +48,13 @@ public class GroupView extends RelativeLayout {
             Group g = group;
             String name = "#" + g.name.toLowerCase();
             mTitleTextView.setText(name);
+        }
+    }
+
+    public void setCount(int count) {
+        if (count > 0) {
+            mCountBadgeView.setVisibility(VISIBLE);
+            mCount.setText(String.valueOf(count));
         }
     }
 

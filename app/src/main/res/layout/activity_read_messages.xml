@@ -99,15 +99,44 @@
 
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         >
-        <ImageButton
+        <RelativeLayout
             android:id="@+id/action_members_button"
-            android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:src="@drawable/btn_members"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:textAllCaps="false"
             android:layout_gravity="right|center_vertical"
-            />
+            android:layout_marginRight="20.4dp"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_height="14dp"
+                android:layout_width="22dp"
+                android:src="@drawable/btn_members"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:textAllCaps="false"
+                android:layout_marginTop="10dp"
+                android:layout_alignParentLeft="true"
+                />
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginLeft="19dp">
+                <ImageView
+                    android:layout_width="16.6dp"
+                    android:layout_height="16.6dp"
+                    android:src="@drawable/circle_badge"
+                    android:layout_centerInParent="true"/>
+                <TextView
+                    android:id="@+id/badge_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"
+                    android:textColor="@android:color/white"
+                    android:text="5"/>
+            </RelativeLayout>
+
+
+        </RelativeLayout>
+
     </android.support.v7.widget.Toolbar>
 
 

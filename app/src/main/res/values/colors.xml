@@ -36,5 +36,6 @@
     <item name="copper" type="color">#C1762B</item>
     <item name="charcoal_grey" type="color">#33333A</item>
     <item name="charcoal_grey_dark" type="color">#27272E</item>
+    <item name="iris" type="color">#5A64CA</item>
 
 </resources>
