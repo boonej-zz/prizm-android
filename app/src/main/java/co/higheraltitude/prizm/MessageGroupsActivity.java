@@ -32,6 +32,7 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -45,6 +46,7 @@ import org.json.JSONObject;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -56,6 +58,7 @@ import co.higheraltitude.prizm.models.Group;
 import co.higheraltitude.prizm.models.Peep;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.views.GroupView;
+import co.higheraltitude.prizm.views.MenuItemView;
 
 @TargetApi(21)
 public class MessageGroupsActivity extends AppCompatActivity {
@@ -65,6 +68,7 @@ public class MessageGroupsActivity extends AppCompatActivity {
     private PrizmCache cache;
     private static ArrayList<Group> groups;
     private static GroupAdapter groupAdapter;
+    private MenuItemAdapter menuItemAdapter;
 
     private static ListView listView;
     private FloatingActionButton floatingActionButton;
@@ -109,6 +113,12 @@ public class MessageGroupsActivity extends AppCompatActivity {
         listView = (ListView)findViewById(R.id.group_list);
         progressBar = (ProgressBar)findViewById(R.id.progress_bar);
         floatingActionButton = (FloatingActionButton)findViewById(R.id.floating_action_button);
+
+        String [] menuItems = getResources().getStringArray(R.array.menu_items);
+        ArrayList<String> menuList = new ArrayList<>(Arrays.asList(menuItems));
+        menuItemAdapter = new MenuItemAdapter(getApplicationContext(), menuList);
+        ListView listView  = (ListView)findViewById(R.id.menu_list);
+        listView.setAdapter(menuItemAdapter);
         configureDrawer();
 
 
@@ -457,5 +467,25 @@ public class MessageGroupsActivity extends AppCompatActivity {
         Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
         intent.putExtra(LoginActivity.EXTRA_PROFILE, User.getCurrentUser());
         startActivity(intent);
+    }
+
+    private class MenuItemAdapter extends ArrayAdapter<String> {
+
+        public MenuItemAdapter(Context c, List<String> items) {
+            super(c, 0, items);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            MenuItemView itemView = (MenuItemView)convertView;
+            if (itemView == null) {
+                itemView = MenuItemView.inflate(parent);
+            }
+            itemView.setText(getItem(position));
+            if (position == 3) {
+                itemView.setItemSelected(true);
+            }
+            return itemView;
+        }
     }
 }

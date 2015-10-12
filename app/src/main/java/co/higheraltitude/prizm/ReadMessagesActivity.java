@@ -397,7 +397,7 @@ public class ReadMessagesActivity extends AppCompatActivity {
         } else if (directUser != null) {
             groupText = "@" + directUser.firstName;
         }
-        createPeepEditText.setHint(String.format("Post a message to %s...", groupText));
+        createPeepEditText.setHint(String.format("Post a message..."));
         HashMap<String, String> query = new HashMap<>();
         query.put("requestor", User.getCurrentUser().uniqueID);
 

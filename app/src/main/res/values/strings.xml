@@ -118,11 +118,16 @@
         <item>Military</item>
     </string-array>
 
-    <string-array name="left_drawer_items">
-        <item>Test</item>
-        <item>1</item>
-        <item>2</item>
+    <string-array name="menu_items">
+        <item>Explore</item>
+        <item>Insight</item>
+        <item>Graph</item>
+        <item>Message</item>
+        <item>Survey</item>
+        <item>Calendar</item>
+        <item>Settings</item>
     </string-array>
+
     <string name="title_activity_read_messages">ReadMessagesActivity</string>
 
     <string name="title_activity_full_screen_image">FullScreenImageActivity</string>

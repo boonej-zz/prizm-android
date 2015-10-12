@@ -37,5 +37,6 @@
     <item name="charcoal_grey" type="color">#33333A</item>
     <item name="charcoal_grey_dark" type="color">#27272E</item>
     <item name="iris" type="color">#5A64CA</item>
+    <item name="warm_grey_50" type="color">#807C7C7C</item>
 
 </resources>
