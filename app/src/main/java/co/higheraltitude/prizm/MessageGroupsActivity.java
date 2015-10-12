@@ -267,6 +267,9 @@ public class MessageGroupsActivity extends AppCompatActivity {
 
     private void processCounts() {
         countArray = new int[groupAdapter.getCount()];
+        for (int i = 0; i!= countArray.length; ++i) {
+            countArray[i] = 0;
+        }
         if (messageCounts != null) {
             for (int i = 0; i != messageCounts.length(); ++i) {
                 try {
@@ -361,6 +364,7 @@ public class MessageGroupsActivity extends AppCompatActivity {
                                 }
                                 groupAdapter.notifyDataSetChanged();
 
+
                             } catch (Exception ex) {
                                 ex.printStackTrace();
                             }
@@ -398,6 +402,8 @@ public class MessageGroupsActivity extends AppCompatActivity {
             }
             if (countArray != null && countArray.length > position) {
                 groupView.setCount(countArray[position]);
+            } else {
+                groupView.setCount(0);
             }
             return groupView;
         }

@@ -294,7 +294,7 @@ public class Peep implements Parcelable {
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
         String path = String.format(PRIZM_UNREAD_FORMAT_1, User.getCurrentUser().primaryOrganization,
                 User.getCurrentUser().uniqueID);
-        PrizmCache.getInstance().performCachedRequest(path, post, HttpMethod.GET, handler);
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.GET, handler, true);
     }
 
 
