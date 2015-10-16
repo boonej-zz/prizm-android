@@ -233,6 +233,12 @@ public class Group implements Parcelable {
         PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.PUT, new SingleGroupHandler(handler), true);
     }
 
+    public static void fetchOrganizationMemberCount(String organization, Handler handler) {
+        String path = "/organizations/" + organization;
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.GET, handler, true);
+    }
+
 
     private static ArrayList<Group> processGroupJsonArray(JSONArray array) {
         ArrayList<Group> groups = new ArrayList<>();
@@ -259,12 +265,16 @@ public class Group implements Parcelable {
         @Override
         public void handleMessage(Message message) {
             Object obj = message.obj;
-            ArrayList<Group> returnGroups = new ArrayList<>();
-            if (obj instanceof JSONArray) {
-                returnGroups = processGroupJsonArray((JSONArray)obj);
+            if (obj != null) {
+                ArrayList<Group> returnGroups = new ArrayList<>();
+                if (obj instanceof JSONArray) {
+                    returnGroups = processGroupJsonArray((JSONArray) obj);
+                }
+                Message mMessage = mHandler.obtainMessage(1, returnGroups);
+                mHandler.sendMessage(mMessage);
+            } else {
+                mHandler.sendEmptyMessage(1);
             }
-            Message mMessage = mHandler.obtainMessage(1, returnGroups);
-            mHandler.sendMessage(mMessage);
         }
     }
 
@@ -286,4 +296,5 @@ public class Group implements Parcelable {
             mHandler.sendMessage(mMessage);
         }
     }
+
 }

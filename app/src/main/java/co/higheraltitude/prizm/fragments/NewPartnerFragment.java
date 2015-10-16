@@ -23,6 +23,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +33,7 @@ import co.higheraltitude.prizm.LoginActivity;
 import co.higheraltitude.prizm.MainActivity;
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.Registration;
+import co.higheraltitude.prizm.adapters.OptionAdapter;
 import co.higheraltitude.prizm.models.User;
 
 
@@ -60,7 +62,9 @@ public class NewPartnerFragment extends Fragment {
     private String type = "";
     private String city = "";
     private String state = "";
-    private String[] types = null;
+    private View passwordWrapper;
+    private View confirmWrapper;
+    private Bundle baseUser;
 
 
 
@@ -96,7 +100,7 @@ public class NewPartnerFragment extends Fragment {
         contactEmailField = (EditText)view.findViewById(R.id.registration_field_contact_email);
         websiteField = (EditText)view.findViewById(R.id.registration_field_website);
         zipCodeField = (EditText)view.findViewById(R.id.registration_field_zipcode);
-        Location location = MainActivity.lastLocation;
+        Location location = MainActivity.lastLocation();
         String zipPostal = null;
         if (location != null) {
             Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
@@ -126,6 +130,17 @@ public class NewPartnerFragment extends Fragment {
                 onSave(v);
             }
         });
+        passwordWrapper = view.findViewById(R.id.registration_password_wrapper);
+        confirmWrapper = view.findViewById(R.id.registration_confirm_wrapper);
+
+        if (baseUser != null) {
+            if (baseUser.getString("email") != null) {
+                emailField.setText(baseUser.getString("email"));
+            }
+
+            passwordWrapper.setVisibility(View.GONE);
+            confirmWrapper.setVisibility(View.GONE);
+        }
 
         return view;
     }
@@ -133,27 +148,25 @@ public class NewPartnerFragment extends Fragment {
     private void onTypeClick() {
         final Dialog dialog = new Dialog(getContext());
         dialog.setContentView(R.layout.selector_dialog);
-        if (types == null) {
-            types = getResources().getStringArray(R.array.values_type);
-        }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.select_dialog_item, types);
+        OptionAdapter optionAdapter = new OptionAdapter(getContext(),
+                Arrays.asList(getResources().getStringArray(R.array.values_type)));
         ListView listView = (ListView) dialog.findViewById(R.id.listview_dialog);
-        listView.setAdapter(arrayAdapter);
+        listView.setAdapter(optionAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                type = types[position];
+                type = (String)parent.getAdapter().getItem(position);
                 typeButton.setText(type);
-                dialog.hide();
+                dialog.dismiss();
             }
         });
-        Button cancelButton = (Button)dialog.findViewById(R.id.listview_cancel);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.hide();
-            }
-        });
+//        Button cancelButton = (Button)dialog.findViewById(R.id.listview_cancel);
+//        cancelButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.hide();
+//            }
+//        });
 
         dialog.show();
     }
@@ -180,6 +193,11 @@ public class NewPartnerFragment extends Fragment {
         hashMap.put("contact_first", contactFirstField.getText().toString());
         hashMap.put("contact_last", contactLastField.getText().toString());
         hashMap.put("contact_email", contactEmailField.getText().toString());
+        if (baseUser != null) {
+            hashMap.put("provider", baseUser.getString("provider"));
+            hashMap.put("provider_token", baseUser.getString("provider_token"));
+            hashMap.put("provider_token_secret", baseUser.getString("provider_secret"));
+        }
         HandleMessage handler = new HandleMessage();
         handler.setFragment(this);
         User.register(hashMap, handler);

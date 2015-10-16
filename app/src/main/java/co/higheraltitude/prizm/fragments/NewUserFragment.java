@@ -35,6 +35,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -44,6 +45,7 @@ import co.higheraltitude.prizm.LoginActivity;
 import co.higheraltitude.prizm.MainActivity;
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.Registration;
+import co.higheraltitude.prizm.adapters.OptionAdapter;
 import co.higheraltitude.prizm.models.User;
 
 
@@ -76,11 +78,13 @@ public class NewUserFragment extends Fragment {
     private String gender = "unknown";
     private String religion = "";
     private String ethnicity = "";
-    private String[] religions;
-    private String[] ethnicities;
+    private Bundle baseUser;
+    private View passwordWrapper;
+    private View confirmWrapper;
 
-    public static NewUserFragment newInstance() {
+    public static NewUserFragment newInstance(Bundle base) {
         NewUserFragment fragment = new NewUserFragment();
+        fragment.setBaseUser(base);
 
         return fragment;
     }
@@ -93,6 +97,10 @@ public class NewUserFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        mPage = getArguments().getInt(ARG_PAGE);
+    }
+
+    private void setBaseUser(Bundle base) {
+        baseUser = base;
     }
 
     @Override
@@ -145,33 +153,47 @@ public class NewUserFragment extends Fragment {
                 onReligionClick();
             }
         });
+        passwordWrapper = view.findViewById(R.id.registration_password_wrapper);
+        confirmWrapper = view.findViewById(R.id.registration_confirm_wrapper);
+
+        if (baseUser != null) {
+            if (baseUser.getString("email") != null) {
+                emailField.setText(baseUser.getString("email"));
+            }
+            if (baseUser.getString("first_name") != null) {
+                firstNameField.setText(baseUser.getString("first_name"));
+            }
+            if (baseUser.getString("last_name") != null) {
+                lastNameField.setText(baseUser.getString("last_name"));
+            }
+            passwordWrapper.setVisibility(View.GONE);
+            confirmWrapper.setVisibility(View.GONE);
+        }
         return view;
     }
 
     private void onEthnicityClick() {
         final Dialog dialog = new Dialog(getContext());
         dialog.setContentView(R.layout.selector_dialog);
-        if (ethnicities == null) {
-            ethnicities = getResources().getStringArray(R.array.values_ethnicity);
-        }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.select_dialog_item, ethnicities);
+        OptionAdapter optionAdapter = new OptionAdapter(getContext(),
+                Arrays.asList(getResources().getStringArray(R.array.values_ethnicity)));
         ListView listView = (ListView) dialog.findViewById(R.id.listview_dialog);
-        listView.setAdapter(arrayAdapter);
+        listView.setAdapter(optionAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ethnicity = ethnicities[position];
+                ethnicity = (String)parent.getAdapter().getItem(position);
                 ethnicityButton.setText(ethnicity);
                 dialog.hide();
             }
         });
-        Button cancelButton = (Button)dialog.findViewById(R.id.listview_cancel);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.hide();
-            }
-        });
+//        Button cancelButton = (Button)dialog.findViewById(R.id.listview_cancel);
+//        cancelButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.hide();
+//            }
+//        });
 
         dialog.show();
     }
@@ -179,35 +201,32 @@ public class NewUserFragment extends Fragment {
     private void onReligionClick() {
         final Dialog dialog = new Dialog(getContext());
         dialog.setContentView(R.layout.selector_dialog);
-        if (religions == null) {
-            religions = getResources().getStringArray(R.array.values_religion);
-        }
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.select_dialog_item, religions);
+        OptionAdapter arrayAdapter = new OptionAdapter(getContext(),
+                Arrays.asList(getResources().getStringArray(R.array.values_religion)));
         ListView listView = (ListView) dialog.findViewById(R.id.listview_dialog);
 
         listView.setAdapter(arrayAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                religion = religions[position];
+                religion = (String)parent.getAdapter().getItem(position);
                 religionButton.setText(religion);
-                dialog.hide();
+                dialog.dismiss();
             }
         });
-        Button cancelButton = (Button)dialog.findViewById(R.id.listview_cancel);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.hide();
-            }
-        });
-
+//        Button cancelButton = (Button)dialog.findViewById(R.id.listview_cancel);
+//        cancelButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.hide();
+//            }
+//        });
 
         dialog.show();
     }
 
     public void onSave(View view) {
-        Location location = MainActivity.lastLocation;
+        Location location = MainActivity.lastLocation();
         String zipPostal = "00000";
         String city = "";
         String state = "";
@@ -244,6 +263,11 @@ public class NewUserFragment extends Fragment {
         hashMap.put("program_code", programCodeField.getText().toString());
         hashMap.put("ethnicity", ethnicity);
         hashMap.put("religion", religion);
+        if (baseUser != null) {
+            hashMap.put("provider", baseUser.getString("provider"));
+            hashMap.put("provider_token", baseUser.getString("provider_token"));
+            hashMap.put("provider_token_secret", baseUser.getString("provider_secret"));
+        }
         HandleMessage handler = new HandleMessage();
         handler.setFragment(this);
         User.register(hashMap, handler);

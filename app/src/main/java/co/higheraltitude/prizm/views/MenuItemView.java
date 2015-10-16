@@ -67,7 +67,6 @@ public class MenuItemView extends RelativeLayout {
     public void setItemSelected(boolean selected) {
         super.setSelected(selected);
         mSelected = selected;
-        mSelected = selected;
         if (mSelected) {
             mTextView.setTextColor(Color.parseColor("#2F38A2"));
         } else {
@@ -79,7 +78,10 @@ public class MenuItemView extends RelativeLayout {
     private int setImage() {
         int item = 0;
         String text = mTextView.getText().toString();
-        if (text.equals("Explore")) {
+        if (text.equals("Home")) {
+            if (mSelected) mImageView.setImageResource(R.drawable.home_icon_selected);
+            else mImageView.setImageResource(R.drawable.home_icon);
+        } else if (text.equals("Explore")) {
             if (mSelected) mImageView.setImageResource(R.drawable.explore_icon_selected);
             else mImageView.setImageResource(R.drawable.explore_icon);
         } else if (text.equals("Insight")) {
@@ -100,7 +102,6 @@ public class MenuItemView extends RelativeLayout {
         } else if (text.equals("Settings")) {
             if (mSelected) mImageView.setImageResource(R.drawable.settings_icon_selected);
             else mImageView.setImageResource(R.drawable.settings_icon);
-
         }
 
         if (text.equals("Settings")) {

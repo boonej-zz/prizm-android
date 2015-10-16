@@ -16,14 +16,15 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         >
-        <Button
+        <ImageButton
             android:id="@+id/action_done_button"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:textAllCaps="false"
             android:layout_gravity="right|center_vertical"
-            android:text="@string/action_done"
+            android:src="@drawable/check"
+            android:layout_marginRight="27.7dp"
             />
     </android.support.v7.widget.Toolbar>
     <RelativeLayout
@@ -73,7 +74,7 @@
                     android:layout_height="60dp"
                     android:background="@drawable/bkg_button_dropdown"
                     android:drawableRight="@drawable/arrow_dropdown"
-                    android:paddingRight="22.3dp"
+                    android:paddingRight="28.3dp"
                     android:gravity="left|center_vertical"
                     android:textColor="@color/warm_grey"
                     android:textSize="16.7sp"

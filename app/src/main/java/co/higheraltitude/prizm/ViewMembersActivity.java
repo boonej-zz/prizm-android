@@ -28,10 +28,12 @@ public class ViewMembersActivity extends AppCompatActivity implements
         UserHandler.UserHandlerDelegate {
 
     public static String EXTRA_GROUP = "co_higheraltitude_extra_group";
+    public static String EXTRA_ORGANIZATION = "co_higheraltitude_extra_organization";
 
     private ListView memberList;
 
     private Group mGroup;
+    private String mOrganization;
     private static UserAdapter mUserAdapter;
     private static UserHandler mUserHandler;
 
@@ -54,6 +56,7 @@ public class ViewMembersActivity extends AppCompatActivity implements
 
         Intent intent = getIntent();
         mGroup = intent.getParcelableExtra(EXTRA_GROUP);
+        mOrganization = intent.getStringExtra(EXTRA_ORGANIZATION);
 
         memberList = (ListView)findViewById(R.id.member_list);
         mUserAdapter = new UserAdapter(getApplicationContext(), new ArrayList<User>());
@@ -78,7 +81,11 @@ public class ViewMembersActivity extends AppCompatActivity implements
             name = mUserAdapter.getUser(mUserAdapter.getCount() - 1).name;
         }
 
-        User.fetchGroupMembers(mGroup.uniqueID, name, false, new UserHandler(mUserAdapter, this));
+        if (mGroup != null) {
+            User.fetchGroupMembers(mGroup.uniqueID, name, false, new UserHandler(mUserAdapter, this));
+        } else if (mOrganization != null) {
+            User.fetchOrganizationMembers(mOrganization, name, new UserHandler(mUserAdapter, this));
+        }
     }
 
     @Override

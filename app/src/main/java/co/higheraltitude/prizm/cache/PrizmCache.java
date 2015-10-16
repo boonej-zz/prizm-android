@@ -28,6 +28,7 @@ import org.json.JSONTokener;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.MultiValueMap;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -70,6 +71,7 @@ public class PrizmCache {
         if (bitmapCache == null) {
             bitmapCache = new DualCacheBuilder<Bitmap>(imageCacheName, 1, Bitmap.class)
                     .useReferenceInRam((int)cacheSize, new SizeOfBitmap())
+//                    .useCustomSerializerInDisk((int)storageSize *2, true, new BitmapSerializer());
                     .useDefaultSerializerInDisk((int)storageSize * 2, true);
         }
     }
@@ -98,6 +100,22 @@ public class PrizmCache {
             Gson gson = new Gson();
             JSONObject object = gson.fromJson(string, JSONObject.class);
             return object;
+        }
+    }
+
+    private static class BitmapSerializer implements Serializer<Bitmap> {
+
+        @Override
+        public Bitmap fromString(String data) {
+            byte [] b = data.getBytes();
+            return  BitmapFactory.decodeByteArray(b, 0, b.length);
+        }
+
+        @Override
+        public String toString(Bitmap object) {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            object.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            return stream.toString();
         }
     }
 
@@ -325,17 +343,20 @@ public class PrizmCache {
         @Override
         public void handleMessage(Message message) {
             Object object = message.obj;
-
-            if (mKey != null && mHandler != null && object != null) {
-                try {
-                    Gson gson = new Gson();
-                    String value = gson.toJson(object);
-                    objectCache.put(mKey, value);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+            if (object != null) {
+                if (mKey != null && mHandler != null && object != null) {
+                    try {
+                        Gson gson = new Gson();
+                        String value = gson.toJson(object);
+                        objectCache.put(mKey, value);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    Message mMessage = mHandler.obtainMessage(1, object);
+                    mHandler.sendMessage(mMessage);
                 }
-                Message mMessage = mHandler.obtainMessage(1, object);
-                mHandler.sendMessage(mMessage);
+            } else {
+                mHandler.sendEmptyMessage(1);
             }
         }
     }

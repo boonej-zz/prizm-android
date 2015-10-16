@@ -83,6 +83,7 @@ public class User implements Parcelable {
     private static final String PRIZM_MESSAGE_USER_FORMAT = "/organizations/%s/users/%s/messages?format=digest";
     private static final String PRIZM_MESSAGE_USER_FORMAT_2 = "/organizations/%s/users/%s/contacts";
     private static final String PRIZM_GROUP_USER_FORMAT = "/organizations/%s/groups/%s/members";
+    private static final String PRIZM_ORG_USER_FORMAT = "/organizations/%s/members";
 
     public static String ROLE_LEADER = "leader";
     public static String ROLE_OWNER = "owner";
@@ -380,21 +381,25 @@ public class User implements Parcelable {
         post.add("provider", "twitter");
         service.performAuthorizedRequest(PRIZM_LOGIN_ENDPOINT, post, HttpMethod.POST, new Handler(){
             public void handleMessage(Message message) {
-                JSONObject userObject = (JSONObject) message.obj;
-                try {
-                    JSONArray dataArray = userObject.getJSONArray("data");
-                    if (dataArray.length() > 0) {
-                        JSONObject userProfile = dataArray.getJSONObject(0);
-                        User user = new User(userProfile);
-                        setCurrentUser(user);
-                        Message message1 = handler.obtainMessage(1, user);
-                        handler.sendMessage(message1);
-                    } else {
+                if (message.obj != null) {
+                    JSONObject userObject = (JSONObject) message.obj;
+                    try {
+                        JSONArray dataArray = userObject.getJSONArray("data");
+                        if (dataArray.length() > 0) {
+                            JSONObject userProfile = dataArray.getJSONObject(0);
+                            User user = new User(userProfile);
+                            setCurrentUser(user);
+                            Message message1 = handler.obtainMessage(1, user);
+                            handler.sendMessage(message1);
+                        } else {
+                            handler.sendEmptyMessage(1);
+                        }
+                    } catch (JSONException ex) {
+                        ex.printStackTrace();
                         handler.sendEmptyMessage(1);
                     }
-                } catch (JSONException ex) {
-                    ex.printStackTrace();
-                    handler.sendEmptyMessage(1);
+                } else {
+                    handler.sendEmptyMessage(0);
                 }
             }
         });
@@ -425,6 +430,8 @@ public class User implements Parcelable {
                         ex.printStackTrace();
                         handler.sendEmptyMessage(1);
                     }
+                } else {
+                    handler.sendEmptyMessage(1);
                 }
             }
         });
@@ -432,7 +439,7 @@ public class User implements Parcelable {
 
     public static void logout(Context context) {
         PrizmCache cache = PrizmCache.getInstance();
-        cache.clearObjectCache();
+        cache.objectCache.invalidate();
         Intent mStartActivity = new Intent(context, MainActivity.class);
         int mPendingIntentId = 123456;
         PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -449,7 +456,10 @@ public class User implements Parcelable {
         Iterator iterator = properties.iterator();
         while (iterator.hasNext()) {
             String key = (String)iterator.next();
-            post.add(key, map.get(key).toString());
+            Object value = map.get(key);
+            if (value != null) {
+                post.add(key, value.toString());
+            }
         }
         service.performAuthorizedRequest(PRIZM_USER_ENDPOINT, post, HttpMethod.POST, new Handler() {
             public void handleMessage(Message message) {
@@ -578,6 +588,33 @@ public class User implements Parcelable {
         }
         PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.GET, new UserListHandler(handler), true);
 
+    }
+
+    public static ArrayList<User> fetchOrganizationMembers(String oid, String lastItem, final Handler handler) {
+        String path =  String.format(PRIZM_ORG_USER_FORMAT, oid);
+        if (lastItem != null) {
+            try {
+                lastItem = URLEncoder.encode(lastItem, "UTF-8");
+                path = path + "?last=" + lastItem;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        Object data = PrizmCache.getInstance().performCachedRequest(path, post, HttpMethod.GET, new UserListHandler(handler));
+        ArrayList<User> userList = new ArrayList<>();
+        if (data instanceof JSONArray) {
+            for (int i = 0; i != ((JSONArray)data).length(); ++i) {
+                try {
+                    JSONObject o = ((JSONArray) data).getJSONObject(i);
+                    User u = new User(o);
+                    userList.add(u);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return userList;
     }
 
     public static ArrayList<User> fetchGroupMembers(String gid, String lastItem, boolean allUsers, final Handler handler) {

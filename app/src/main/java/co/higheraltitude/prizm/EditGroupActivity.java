@@ -21,6 +21,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Filter;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -77,7 +78,7 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
         actionBar.setNavigationIcon(R.drawable.backarrow_icon);
         actionBar.setNavigationOnClickListener(new BackClickListener(this));
         actionBar.hideOverflowMenu();
-        Button doneButton = (Button)findViewById(R.id.action_done_button);
+        ImageButton doneButton = (ImageButton)findViewById(R.id.action_done_button);
 
         Intent intent = getIntent();
         mGroup = intent.getParcelableExtra(EXTRA_GROUP);
@@ -214,13 +215,14 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
             }
         });
         lv.setAdapter(adapter);
-        Button cancelButton = (Button)dialog.findViewById(R.id.listview_cancel);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+//        Button cancelButton = (Button)dialog.findViewById(R.id.listview_cancel);
+//        cancelButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.dismiss();
+//            }
+//        });
+
         dialog.show();
     }
 

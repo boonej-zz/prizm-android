@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Handler;
@@ -51,6 +52,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import co.higheraltitude.prizm.adapters.MenuItemAdapter;
 import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
@@ -61,7 +63,7 @@ import co.higheraltitude.prizm.views.GroupView;
 import co.higheraltitude.prizm.views.MenuItemView;
 
 @TargetApi(21)
-public class MessageGroupsActivity extends AppCompatActivity {
+public class MessageGroupsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
 
     private User currentUser;
@@ -83,6 +85,7 @@ public class MessageGroupsActivity extends AppCompatActivity {
 
     private ImageView avatarView;
     private static int[] countArray;
+    private int orgMemberCount;
 
 
     @Override
@@ -90,7 +93,6 @@ public class MessageGroupsActivity extends AppCompatActivity {
 
         cache = PrizmCache.getInstance();
         Object theme = PrizmCache.objectCache.get("theme");
-        MainActivity.messagesStarted = true;
         if (theme != null ) {
             setTheme((int) theme);
         } else {
@@ -99,14 +101,13 @@ public class MessageGroupsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message_groups);
 
-
         newGroupView = findViewById(R.id.new_group_button);
         actionOverlay = findViewById(R.id.action_overlay);
         actionOverlay.setAlpha(0);
         Toolbar actionBar = (Toolbar)findViewById(R.id.profile_nav_bar);
         setSupportActionBar(actionBar);
         actionBar.setNavigationIcon(R.drawable.menu);
-        actionBar.setNavigationOnClickListener(new MenuClickListener());
+//        actionBar.setNavigationOnClickListener(new MenuClickListener());
         Intent intent = getIntent();
         currentUser = intent.getParcelableExtra(LoginActivity.EXTRA_PROFILE);
 
@@ -114,17 +115,8 @@ public class MessageGroupsActivity extends AppCompatActivity {
         progressBar = (ProgressBar)findViewById(R.id.progress_bar);
         floatingActionButton = (FloatingActionButton)findViewById(R.id.floating_action_button);
 
-        String [] menuItems = getResources().getStringArray(R.array.menu_items);
-        ArrayList<String> menuList = new ArrayList<>(Arrays.asList(menuItems));
-        menuItemAdapter = new MenuItemAdapter(getApplicationContext(), menuList);
-        ListView listView  = (ListView)findViewById(R.id.menu_list);
-        listView.setAdapter(menuItemAdapter);
+
         configureDrawer();
-
-
-
-
-
     }
 
     @Override
@@ -134,7 +126,9 @@ public class MessageGroupsActivity extends AppCompatActivity {
     }
 
     private void loadGroups() {
+
         if (currentUser != null && currentUser.primaryOrganization != null) {
+            Group.fetchOrganizationMemberCount(currentUser.primaryOrganization, new OrgCountHandler(this));
             if (currentUser.role == null || ( !currentUser.role.equals("owner") && !currentUser.role.equals("leader"))) {
                 newGroupView.setVisibility(View.GONE);
             }
@@ -170,6 +164,7 @@ public class MessageGroupsActivity extends AppCompatActivity {
 
     private void configureDrawer() {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        mDrawerLayout.setDrawingCacheEnabled(true);
         ImageView coverImage = (ImageView)findViewById(R.id.menu_cover_view);
         avatarView = (ImageView)findViewById(R.id.menu_avatar_view);
         TextView nameView = (TextView)findViewById(R.id.menu_name);
@@ -178,6 +173,12 @@ public class MessageGroupsActivity extends AppCompatActivity {
         cache.fetchDrawable(u.profilePhotoURL, coverImage);
         LoadImage li = new LoadImage();
         li.execute(u.profilePhotoURL);
+        String [] menuItems = getResources().getStringArray(R.array.menu_items);
+        ArrayList<String> menuList = new ArrayList<>(Arrays.asList(menuItems));
+        menuItemAdapter = new MenuItemAdapter(getApplicationContext(), menuList);
+        ListView menuListView  = (ListView)findViewById(R.id.menu_list);
+        menuListView.setAdapter(menuItemAdapter);
+        menuListView.setOnItemClickListener(this);
 
     }
 
@@ -230,6 +231,7 @@ public class MessageGroupsActivity extends AppCompatActivity {
             intent = new Intent(getApplicationContext(), ReadMessagesActivity.class);
             if (position == 1) {
                 intent.putExtra(ReadMessagesActivity.EXTRA_IS_ALL, true);
+                intent.putExtra(ReadMessagesActivity.EXTRA_ORG_MEMBER_COUNT, orgMemberCount);
             } else {
                 Group group = groups.get(position - 2);
                 intent.putExtra(ReadMessagesActivity.EXTRA_GROUP, group);
@@ -257,9 +259,7 @@ public class MessageGroupsActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if(id == R.id.action_logout) {
-            User.logout(getApplicationContext());
-        }
+
 
 
         return super.onOptionsItemSelected(item);
@@ -319,7 +319,31 @@ public class MessageGroupsActivity extends AppCompatActivity {
             }
         }
 
-    };
+    }
+
+    private static class OrgCountHandler extends Handler {
+        private MessageGroupsActivity mActivity;
+
+        public OrgCountHandler(MessageGroupsActivity activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.obj != null) {
+                if (msg.obj instanceof JSONObject) {
+                    JSONObject object = (JSONObject)msg.obj;
+                    try {
+                        int orgCount = object.getInt("member_count");
+                        mActivity.orgMemberCount = orgCount;
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                }
+            }
+        }
+    }
 
     private static class FetchGroupsHandler extends Handler {
 
@@ -463,9 +487,11 @@ public class MessageGroupsActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(Bitmap image) {
-            AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
-            Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(Bitmap.createScaledBitmap(image, 128, 128, false));
-            avatarView.setImageDrawable(avatarDrawable);
+            if (image != null) {
+                AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
+                Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(Bitmap.createScaledBitmap(image, 128, 128, false));
+                avatarView.setImageDrawable(avatarDrawable);
+            }
         }
     }
 
@@ -475,23 +501,10 @@ public class MessageGroupsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private class MenuItemAdapter extends ArrayAdapter<String> {
 
-        public MenuItemAdapter(Context c, List<String> items) {
-            super(c, 0, items);
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            MenuItemView itemView = (MenuItemView)convertView;
-            if (itemView == null) {
-                itemView = MenuItemView.inflate(parent);
-            }
-            itemView.setText(getItem(position));
-            if (position == 3) {
-                itemView.setItemSelected(true);
-            }
-            return itemView;
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (position == menuItemAdapter.getCount() - 1) {
+            User.logout(getApplicationContext());
         }
     }
 }

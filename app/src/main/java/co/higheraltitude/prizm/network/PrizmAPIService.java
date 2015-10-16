@@ -1,6 +1,8 @@
 package co.higheraltitude.prizm.network;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
@@ -30,12 +32,19 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import android.os.Handler;
+import android.widget.Toast;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.twitter.sdk.android.core.Callback;
+import com.twitter.sdk.android.core.TwitterApiClient;
+import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.models.User;
 
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import retrofit.http.GET;
+import retrofit.http.Query;
 
 /**
  * Created by boonej on 9/3/15.
@@ -81,7 +90,12 @@ public class PrizmAPIService {
         instance.context = context;
     }
 
-
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
 
     private void storeTokens() {
         PrizmCache cache = PrizmCache.getInstance();
@@ -225,64 +239,70 @@ public class PrizmAPIService {
     }
 
     public void performAuthorizedRequest(String path, final MultiValueMap<String, String> parameters, final HttpMethod method, final Handler handler, boolean useV2) {
-        String baseUrl;
-        if (useV2) {
-            baseUrl = context.getString(R.string.network_base_url_v2);
-        } else {
-            baseUrl = context.getString(R.string.network_base_url);
-        }
-        final String urlPath = baseUrl + path;
-        Thread thread = new Thread(){
-            @Override
-            public void run() {
-                if (accessToken == null || refreshToken == null) {
-                    try {
-                        authorize();
-                    } catch (JSONException ex) {
-                        ex.printStackTrace();
-                        return;
-                    }
-                }
-                if (tokenExpires != null && refreshToken != null) {
-                    Calendar now = Calendar.getInstance();
-                    if (!now.getTime().before(tokenExpires)) {
+        if (isOnline()) {
+            String baseUrl;
+            if (useV2) {
+                baseUrl = context.getString(R.string.network_base_url_v2);
+            } else {
+                baseUrl = context.getString(R.string.network_base_url);
+            }
+            final String urlPath = baseUrl + path;
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    if (accessToken == null || refreshToken == null) {
                         try {
-                            refreshToken();
+                            authorize();
                         } catch (JSONException ex) {
                             ex.printStackTrace();
                             return;
                         }
                     }
-                } else {
-                    try {
-                        getToken();
-                    } catch (JSONException ex) {
-                        ex.printStackTrace();
-                        return;
+                    if (tokenExpires != null && refreshToken != null) {
+                        Calendar now = Calendar.getInstance();
+                        if (!now.getTime().before(tokenExpires)) {
+                            try {
+                                refreshToken();
+                            } catch (JSONException ex) {
+                                ex.printStackTrace();
+                                return;
+                            }
+                        }
+                    } else {
+                        try {
+                            getToken();
+                        } catch (JSONException ex) {
+                            ex.printStackTrace();
+                            return;
+                        }
                     }
-                }
-                RestTemplate template = restTemplate();
-                HttpHeaders headers = getHeaders("bearer");
-                HttpEntity<?> request = new HttpEntity<Object>(parameters, headers);
-                Object object = null;
-                try {
-                    ResponseEntity<String> response = template.exchange(urlPath, method, request, String.class);
+                    RestTemplate template = restTemplate();
+                    HttpHeaders headers = getHeaders("bearer");
+                    HttpEntity<?> request = new HttpEntity<Object>(parameters, headers);
+                    Object object = null;
+                    try {
+                        ResponseEntity<String> response = template.exchange(urlPath, method, request, String.class);
 
-                    String responseString = response.getBody();
-                    try {
-                        object = new JSONTokener(responseString).nextValue();
-                    } catch (JSONException ex) {
+                        String responseString = response.getBody();
+                        try {
+                            object = new JSONTokener(responseString).nextValue();
+                        } catch (JSONException ex) {
+                            ex.printStackTrace();
+                            return;
+                        }
+                    } catch (Exception ex) {
                         ex.printStackTrace();
-                        return;
                     }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+                    Message message = handler.obtainMessage(1, object);
+                    handler.sendMessage(message);
                 }
-                Message message = handler.obtainMessage(1, object);
-                handler.sendMessage(message);
-            }
-        };
-        thread.start();
+            };
+            thread.start();
+        } else {
+            Toast.makeText(context, "Oops! The network is currently offline. Please try again when "
+                    + "you are connected.", Toast.LENGTH_LONG).show();
+            handler.sendEmptyMessage(1);
+        }
     }
 
 

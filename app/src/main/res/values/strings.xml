@@ -65,68 +65,6 @@
     <string name="ethnicity_prompt">Ethnicity</string>
     <string name="religion_prompt">Religion</string>
     <string name="type_prompt">Type</string>
-    <string-array name="values_ethnicity">
-        <item>African-American or Black</item>
-        <item>American Indian or Alaska Native</item>
-        <item>Asian</item>
-        <item>Caucasian or White</item>
-        <item>Hispanic or Latino</item>
-        <item>Native Hawaiian or Other Pacific Islander"</item>
-    </string-array>
-    <string-array name="values_religion">
-        <item>Anglican (Episcopal)</item>
-        <item>Bahá\'í</item>
-        <item>Buddhist</item>
-        <item>Caodalist</item>
-        <item>Cheondoist</item>
-        <item>Christian</item>
-        <item>Christian Scientist</item>
-        <item>Church of World Messianity</item>
-        <item>Congregatonalist (UCC)</item>
-        <item>Disciples of Christ</item>
-        <item>Friend (Quaker)</item>
-        <item>Hindu</item>
-        <item>Jain</item>
-        <item>Jehovah\'s Witness</item>
-        <item>Jewish</item>
-        <item>Latter-day Saint (Mormon)</item>
-        <item>Lutheran</item>
-        <item>Methodist</item>
-        <item>Moravian</item>
-        <item>Muslim</item>
-        <item>None</item>
-        <item>Orthodox</item>
-        <item>Other - Non-Christian</item>
-        <item>Pentacostal</item>
-        <item>Presbyterian</item>
-        <item>Rastafari</item>
-        <item>Reformed</item>
-        <item>Roman Catholic</item>
-        <item>Seicho-no-le-ist</item>
-        <item>Seventh Day Adventist</item>
-        <item>Sikh</item>
-        <item>Taoist</item>
-        <item>Unitarian Universalist (UU)</item>
-        <item>Wiccan (Pagan)</item>
-        <item>Yazidi</item>
-    </string-array>
-    <string-array name="values_type">
-        <item>Community</item>
-        <item>Corporate</item>
-        <item>Education</item>
-        <item>Foundation</item>
-        <item>Military</item>
-    </string-array>
-
-    <string-array name="menu_items">
-        <item>Explore</item>
-        <item>Insight</item>
-        <item>Graph</item>
-        <item>Message</item>
-        <item>Survey</item>
-        <item>Calendar</item>
-        <item>Settings</item>
-    </string-array>
 
     <string name="title_activity_read_messages">ReadMessagesActivity</string>
 

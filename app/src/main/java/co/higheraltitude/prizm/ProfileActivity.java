@@ -131,20 +131,6 @@ public class ProfileActivity extends AppCompatActivity {
             return true;
         }
 
-        if (id == R.id.action_red_theme) {
-            PrizmCache.getInstance().objectCache.put("theme", R.style.PrizmRed);
-            this.recreate();
-        }
-
-        if (id == R.id.action_blue_theme) {
-            PrizmCache.getInstance().objectCache.put("theme", R.style.PrizmBlue);
-            this.recreate();
-        }
-
-        if(id == R.id.action_logout) {
-            User.logout(getApplicationContext());
-        }
-
         return super.onOptionsItemSelected(item);
     }
 

@@ -55,6 +55,7 @@ public class ReadMessagesActivity extends AppCompatActivity {
     public static String EXTRA_DIRECT_USER = "co.higheraltitude.prizm.extra_direct_user";
     public static String EXTRA_CURRENT_USER = "co.higheraltitude.prizm.extra_current_user";
     public static String EXTRA_ORGANIZATION = "co.higheraltitude.prizm.extra_organization";
+    public static String EXTRA_ORG_MEMBER_COUNT = "co.higheraltitude.prizm.extra_org_member_count";
 
     public static int RESULT_IMAGE_POST = 939;
 
@@ -97,6 +98,7 @@ public class ReadMessagesActivity extends AppCompatActivity {
 
     private String messageString = "";
     private int lastLength = 0;
+    private int orgMemberCount = 0;
     private ArrayList<ImageSpan> deletedSpans = new ArrayList<>();
 
 
@@ -128,6 +130,7 @@ public class ReadMessagesActivity extends AppCompatActivity {
         currentUser = intent.getParcelableExtra(EXTRA_CURRENT_USER);
         organization = intent.getStringExtra(EXTRA_ORGANIZATION);
         groupTag = intent.getStringExtra(EXTRA_GROUP_NAME);
+        orgMemberCount = intent.getIntExtra(EXTRA_ORG_MEMBER_COUNT, 0);
 
 
         tagList = (ListView)findViewById(R.id.tag_picker_list);
@@ -157,12 +160,21 @@ public class ReadMessagesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(getApplicationContext(), ViewMembersActivity.class);
-                i.putExtra(ViewMembersActivity.EXTRA_GROUP, group);
+                if (group == null) {
+                    i.putExtra(ViewMembersActivity.EXTRA_ORGANIZATION, organization);
+                } else {
+                    i.putExtra(ViewMembersActivity.EXTRA_GROUP, group);
+                }
                 startActivity(i);
             }
         });
         if (group == null) {
-            ib.setVisibility(View.GONE);
+            if (isDirect) {
+                ib.setVisibility(View.GONE);
+            } else if (isAll) {
+                TextView groupCount = (TextView)findViewById(R.id.badge_count);
+                groupCount.setText(String.valueOf(orgMemberCount));
+            }
         } else {
             TextView groupCount = (TextView)findViewById(R.id.badge_count);
             groupCount.setText(String.valueOf(group.memberCount));

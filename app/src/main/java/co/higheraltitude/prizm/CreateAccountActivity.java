@@ -13,6 +13,8 @@ import android.graphics.drawable.Drawable;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.design.widget.TabLayout;
@@ -41,6 +43,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.fragments.NewPartnerFragment;
 import co.higheraltitude.prizm.fragments.NewUserFragment;
 import co.higheraltitude.prizm.helpers.ImageHelper;
@@ -54,6 +57,7 @@ public class CreateAccountActivity extends AppCompatActivity {
     private ImageView coverPhotoImageView;
     public static String profilePhotoUrl = "";
     public static String coverPhotoUrl = "";
+    private Bundle baseUser;
 
 
     @Override
@@ -67,6 +71,12 @@ public class CreateAccountActivity extends AppCompatActivity {
         ViewPager viewPager = (ViewPager)findViewById(R.id.registration_view_pager);
         viewPager.setAdapter(new RegistrationPager(getSupportFragmentManager(), CreateAccountActivity.this));
         tabLayout.setupWithViewPager(viewPager);
+        baseUser = getIntent().getBundleExtra(LoginActivity.EXTRA_PROFILE_BASE);
+        if (baseUser != null && !baseUser.getString("profile_photo_url", "").isEmpty()) {
+            profilePhotoUrl = baseUser.getString("profile_photo_url");
+            PrizmCache.getInstance().fetchDrawable(profilePhotoUrl, new AvatarDownloadHandler(getApplicationContext(),
+                    profilePhotoImageView));
+        }
     }
 
     @Override
@@ -148,7 +158,7 @@ public class CreateAccountActivity extends AppCompatActivity {
         @Override
         public Fragment getItem(int position) {
             if (position == 0) {
-                return NewUserFragment.newInstance();
+                return NewUserFragment.newInstance(baseUser);
             } else {
                 return NewPartnerFragment.newInstance();
             }
@@ -193,6 +203,27 @@ public class CreateAccountActivity extends AppCompatActivity {
             }
 
 
+        }
+    }
+
+    private static class AvatarDownloadHandler extends Handler {
+        private ImageView mImageView;
+        private Context mContext;
+
+        public AvatarDownloadHandler(Context context, ImageView imageView) {
+            mContext = context;
+            mImageView = imageView;
+        }
+
+        @Override
+        public void handleMessage(Message message) {
+            if (message.obj != null && message.obj instanceof Bitmap) {
+                Bitmap bitmap = (Bitmap)message.obj;
+                AvatarDrawableFactory avatarDrawableFactory =
+                        new AvatarDrawableFactory(mContext.getResources());
+                Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(bitmap);
+                mImageView.setImageDrawable(avatarDrawable);
+            }
         }
     }
 

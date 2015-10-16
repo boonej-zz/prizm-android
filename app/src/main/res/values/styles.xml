@@ -103,6 +103,14 @@
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
     </style>
 
+    <style name="PrizmBlack" parent="PrizmTheme">
+        <item name="colorPrimary">@color/charcoal_grey</item>
+        <item name="colorPrimaryDark">@color/charcoal_grey_dark</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="android:textColor">@color/prizm_light_navy</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+    </style>
+
     <style name="PrizmTextViewStyle">
         <item name="android:textColor">@color/prizm_dark_text</item>
     </style>

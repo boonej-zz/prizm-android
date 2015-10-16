@@ -28,7 +28,7 @@
         android:background="#00000000" />
     <ImageButton
         android:id="@+id/voice_search_button"
-        android:layout_marginRight="19dp"
+        android:layout_marginRight="29.3dp"
         android:src="@drawable/mic"
         android:layout_width="14dp"
         android:layout_height="19dp"

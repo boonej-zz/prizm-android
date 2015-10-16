@@ -23,6 +23,7 @@ import co.higheraltitude.prizm.models.User;
 
 public class LoginActivity extends Activity {
     public final static String EXTRA_PROFILE = "co.higheraltitude.prizm.PROFILE";
+    public final static String EXTRA_PROFILE_BASE = "co.higheraltitude.prizm.profile_base";
     private UserLoginRow emailRow = null;
     private UserLoginRow passwordRow = null;
     private View backButton;

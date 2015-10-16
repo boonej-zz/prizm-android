@@ -23,24 +23,36 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.twitter.sdk.android.Twitter;
 import com.twitter.sdk.android.core.Callback;
 import com.twitter.sdk.android.core.Result;
+import com.twitter.sdk.android.core.TwitterApiClient;
 import com.twitter.sdk.android.core.TwitterAuthToken;
+import com.twitter.sdk.android.core.TwitterCore;
 import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
+import com.twitter.sdk.android.core.identity.TwitterAuthClient;
 import com.twitter.sdk.android.core.identity.TwitterLoginButton;
+
+import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.models.User;
+import co.higheraltitude.prizm.network.PrizmAPIService;
 
 @TargetApi(21)
 public class Registration extends AppCompatActivity {
@@ -53,6 +65,7 @@ public class Registration extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.PrizmRegistrationTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
         configureFacebookButton();
@@ -106,7 +119,8 @@ public class Registration extends AppCompatActivity {
         LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>() {
                     @Override
-                    public void onSuccess(LoginResult loginResult) {
+                    public void onSuccess(final LoginResult loginResult) {
+                        final AccessToken accessToken = loginResult.getAccessToken();
                         User.login(loginResult.getAccessToken(), new Handler(){
                             @Override
                             public void handleMessage(Message msg) {
@@ -116,6 +130,35 @@ public class Registration extends AppCompatActivity {
                                     intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
                                     setResult(RESULT_OK, intent);
                                     finish();
+                                } else {
+//                                    GraphRequest request = GraphRequest.newMeRequest(
+//                                            accessToken,
+//                                            new GraphRequest.GraphJSONObjectCallback() {
+//                                                @Override
+//                                                public void onCompleted(
+//                                                        JSONObject object,
+//                                                        GraphResponse response) {
+//                                                    // Application code
+//                                                    Log.d("DEBUG", object.toString());
+//                                                }
+//                                            });
+//                                    Bundle parameters = new Bundle();
+//                                    parameters.putString("fields", "id,first_name,last_name,email,link");
+//                                    request.setParameters(parameters);
+//                                    request.executeAsync();
+                                    Profile profile = Profile.getCurrentProfile();
+                                    Log.d("DEBUG", profile.getFirstName());
+                                    Bundle info = new Bundle();
+                                    info.putString("first_name", profile.getFirstName());
+                                    info.putString("last_name", profile.getLastName());
+                                    info.putString("provider", "facebook");
+                                    info.putString("provider_token", accessToken.getToken());
+                                    String pattern = "https://graph.facebook.com/%s/picture?type=large";
+                                    String path = String.format(pattern, profile.getId());
+                                    info.putString("profile_photo_url", path);
+                                    Intent intent = new Intent(getApplicationContext(), CreateAccountActivity.class);
+                                    intent.putExtra(LoginActivity.EXTRA_PROFILE_BASE, info);
+                                    startActivity(intent);
                                 }
                             }
                         });
@@ -161,9 +204,9 @@ public class Registration extends AppCompatActivity {
             @Override
             public void success(Result<TwitterSession> result) {
 
-                TwitterSession session = Twitter.getSessionManager().getActiveSession();
-                TwitterAuthToken token = session.getAuthToken();
-                String userName = result.data.getUserName();
+                final TwitterSession session = Twitter.getSessionManager().getActiveSession();
+                final TwitterAuthToken token = session.getAuthToken();
+                final String userName = result.data.getUserName();
                 PrizmCache cache = PrizmCache.getInstance();
 
                 cache.objectCache.put("twitter_token", token.token);
@@ -179,6 +222,44 @@ public class Registration extends AppCompatActivity {
                             intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
                             setResult(RESULT_OK, intent);
                             finish();
+                        } else {
+                            TwitterApiClient twitterApiClient = TwitterCore.getInstance().getApiClient();
+                            twitterApiClient.getAccountService().verifyCredentials(false, false, new com.twitter.sdk.android.core.Callback<com.twitter.sdk.android.core.models.User>() {
+                                @Override
+                                public void success(Result<com.twitter.sdk.android.core.models.User> result) {
+                                    Log.d("DEBUG", result.toString());
+                                    Bundle info = new Bundle();
+                                    info.putString("provider", "twitter");
+                                    info.putString("provider_token", token.token);
+                                    info.putString("provider_secret", token.secret);
+                                    info.putString("twitter_name", userName);
+                                    info.putString("profile_photo_url", result.data.profileImageUrlHttps);
+                                    String name = result.data.name;
+                                    if (name != null && !name.isEmpty()) {
+                                        String [] nameArray = name.split(" ");
+                                        if (nameArray.length > 0) {
+                                            info.putString("first_name", nameArray[0]);
+                                            info.putString("last_name", nameArray[nameArray.length - 1]);
+                                        }
+                                    }
+                                    Intent intent = new Intent(getApplicationContext(), CreateAccountActivity.class);
+                                    intent.putExtra(LoginActivity.EXTRA_PROFILE_BASE, info);
+                                    startActivity(intent);
+                                }
+
+                                @Override
+                                public void failure(TwitterException e) {
+                                    Bundle info = new Bundle();
+                                    info.putString("provider", "twitter");
+                                    info.putString("provider_token", token.token);
+                                    info.putString("provider_secret", token.secret);
+                                    info.putString("twitter_name", userName);
+                                    Intent intent = new Intent(getApplicationContext(), CreateAccountActivity.class);
+                                    intent.putExtra(LoginActivity.EXTRA_PROFILE_BASE, info);
+                                    startActivity(intent);
+                                }
+                            });
+
                         }
                     }
                 });
