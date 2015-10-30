@@ -17,6 +17,7 @@ import java.util.Iterator;
 
 import co.higheraltitude.prizm.adapters.UserAdapter;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.delegates.UserDelegate;
 import co.higheraltitude.prizm.handlers.UserHandler;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.models.Group;
@@ -25,7 +26,7 @@ import co.higheraltitude.prizm.models.User;
 
 
 public class ViewMembersActivity extends AppCompatActivity implements
-        UserHandler.UserHandlerDelegate {
+        UserDelegate.FetchUserDelegate {
 
     public static String EXTRA_GROUP = "co_higheraltitude_extra_group";
     public static String EXTRA_ORGANIZATION = "co_higheraltitude_extra_organization";
@@ -35,17 +36,10 @@ public class ViewMembersActivity extends AppCompatActivity implements
     private Group mGroup;
     private String mOrganization;
     private static UserAdapter mUserAdapter;
-    private static UserHandler mUserHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Object theme = PrizmCache.objectCache.get("theme");
-
-        if (theme != null ) {
-            setTheme((int)theme);
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
+        setTheme(User.getTheme());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_members);
         Toolbar actionBar = (Toolbar)findViewById(R.id.profile_nav_bar);
@@ -70,7 +64,6 @@ public class ViewMembersActivity extends AppCompatActivity implements
                 startActivity(profileIntent);
             }
         });
-        mUserHandler = new UserHandler(mUserAdapter, this);
         loadMembers();
     }
 
@@ -82,9 +75,9 @@ public class ViewMembersActivity extends AppCompatActivity implements
         }
 
         if (mGroup != null) {
-            User.fetchGroupMembers(mGroup.uniqueID, name, false, new UserHandler(mUserAdapter, this));
+            User.fetchGroupMembers(mGroup.uniqueID, name, false, new UserDelegate(mUserAdapter, this));
         } else if (mOrganization != null) {
-            User.fetchOrganizationMembers(mOrganization, name, new UserHandler(mUserAdapter, this));
+            User.fetchOrganizationMembers(mOrganization, name, new UserDelegate(mUserAdapter, this));
         }
     }
 

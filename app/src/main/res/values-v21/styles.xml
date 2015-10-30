@@ -2,18 +2,17 @@
 
 <resources>
     <style name="PrizmTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">@color/prizm_dominant_background</item>
+        <!--<item name="android:windowBackground">@color/prizm_dominant_background</item>-->
+        <item name="android:colorBackground">@color/prizm_dominant_background</item>
         <item name="android:textViewStyle">@style/PrizmTextViewStyle</item>
         <item name="android:textColor">@android:color/white</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
         <item name="popupMenuStyle">@style/PrizmPopupStyle</item>
         <item name="android:colorButtonNormal">?attr/colorPrimary</item>
         <item name="android:editTextStyle">@style/PrizmEditTextStyle</item>
+        <item name="android:textColorLink">@color/accent_material_light</item>
     </style>
 
-    <style name="PrizmEditTextStyle" parent="@android:style/Widget.Material.EditText">
-        <item name="android:textCursorDrawable">@drawable/cursor</item>
-    </style>
 
     <style name="PrizmRegistrationTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowTranslucentNavigation">true</item>
@@ -28,6 +27,19 @@
         <item name="android:editTextStyle">@style/PrizmRegistrationEditTextStyle</item>
     </style>
 
+    <style name="PrizmRegistrationHintTextStyle" parent="TextAppearance.AppCompat">
+
+        <item name="android:textColorHint">@color/warm_grey</item>
+        <item name="colorAccent">@color/warm_grey</item>
+        <item name="android:colorAccent">@color/warm_grey</item>
+        <item name="android:colorControlNormal">@color/silver</item>
+        <item name="android:colorControlActivated">@color/cool_blue</item>
+        <item name="colorControlNormal">@color/silver</item>
+        <item name="colorControlActivated">@color/cool_blue</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:paddingTop">0dp</item>
+    </style>
+
     <style name="PrizmRegistrationSpinner" parent="android:Widget.Material.Spinner">
         <item name="android:spinnerItemStyle">@style/PrizmRegistrationItemStyle</item>
     </style>
@@ -39,6 +51,7 @@
     </style>
 
     <style name="PrizmBlue" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="android:colorButtonNormal">@color/dusk_blue</item>
         <item name="colorButtonNormal">@color/dusk_blue</item>
         <item name="colorPrimary">@color/dusk_blue</item>
@@ -56,6 +69,7 @@
     </style>
 
     <style name="PrizmPurple" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/grape</item>
         <item name="colorPrimaryDark">@color/grape_purple</item>
         <item name="android:colorPrimary">@color/grape</item>
@@ -68,6 +82,7 @@
     </style>
 
     <style name="PrizmGreen" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/dark_turquoise</item>
         <item name="colorPrimaryDark">@color/evergreen</item>
         <item name="android:colorPrimary">@color/dark_turquoise</item>
@@ -80,6 +95,7 @@
     </style>
 
     <style name="PrizmPink" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/warm_purple</item>
         <item name="colorPrimaryDark">@color/darkish_purple</item>
         <item name="android:colorPrimary">@color/warm_purple</item>
@@ -92,6 +108,7 @@
     </style>
 
     <style name="PrizmOrange" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/dull_orange</item>
         <item name="colorPrimaryDark">@color/copper</item>
         <item name="android:colorPrimary">@color/dull_orange</item>
@@ -104,6 +121,7 @@
     </style>
 
     <style name="PrizmBlack" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/charcoal_grey</item>
         <item name="colorPrimaryDark">@color/charcoal_grey_dark</item>
         <item name="android:colorPrimary">@color/charcoal_grey</item>
@@ -117,7 +135,7 @@
 
 
     <style name="PrizmRed" parent="PrizmTheme">
-
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/red_primary</item>
         <item name="colorPrimaryDark">@color/red_dark</item>
         <item name="android:colorPrimary">@color/red_primary</item>

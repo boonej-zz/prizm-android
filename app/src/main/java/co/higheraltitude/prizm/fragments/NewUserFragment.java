@@ -34,6 +34,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -60,7 +62,8 @@ import co.higheraltitude.prizm.models.User;
 public class NewUserFragment extends Fragment {
     // TODO: Rename and change types and number of parameters
 
-    private Button ethnicityButton;
+    private View ethnicityButton;
+    private TextView ethnicityText;
     private Button saveButton;
 
     private EditText firstNameField;
@@ -71,7 +74,7 @@ public class NewUserFragment extends Fragment {
     private RadioGroup genderGroup;
     private RadioButton femaleButton;
     private RadioButton maleButton;
-    private Button religionButton;
+    private View religionButton;
     private EditText phoneNumberField;
     private EditText birthdateField;
     private EditText programCodeField;
@@ -81,6 +84,10 @@ public class NewUserFragment extends Fragment {
     private Bundle baseUser;
     private View passwordWrapper;
     private View confirmWrapper;
+    private EditText zipCodeField;
+    private TextView religionText;
+    private String city = "";
+    private String state = "";
 
     public static NewUserFragment newInstance(Bundle base) {
         NewUserFragment fragment = new NewUserFragment();
@@ -107,8 +114,8 @@ public class NewUserFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_new_user, container, false);
-        ethnicityButton = (Button)view.findViewById(R.id.registration_button_ethnicity);
-
+        ethnicityButton = view.findViewById(R.id.registration_button_ethnicity);
+        ethnicityText = (TextView)view.findViewById(R.id.registration_ethnicity_text);
         saveButton = (Button)view.findViewById(R.id.registration_button_save);
         saveButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -146,7 +153,8 @@ public class NewUserFragment extends Fragment {
         phoneNumberField = (EditText)view.findViewById(R.id.registration_field_phone);
         birthdateField = (EditText)view.findViewById(R.id.registration_field_birthday);
         programCodeField = (EditText)view.findViewById(R.id.registration_field_program_code);
-        religionButton = (Button)view.findViewById(R.id.registration_button_religion);
+        religionButton = view.findViewById(R.id.registration_button_religion);
+        religionText = (TextView)view.findViewById(R.id.registation_religion_text);
         religionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -155,6 +163,7 @@ public class NewUserFragment extends Fragment {
         });
         passwordWrapper = view.findViewById(R.id.registration_password_wrapper);
         confirmWrapper = view.findViewById(R.id.registration_confirm_wrapper);
+        zipCodeField = (EditText)view.findViewById(R.id.registration_field_zipcode);
 
         if (baseUser != null) {
             if (baseUser.getString("email") != null) {
@@ -168,6 +177,24 @@ public class NewUserFragment extends Fragment {
             }
             passwordWrapper.setVisibility(View.GONE);
             confirmWrapper.setVisibility(View.GONE);
+        }
+        Location location = MainActivity.lastLocation();
+        String zipPostal = null;
+        if (location != null) {
+            Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
+            try {
+                List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                Address address = addresses.get(0);
+                zipPostal = address.getPostalCode();
+                city = address.getLocality();
+                state = address.getAdminArea();
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        if (zipPostal != null) {
+            zipCodeField.setText(zipPostal);
         }
         return view;
     }
@@ -183,7 +210,7 @@ public class NewUserFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ethnicity = (String)parent.getAdapter().getItem(position);
-                ethnicityButton.setText(ethnicity);
+                ethnicityText.setText(ethnicity);
                 dialog.hide();
             }
         });
@@ -210,7 +237,7 @@ public class NewUserFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 religion = (String)parent.getAdapter().getItem(position);
-                religionButton.setText(religion);
+                religionText.setText(religion);
                 dialog.dismiss();
             }
         });
@@ -226,25 +253,9 @@ public class NewUserFragment extends Fragment {
     }
 
     public void onSave(View view) {
-        Location location = MainActivity.lastLocation();
-        String zipPostal = "00000";
-        String city = "";
-        String state = "";
+
         String profilePhotoUrl = CreateAccountActivity.profilePhotoUrl;
         String coverPhotoUrl = CreateAccountActivity.coverPhotoUrl;
-        if (location != null) {
-            Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
-            try {
-                List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                Address address = addresses.get(0);
-                zipPostal = address.getPostalCode();
-                city = address.getLocality();
-                state = address.getAdminArea();
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put("type", "user");
         hashMap.put("first_name", firstNameField.getText().toString());
@@ -255,7 +266,7 @@ public class NewUserFragment extends Fragment {
         hashMap.put("gender", gender);
         hashMap.put("phone_number", phoneNumberField.getText().toString());
         hashMap.put("birthday", birthdateField.getText().toString());
-        hashMap.put("zip_postal", zipPostal);
+        hashMap.put("zip_postal", zipCodeField.getText().toString());
         hashMap.put("city", city);
         hashMap.put("state", state);
         hashMap.put("profile_photo_url", profilePhotoUrl);

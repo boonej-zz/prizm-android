@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.fragments.NewPartnerFragment;
 import co.higheraltitude.prizm.fragments.NewUserFragment;
 import co.higheraltitude.prizm.helpers.ImageHelper;
@@ -74,7 +75,8 @@ public class CreateAccountActivity extends AppCompatActivity {
         baseUser = getIntent().getBundleExtra(LoginActivity.EXTRA_PROFILE_BASE);
         if (baseUser != null && !baseUser.getString("profile_photo_url", "").isEmpty()) {
             profilePhotoUrl = baseUser.getString("profile_photo_url");
-            PrizmCache.getInstance().fetchDrawable(profilePhotoUrl, new AvatarDownloadHandler(getApplicationContext(),
+            PrizmDiskCache cache = PrizmDiskCache.getInstance(getApplicationContext());
+            cache.fetchBitmap(profilePhotoUrl, profilePhotoImageView.getWidth(), new AvatarDownloadHandler(getApplicationContext(),
                     profilePhotoImageView));
         }
     }

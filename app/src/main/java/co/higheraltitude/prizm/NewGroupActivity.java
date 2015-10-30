@@ -33,6 +33,7 @@ import java.util.List;
 
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.models.Group;
 import co.higheraltitude.prizm.models.User;
@@ -60,13 +61,8 @@ public class NewGroupActivity extends AppCompatActivity implements UserSearchBox
     protected void onCreate(Bundle savedInstanceState) {
 
         cache = PrizmCache.getInstance();
-        Object theme = PrizmCache.objectCache.get("theme");
 
-        if (theme != null ) {
-            setTheme((int)theme);
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
+        setTheme(User.getTheme());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_group);
 
@@ -157,13 +153,13 @@ public class NewGroupActivity extends AppCompatActivity implements UserSearchBox
         mUserAdapter.getFilter().filter(s);
     }
 
-    private static void loadUsers() {
+    private void loadUsers() {
         if (needUsers) {
             String name = null;
             if (mUserAdapter.getCount() > 0) {
                 name = mUserAdapter.getUser(mUserAdapter.getCount() - 1).name;
             }
-            User.fetchUserContacts(User.getCurrentUser().primaryOrganization, name, new UserHandler());
+            User.fetchOrganizationMembers(User.getCurrentUser().primaryOrganization, name, new UserDelegate());
         }
     }
 
@@ -204,10 +200,12 @@ public class NewGroupActivity extends AppCompatActivity implements UserSearchBox
 
     public void onGroupLeaderClicked(View view) {
         ArrayList<User> leaders = new ArrayList<>();
-        for (User u : mUserAdapter.baseList) {
+        for (int i = 0; i != mUserAdapter.getCount(); ++i) {
+            User u = mUserAdapter.getUser(i);
             if (u.role != null && u.role.equals("leader")) {
                 leaders.add(u);
             }
+
         }
         final LeaderAdapter adapter = new LeaderAdapter(getApplicationContext(), leaders);
         final Dialog dialog = new Dialog(NewGroupActivity.this);
@@ -352,20 +350,35 @@ public class NewGroupActivity extends AppCompatActivity implements UserSearchBox
         }
     }
 
-    private static class UserHandler extends Handler {
+    private class UserDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        private boolean emptySet = true;
         @Override
-        public void handleMessage(Message msg) {
-            ArrayList<User> u = (ArrayList<User>)msg.obj;
-            if (u.size() > 0) {
-                mUserAdapter.addUsers(u);
-                mUserAdapter.notifyDataSetChanged();
-                loadUsers();
-//                loadUsers();
-            }  else {
-                needUsers = false;
+        public void cached(String path, Object object) {
+            processUsers(object);
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            processUsers(object);
+            emptySet = false;
+        }
+
+        private void processUsers(Object object) {
+            ArrayList<User> users = (ArrayList<User>) object;
+            if (object instanceof ArrayList) {
+                if (users.size() > 0) {
+                    if (emptySet) {
+                        mUserAdapter.clear();
+                    }
+                    mUserAdapter.addAll(users);
+                    mUserAdapter.notifyDataSetChanged();
+                    loadUsers();
+                }
             }
         }
     }
+
 
     private static class DoneHandler extends Handler {
 

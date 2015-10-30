@@ -19,6 +19,7 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:textSize="14.7sp"
+        android:textCursorDrawable="@drawable/cursor"
         android:fontFamily="sans-serif-light"
         android:textColor="@color/warm_grey"
         />

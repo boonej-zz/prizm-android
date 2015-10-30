@@ -17,21 +17,34 @@
         android:background="?attr/colorPrimary"
         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:elevation="4dp"
         >
     </android.support.v7.widget.Toolbar>
     <RelativeLayout
         android:layout_width="fill_parent"
+        android:background="@color/prizm_dominant_background"
         android:layout_height="wrap_content">
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="fill_parent"
+            android:layout_height="5dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:indeterminateDrawable="@drawable/progress_bar"
+            android:indeterminateDuration="800"
+            android:indeterminate="true"/>
         <ImageView android:id="@+id/profile_cover_photo"
             android:layout_width="fill_parent"
             android:layout_height="161dp"
             android:scaleType="centerCrop"
+            android:background="@color/dusk_blue_10_percent"
             />
         <ImageView
+            android:id="@+id/cover_photo_gradient"
             android:layout_width="fill_parent"
             android:layout_height="161dp"
             android:background="@drawable/cover_gradient"
             android:alpha="0.5"
+            android:visibility="invisible"
             />
         <LinearLayout
             android:layout_width="fill_parent"
@@ -43,6 +56,8 @@
                 android:layout_width="85dp"
                 android:layout_height="83.4dp"
                 android:layout_gravity="center_horizontal"
+                android:src="@drawable/user_missing_avatar"
+                android:scaleType="fitCenter"
                 />
             <LinearLayout
                 android:id="@+id/name_area"
@@ -53,7 +68,6 @@
                 android:layout_height="wrap_content">
                 <TextView
                     android:id="@+id/profile_name"
-                    android:text="@string/hello_world"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16.7sp"
@@ -68,14 +82,27 @@
                     android:layout_gravity="center_vertical"
                     />
             </LinearLayout>
-            <TextView android:id="@+id/profile_location"
+            <LinearLayout
+                android:id="@+id/profile_location_area"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="2dp"
-                android:textSize="12sp"
-                android:textColor="@android:color/white"
-                />
+                android:layout_marginTop="2dp">
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/location_pin"
+                    />
+                <TextView android:id="@+id/profile_location"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="4.2dp"
+                    android:layout_gravity="center_vertical"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/white"
+                    />
+            </LinearLayout>
         </LinearLayout>
     </RelativeLayout>
 

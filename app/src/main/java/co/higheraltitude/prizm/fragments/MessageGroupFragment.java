@@ -1,14 +1,18 @@
 package co.higheraltitude.prizm.fragments;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,9 +20,13 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,6 +42,7 @@ import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.handlers.GroupsHandler;
 import co.higheraltitude.prizm.handlers.OrganizationCountHandler;
 import co.higheraltitude.prizm.models.Group;
+import co.higheraltitude.prizm.models.Peep;
 import co.higheraltitude.prizm.models.User;
 
 
@@ -43,6 +52,7 @@ import co.higheraltitude.prizm.models.User;
  * {@link MessageGroupFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
  */
+
 public class MessageGroupFragment extends android.support.v4.app.Fragment
         implements View.OnClickListener, AdapterView.OnItemClickListener {
 
@@ -62,10 +72,12 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
     private View mDirectView;
     private User mUser;
     public int ORGANIZATION_MEMBER_COUNT;
+    private JSONArray messageCounts;
+    private static int[] countArray;
 
     // Data
-    private ArrayList<Group> mGroups;
-    private ArrayList<String> mGroupNames;
+    private static ArrayList<Group> mGroups;
+    private static ArrayList<String> mGroupNames;
 
 
 
@@ -73,6 +85,8 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
 
 
     }
+
+
 
     public void onClick(View view) {
         if (view == mFloatingActionButton) {
@@ -115,7 +129,7 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
                 intent.putExtra(ReadMessagesActivity.EXTRA_IS_ALL, true);
                 intent.putExtra(ReadMessagesActivity.EXTRA_ORG_MEMBER_COUNT, ORGANIZATION_MEMBER_COUNT);
             } else {
-                Group group = mGroups.get(position - 2);
+                Group group = mGroupAdapter.getItem(position - 2);
                 intent.putExtra(ReadMessagesActivity.EXTRA_GROUP, group);
             }
         }
@@ -124,6 +138,17 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
             intent.putExtra(ReadMessagesActivity.EXTRA_ORGANIZATION, User.getCurrentUser().primaryOrganization);
             startActivity(intent);
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadGroups();
     }
 
     private void toggleFloatingActionButton(){
@@ -155,7 +180,6 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
         }
         configureViews(view);
         configureAdapter();
-        loadGroups();
         return view;
 
     }
@@ -190,11 +214,11 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
         mGroups = groups;
     }
 
-    public ArrayList<String> getGroupNames() {
+    public static ArrayList<String> getGroupNames() {
         return mGroupNames;
     }
 
-    public void setGroupNames(ArrayList<String> groupNames) {
+    public static void setGroupNames(ArrayList<String> groupNames) {
         mGroupNames = groupNames;
     }
 
@@ -225,25 +249,96 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
         Group.fetchOrganizationMemberCount(mUser.primaryOrganization,
                 new OrganizationCountHandler(this));
         showProgressBar();
-        mGroups = Group.fetchGroupsForUser(mUser, mUser.primaryOrganization,
-                new GroupsHandler(getContext(), this));
-        if (mGroups == null) {
-            mGroups = new ArrayList<>();
+
+        if (mGroupAdapter == null) {
+            mGroupAdapter = new GroupAdapter(MainActivity.context, new ArrayList<Group>());
+
         }
-
-        mGroupAdapter = new GroupAdapter(MainActivity.context, mGroups);
-
         mListView.setAdapter(mGroupAdapter);
+        Group.fetchGroupsForUser(mUser, mUser.primaryOrganization,
+                new GroupsHandler(getContext(), this));
+
+
 
         mGroupNames = new ArrayList<>();
-        Iterator i = mGroups.iterator();
-        while (i.hasNext()) {
-            Group g = (Group)i.next();
-            mGroupNames.add(g.name);
-        }
+//        if (mGroupAdapter.getCount() > 0) {
+//            for (int i = 0; i != mGroupAdapter.getCount(); ++i) {
+//                Group g = mGroupAdapter.getItem(i);
+//                mGroupNames.add(g.name);
+//            }
+//        }
+        Peep.getCounts(new GroupCountsHandler(this));
+
 
     }
 
+
+    private void processCounts() {
+        countArray = new int[mGroupAdapter.getCount()];
+        for (int i = 0; i!= countArray.length; ++i) {
+            countArray[i] = 0;
+        }
+        if (messageCounts != null) {
+            for (int i = 0; i != messageCounts.length(); ++i) {
+                try {
+                    JSONObject object = messageCounts.getJSONObject(i);
+                    int total = object.getInt("total");
+                    JSONObject j = object.getJSONObject("_id");
+                    String org = null;
+                    String groupId = null;
+                    String target = null;
+                    if (j.has("organization")) {
+                        org = j.getString("organization");
+                    }
+                    if (j.has("group")) {
+                        groupId = j.getString("group");
+                    }
+                    if (j.has("target")) {
+                        target = j.getString("target");
+                    }
+
+                    if (org != null && !org.equals("null")) {
+                        if (groupId != null && !groupId.equals("null")) {
+                            int index = mGroupAdapter.indexOf(groupId);
+                            if (index != -1) {
+                                countArray[i + 2] = total;
+                            }
+                        } else if (target == null){
+                            countArray[1] = total;
+                        } else {
+                            countArray[0] = total;
+                        }
+                    }
+                    mGroupAdapter.setCounts(countArray);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
+
+    private static class GroupCountsHandler extends Handler {
+        private MessageGroupFragment mActivity;
+
+        public GroupCountsHandler(MessageGroupFragment activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.obj != null) {
+                if (msg.obj instanceof JSONArray) {
+                    JSONArray array = (JSONArray)msg.obj;
+                    mActivity.messageCounts = array;
+                    mActivity.processCounts();
+                    Log.d("DEBUG", "Fetched Counts");
+
+                }
+            }
+        }
+
+    }
 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
@@ -253,5 +348,6 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
     private void configureAdapter () {
         mGroupAdapter = new GroupAdapter(getContext(), new ArrayList<Group>());
     }
+
 
 }

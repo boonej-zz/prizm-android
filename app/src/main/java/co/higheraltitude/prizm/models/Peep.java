@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.network.PrizmAPIService;
 import retrofit.http.GET;
 
@@ -42,6 +43,8 @@ public class Peep implements Parcelable {
     private static String PRIZM_MESSAGE_FORMAT_3 = "/organizations/%s/users/%s/messages?target=%s";
     private static String PRIZM_MESSAGE_FORMAT_4 = "/organizations/%s/users/%s/messages";
     private static String PRIZM_UNREAD_FORMAT_1 = "/organizations/%s/users/%s/unread";
+    private static String PRIZM_READ_FORMAT_1 = "/organizations/%s/groups/%s/messages/%s/read";
+    private static String PRIZM_LIKES_FORMAT_1 = "/organizations/%s/groups/%s/messages/%s/likes";
 
     public String uniqueId = "";
     public String group = "";
@@ -63,6 +66,7 @@ public class Peep implements Parcelable {
     public String metaVideoUrl;
     public Boolean liked = false;
     public Boolean myPeep = false;
+    public Integer readCount = 0;
 
     public Peep(Parcel in) {
         HashMap<String, String> map = map();
@@ -142,10 +146,12 @@ public class Peep implements Parcelable {
             try {
                 Field field = c.getField(key);
                 Object value = field.get(this);
-                if (value.getClass() == boolean.class) {
-                    bundle.putBoolean(key, (boolean) value);
-                } else if (value.getClass() == String.class) {
-                    bundle.putString(key, (String)value);
+                if (value != null) {
+                    if (value.getClass() == boolean.class) {
+                        bundle.putBoolean(key, (boolean) value);
+                    } else if (value.getClass() == String.class) {
+                        bundle.putString(key, (String) value);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -187,6 +193,7 @@ public class Peep implements Parcelable {
             put("liked", "liked");
             put("my_post", "myPeep");
             put("likes_count", "likesCount");
+            put("read_count", "readCount");
         }};
         return map;
     }
@@ -204,8 +211,8 @@ public class Peep implements Parcelable {
         return prettyTime.format(date);
     }
 
-    public static ArrayList<Peep> fetchPeeps(String o, String g, User u, HashMap<String, String> args, final Handler handler) {
-        PrizmCache cache = PrizmCache.getInstance();
+    public static void fetchPeeps(String o, String g, User u, HashMap<String, String> args, final PrizmDiskCache.CacheRequestDelegate delegate) {
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         String path;
         if (u != null) {
             path = String.format(PRIZM_MESSAGE_FORMAT_3, o, User.getCurrentUser().uniqueID, u.uniqueID);
@@ -234,28 +241,15 @@ public class Peep implements Parcelable {
         }
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        Object data = cache.performCachedRequest(path, map, HttpMethod.GET, new MessageRequestHandler(handler));
-        JSONArray array = null;
-        if (data instanceof JSONArray) {
-            array = (JSONArray)data;
-        } else if (data instanceof JSONObject){
-            if (((JSONObject) data).has("values")) {
-                try {
-                    array = ((JSONObject) data).getJSONArray("values");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        ArrayList<Peep> peeps = new ArrayList<>();
-        if (array != null) {
-            try {
-                peeps = processJsonList(array);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return peeps;
+        cache.performCachedRequest(path, map, HttpMethod.GET, new MessageRequestDelegate(delegate));
+    }
+
+    public void fetchRead(final PrizmDiskCache.CacheRequestDelegate delegate) {
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        String groups = group != null & !group.isEmpty()?group:"all";
+        String path = String.format(PRIZM_READ_FORMAT_1, organization, groups, uniqueId);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new User.UserListDelegate(delegate));
     }
 
     public static void postPeep(String text, String o, String g, User u, final Handler handler) {
@@ -297,6 +291,14 @@ public class Peep implements Parcelable {
         PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.GET, handler, true);
     }
 
+    public void getLikes(PrizmDiskCache.CacheRequestDelegate delegate) {
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        String _group = group != null && !group.isEmpty()?this.group:"all";
+        String path = String.format(PRIZM_LIKES_FORMAT_1, organization,  _group, uniqueId);
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new User.UserListDelegate(delegate));
+    }
+
 
     private static ArrayList<Peep> processJsonList(JSONArray array) {
         ArrayList<Peep> peeps = new ArrayList<>();
@@ -316,10 +318,38 @@ public class Peep implements Parcelable {
     public void likePeep(final Handler handler) {
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
         post.add("requestor", User.getCurrentUser().uniqueID);
-        String groupName = group == null?"all":group;
+        String groupName = group == null || group.isEmpty()?"all":group;
         String path = String.format(PRIZM_MESSAGE_FORMAT_2, organization, groupName, uniqueId);
         PrizmAPIService service = PrizmAPIService.getInstance();
         service.performAuthorizedRequest(path, post, HttpMethod.POST, new SingleMessageRequestHandler(handler), true);
+    }
+
+    private static class MessageRequestDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        private PrizmDiskCache.CacheRequestDelegate mDelegate;
+
+        public MessageRequestDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
+            mDelegate = delegate;
+        }
+
+
+        @Override
+        public void cached(String path, Object object) {
+            mDelegate.cached(path, process(object));
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            mDelegate.cacheUpdated(path, process(object));
+        }
+
+        private ArrayList<Peep> process(Object object) {
+            ArrayList<Peep> peeps = new ArrayList<>();
+            if (object instanceof JSONArray) {
+                peeps = processJsonList((JSONArray) object);
+            }
+            return peeps;
+        }
     }
 
     private static class MessageRequestHandler extends Handler {

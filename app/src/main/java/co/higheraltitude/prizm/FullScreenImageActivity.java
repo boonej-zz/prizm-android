@@ -1,17 +1,21 @@
 package co.higheraltitude.prizm;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.MenuItem;
@@ -26,6 +30,8 @@ public class FullScreenImageActivity extends AppCompatActivity {
     private static final boolean TOGGLE_ON_CLICK = true;
     private static final int HIDER_FLAGS = SystemUiHider.FLAG_HIDE_NAVIGATION;
     private SystemUiHider mSystemUiHider;
+    private Toolbar mToolbar;
+    private int mStatusBarHeight;
 
     public static final String EXTRA_IMAGE_URL = "co.higheraltitude.prizm.image_url";
 
@@ -39,16 +45,24 @@ public class FullScreenImageActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_full_screen_image);
 
-        final View controlsView = findViewById(R.id.fullscreen_content_controls);
+//        final View controlsView = findViewById(R.id.fullscreen_content_controls);
         final View contentView = findViewById(R.id.fullscreen_content);
 
         String imageUrl = getIntent().getStringExtra(EXTRA_IMAGE_URL);
         ImageView iv = (ImageView)contentView;
-        PrizmCache.getInstance().fetchDrawable(imageUrl, new ImageDownloadHandler(iv));
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(getApplicationContext());
+        cache.fetchBitmap(imageUrl, iv.getWidth(), new ImageDownloadHandler(iv));
 
         // Set up an instance of SystemUiHider to control the system UI for
         // this activity.
+        mToolbar = (Toolbar)findViewById(R.id.profile_nav_bar);
+        setSupportActionBar(mToolbar);
+        mToolbar.setTitle("");
+        mToolbar.setTitleTextColor(Color.parseColor("#00000000"));
         mSystemUiHider = SystemUiHider.getInstance(this, contentView, HIDER_FLAGS);
+        mStatusBarHeight = getStatusBarHeight();
+
+
         mSystemUiHider.setup();
         mSystemUiHider
                 .setOnVisibilityChangeListener(new SystemUiHider.OnVisibilityChangeListener() {
@@ -64,21 +78,22 @@ public class FullScreenImageActivity extends AppCompatActivity {
                             // (Honeycomb MR2 and later), use it to animate the
                             // in-layout UI controls at the bottom of the
                             // screen.
-                            if (mControlsHeight == 0) {
-                                mControlsHeight = controlsView.getHeight();
+
+                            if ( mControlsHeight == 0) {
+                                mControlsHeight = mToolbar.getHeight() + mStatusBarHeight;
                             }
                             if (mShortAnimTime == 0) {
                                 mShortAnimTime = getResources().getInteger(
                                         android.R.integer.config_shortAnimTime);
                             }
-                            controlsView.animate()
-                                    .translationY(visible ? 0 : mControlsHeight)
+                            mToolbar.animate()
+                                    .translationY(visible ? mStatusBarHeight : - mControlsHeight)
                                     .setDuration(mShortAnimTime);
                         } else {
                             // If the ViewPropertyAnimator APIs aren't
                             // available, simply show or hide the in-layout UI
                             // controls.
-                            controlsView.setVisibility(visible ? View.VISIBLE : View.GONE);
+                            mToolbar.setVisibility(visible ? View.VISIBLE : View.GONE);
                         }
 
                         if (visible && AUTO_HIDE) {
@@ -103,7 +118,7 @@ public class FullScreenImageActivity extends AppCompatActivity {
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        findViewById(R.id.save_button).setOnTouchListener(mDelayHideTouchListener);
+//        findViewById(R.id.save_button).setOnTouchListener(mDelayHideTouchListener);
     }
 
     @Override
@@ -116,11 +131,20 @@ public class FullScreenImageActivity extends AppCompatActivity {
         delayedHide(100);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_full_screen, menu);
+        return true;
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == android.R.id.home) {
+        if (id == R.id.action_save) {
+            MediaStore.Images.Media.insertImage(getContentResolver(), bmp, "Prizm Image", null);
+            Toast.makeText(getApplicationContext(), "Image saved", Toast.LENGTH_SHORT).show();
             // This ID represents the Home or Up button. In the case of this
             // activity, the Up button is shown. Use NavUtils to allow users
             // to navigate up one level in the application structure. For
@@ -130,7 +154,7 @@ public class FullScreenImageActivity extends AppCompatActivity {
             //
             // TODO: If Settings has multiple levels, Up should navigate up
             // that hierarchy.
-            NavUtils.navigateUpFromSameTask(this);
+//            NavUtils.navigateUpFromSameTask(this);
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -187,5 +211,14 @@ public class FullScreenImageActivity extends AppCompatActivity {
             mImageView.setImageBitmap(bmp);
 
         }
+    }
+
+    public int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
     }
 }

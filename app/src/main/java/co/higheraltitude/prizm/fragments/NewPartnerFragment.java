@@ -47,7 +47,8 @@ import co.higheraltitude.prizm.models.User;
  */
 public class NewPartnerFragment extends Fragment {
 
-    private Button typeButton;
+    private View typeButton;
+    private TextView typeText;
     private Button saveButton;
 
     private EditText organizationField;
@@ -89,7 +90,8 @@ public class NewPartnerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_new_partner, container, false);
-        typeButton = (Button)view.findViewById(R.id.registration_button_type);
+        typeButton = view.findViewById(R.id.registration_button_type);
+        typeText = (TextView)view.findViewById(R.id.registration_type_text);
         saveButton = (Button)view.findViewById(R.id.registration_button_save);
         organizationField = (EditText)view.findViewById(R.id.registration_field_first);
         emailField = (EditText)view.findViewById(R.id.registration_field_email);
@@ -156,7 +158,7 @@ public class NewPartnerFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 type = (String)parent.getAdapter().getItem(position);
-                typeButton.setText(type);
+                typeText.setText(type);
                 dialog.dismiss();
             }
         });

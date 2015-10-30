@@ -30,6 +30,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -45,6 +46,7 @@ import java.util.Set;
 import co.higheraltitude.prizm.MainActivity;
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.network.PrizmAPIService;
 
 
@@ -76,6 +78,8 @@ public class User implements Parcelable {
     public Boolean isMember;
     public String theme;
     public String subtype;
+    public Boolean read;
+    public int interestCount;
 
     public static String PrizmCurrentUserCacheKey = "current_user";
     private static final String PRIZM_LOGIN_ENDPOINT = "/oauth2/login";
@@ -84,6 +88,7 @@ public class User implements Parcelable {
     private static final String PRIZM_MESSAGE_USER_FORMAT_2 = "/organizations/%s/users/%s/contacts";
     private static final String PRIZM_GROUP_USER_FORMAT = "/organizations/%s/groups/%s/members";
     private static final String PRIZM_ORG_USER_FORMAT = "/organizations/%s/members";
+    private static final String PRIZM_DEVICE_REGISTER_FORMAT = "/users/%s/devices";
 
     public static String ROLE_LEADER = "leader";
     public static String ROLE_OWNER = "owner";
@@ -192,6 +197,8 @@ public class User implements Parcelable {
             put("is_member", "isMember");
             put("theme", "theme");
             put("subtype", "subtype");
+            put("read", "read");
+            put("interest_count", "interestCount");
         }};
         return map;
     }
@@ -289,33 +296,38 @@ public class User implements Parcelable {
     }
 
     private static void setTheme(User user) {
-        PrizmCache.getInstance();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        int style = R.style.PrizmBlue;
         if (user != null && user.theme != null) {
             if (user.theme.equals("purple")) {
-                PrizmCache.objectCache.put("theme", R.style.PrizmPurple);
+                style = R.style.PrizmPurple;
             } else if (user.theme.equals("red")) {
-                PrizmCache.objectCache.put("theme", R.style.PrizmRed);
+                style = R.style.PrizmRed;
             } else if (user.theme.equals("green")) {
-                PrizmCache.objectCache.put("theme", R.style.PrizmGreen);
+                style = R.style.PrizmGreen;
             } else if (user.theme.equals("pink")) {
-                PrizmCache.objectCache.put("theme", R.style.PrizmPink);
+               style =  R.style.PrizmPink;
             } else if (user.theme.equals("orange")) {
-                PrizmCache.objectCache.put("theme", R.style.PrizmOrange);
+                style = R.style.PrizmOrange;
             } else if (user.theme.equals("black")) {
-                PrizmCache.objectCache.put("theme", R.style.PrizmBlack);
-            } else {
-                PrizmCache.objectCache.put("theme", R.style.PrizmBlue);
+                style = R.style.PrizmBlack;
             }
         }
+        cache.storeInt("theme", style);
+    }
+
+    public static int getTheme() {
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        return cache.readInt("theme");
     }
 
     public static User getCurrentUser() {
-        PrizmCache cache = PrizmCache.getInstance();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         User user = null;
         try {
-            Object object = PrizmCache.objectCache.get(PrizmCurrentUserCacheKey);
-            if (object != null) {
-                JSONObject obj = new JSONObject((String)object);
+            String data = cache.readString(PrizmCurrentUserCacheKey);
+            if (data != null && !data.equals("")) {
+                JSONObject obj = new JSONObject(data);
                 user = new User(obj);
             }
         } catch (Exception e) {
@@ -333,8 +345,9 @@ public class User implements Parcelable {
         Gson gson = new Gson();
         Object cacheable = cacheableObject(user);
         String json = gson.toJson(cacheable);
-        PrizmCache cache = PrizmCache.getInstance();
-        PrizmCache.objectCache.put(PrizmCurrentUserCacheKey, json);
+        Log.d("DEBUG", json);
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.storeString(PrizmCurrentUserCacheKey, json);
     }
 
     public static void login(String email, String password, final Handler handler) {
@@ -354,20 +367,24 @@ public class User implements Parcelable {
         }
         @Override
         public void handleMessage(Message message) {
-            try {
-                JSONObject userObject = (JSONObject) message.obj;
-                JSONArray dataArray = userObject.getJSONArray("data");
-                if (dataArray.length() > 0) {
-                    JSONObject userProfile = dataArray.getJSONObject(0);
-                    User user = new User(userProfile);
-                    setCurrentUser(user);
-                    Message message1 = mHandler.obtainMessage(1, user);
-                    mHandler.sendMessage(message1);
-                } else {
+            if (message.obj != null) {
+                try {
+                    JSONObject userObject = (JSONObject) message.obj;
+                    JSONArray dataArray = userObject.getJSONArray("data");
+                    if (dataArray.length() > 0) {
+                        JSONObject userProfile = dataArray.getJSONObject(0);
+                        User user = new User(userProfile);
+                        setCurrentUser(user);
+                        Message message1 = mHandler.obtainMessage(1, user);
+                        mHandler.sendMessage(message1);
+                    } else {
+                        mHandler.sendEmptyMessage(1);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                     mHandler.sendEmptyMessage(1);
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } else {
                 mHandler.sendEmptyMessage(1);
             }
         }
@@ -379,31 +396,39 @@ public class User implements Parcelable {
         post.add("provider_token", token.token);
         post.add("provider_token_secret", token.secret);
         post.add("provider", "twitter");
-        service.performAuthorizedRequest(PRIZM_LOGIN_ENDPOINT, post, HttpMethod.POST, new Handler(){
-            public void handleMessage(Message message) {
-                if (message.obj != null) {
-                    JSONObject userObject = (JSONObject) message.obj;
-                    try {
-                        JSONArray dataArray = userObject.getJSONArray("data");
-                        if (dataArray.length() > 0) {
-                            JSONObject userProfile = dataArray.getJSONObject(0);
-                            User user = new User(userProfile);
-                            setCurrentUser(user);
-                            Message message1 = handler.obtainMessage(1, user);
-                            handler.sendMessage(message1);
-                        } else {
-                            handler.sendEmptyMessage(1);
-                        }
-                    } catch (JSONException ex) {
-                        ex.printStackTrace();
-                        handler.sendEmptyMessage(1);
-                    }
-                } else {
-                    handler.sendEmptyMessage(0);
-                }
-            }
+        service.performAuthorizedRequest(PRIZM_LOGIN_ENDPOINT, post, HttpMethod.POST, new LoginHandler(handler) {
+
         });
 
+    }
+
+    public static class LoginHandler extends Handler {
+        private Handler mHandler;
+        public LoginHandler(Handler handler) {
+            mHandler = handler;
+        }
+        public void handleMessage(Message message) {
+            if (message.obj != null) {
+                JSONObject userObject = (JSONObject) message.obj;
+                try {
+                    JSONArray dataArray = userObject.getJSONArray("data");
+                    if (dataArray.length() > 0) {
+                        JSONObject userProfile = dataArray.getJSONObject(0);
+                        User user = new User(userProfile);
+                        setCurrentUser(user);
+                        Message message1 = mHandler.obtainMessage(1, user);
+                        mHandler.sendMessage(message1);
+                    } else {
+                        mHandler.sendEmptyMessage(1);
+                    }
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
+                    mHandler.sendEmptyMessage(1);
+                }
+            } else {
+                 mHandler.sendEmptyMessage(0);
+            }
+        }
     }
 
     public static void login(AccessToken token, final Handler handler) {
@@ -411,40 +436,17 @@ public class User implements Parcelable {
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
         post.add("provider_token", token.getToken());
         post.add("provider", "facebook");
-        service.performAuthorizedRequest(PRIZM_LOGIN_ENDPOINT, post, HttpMethod.POST, new Handler() {
-            public void handleMessage(Message message) {
-                if (message != null && message.obj != null) {
-                    JSONObject userObject = (JSONObject) message.obj;
-                    try {
-                        JSONArray dataArray = userObject.getJSONArray("data");
-                        if (dataArray.length() > 0) {
-                            JSONObject userProfile = dataArray.getJSONObject(0);
-                            User user = new User(userProfile);
-                            setCurrentUser(user);
-                            Message message1 = handler.obtainMessage(1, user);
-                            handler.sendMessage(message1);
-                        } else {
-                            handler.sendEmptyMessage(1);
-                        }
-                    } catch (JSONException ex) {
-                        ex.printStackTrace();
-                        handler.sendEmptyMessage(1);
-                    }
-                } else {
-                    handler.sendEmptyMessage(1);
-                }
-            }
-        });
+        service.performAuthorizedRequest(PRIZM_LOGIN_ENDPOINT, post, HttpMethod.POST, new LoginHandler(handler));
     }
 
     public static void logout(Context context) {
-        PrizmCache cache = PrizmCache.getInstance();
-        cache.objectCache.invalidate();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(context);
         Intent mStartActivity = new Intent(context, MainActivity.class);
         int mPendingIntentId = 123456;
         PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
         AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
+        cache.clearValue(PrizmCurrentUserCacheKey);
         System.exit(0);
 
     }
@@ -486,21 +488,59 @@ public class User implements Parcelable {
 
     }
 
-    public static User fetchUserCore(User user, final Handler handler) {
-        PrizmCache cache = PrizmCache.getInstance();
+    public static void fetchUserCore(User user, final PrizmDiskCache.CacheRequestDelegate delegate) {
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
-        Object data = cache.performCachedRequest(PRIZM_USER_ENDPOINT + '/' + user.uniqueID, post, HttpMethod.GET, new CoreUserHandler(handler));
-        User u = null;
-        if (data != null) {
-            if (data instanceof JSONObject) {
-                u = new User((JSONObject)data);
-            }
-        }
-        return u;
+        cache.performCachedRequest(PRIZM_USER_ENDPOINT + '/' + user.uniqueID, post, HttpMethod.GET,
+                new UserCoreDelegate(delegate));
     }
 
-    public static ArrayList<User> searchUsers(HashMap<String, String> query, final Handler handler) {
-        PrizmCache cache = PrizmCache.getInstance();
+    private static class UserCoreDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        PrizmDiskCache.CacheRequestDelegate mDelegate;
+
+        public UserCoreDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
+            mDelegate = delegate;
+        }
+        @Override
+        public void cached(String path, Object object) {
+            User user = null;
+            if (object instanceof JSONObject) {
+                user = new User((JSONObject)object);
+            }
+            mDelegate.cached(path, user);
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            User user = null;
+            if (object instanceof JSONObject) {
+                user = new User((JSONObject)object);
+                if (user != null && user.uniqueID.equals(getCurrentUser().uniqueID)) {
+                    setCurrentUser(user);
+                }
+            }
+            mDelegate.cacheUpdated(path, user);
+        }
+    }
+
+    public static void registerDevice(final String device) {
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        post.add("device", device);
+        String path = String.format(PRIZM_DEVICE_REGISTER_FORMAT, getCurrentUser().uniqueID);
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.PUT, new EmptyHandler(), true);
+    }
+
+    private static class EmptyHandler extends  Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            Object o = msg.obj;
+            Log.d("DEBUG", "Retrieved object");
+        }
+    }
+
+    public static void searchUsers(HashMap<String, String> query, final PrizmDiskCache.CacheRequestDelegate delegate) {
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
         String search = null;
         String organization = null;
@@ -538,45 +578,20 @@ public class User implements Parcelable {
         }
 
         String path = String.format("%s%s", PRIZM_USER_ENDPOINT, queryString);
-        Object object = cache.performCachedRequest(path, post, HttpMethod.GET, new UserListHandler(handler));
-        ArrayList<User> userList = new ArrayList<>();
-        if (object instanceof JSONArray) {
-            for (int i = 0; i != ((JSONArray)object).length(); ++i) {
-                try {
-                    JSONObject o = ((JSONArray) object).getJSONObject(i);
-                    User u = new User(o);
-                    userList.add(u);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        return userList;
+        cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
     }
 
-    public static ArrayList<User> fetchAvailableMessageRecipients(String oid, final Handler handler) {
+    public static void fetchAvailableMessageRecipients(String oid, final PrizmDiskCache.CacheRequestDelegate delegate) {
         User user = User.getCurrentUser();
         String path = String.format(PRIZM_MESSAGE_USER_FORMAT, oid, user.uniqueID);
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
-        Object data = PrizmCache.getInstance().performCachedRequest(path, post, HttpMethod.GET, new UserListHandler(handler));
-        ArrayList<User> userList = new ArrayList<>();
-        if (data instanceof JSONArray) {
-            for (int i = 0; i != ((JSONArray)data).length(); ++i) {
-                try {
-                    JSONObject o = ((JSONArray) data).getJSONObject(i);
-                    User u = new User(o);
-                    userList.add(u);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        return userList;
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
     }
 
-    public static void fetchUserContacts(String oid, String lastItem, final Handler handler) {
-        User user = User.getCurrentUser();
-        String path = String.format(PRIZM_MESSAGE_USER_FORMAT_2, oid, user.uniqueID);
+    public static void fetchUserContacts(String oid, String lastItem, final PrizmDiskCache.CacheRequestDelegate delegate) {
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        String path = String.format(PRIZM_MESSAGE_USER_FORMAT_2, oid, getCurrentUser().uniqueID);
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
         if (lastItem != null) {
             try {
@@ -586,11 +601,10 @@ public class User implements Parcelable {
                 ex.printStackTrace();
             }
         }
-        PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.GET, new UserListHandler(handler), true);
-
+        cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
     }
 
-    public static ArrayList<User> fetchOrganizationMembers(String oid, String lastItem, final Handler handler) {
+    public static void fetchOrganizationMembers(String oid, String lastItem, final PrizmDiskCache.CacheRequestDelegate delegate) {
         String path =  String.format(PRIZM_ORG_USER_FORMAT, oid);
         if (lastItem != null) {
             try {
@@ -601,23 +615,11 @@ public class User implements Parcelable {
             }
         }
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
-        Object data = PrizmCache.getInstance().performCachedRequest(path, post, HttpMethod.GET, new UserListHandler(handler));
-        ArrayList<User> userList = new ArrayList<>();
-        if (data instanceof JSONArray) {
-            for (int i = 0; i != ((JSONArray)data).length(); ++i) {
-                try {
-                    JSONObject o = ((JSONArray) data).getJSONObject(i);
-                    User u = new User(o);
-                    userList.add(u);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        return userList;
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
     }
 
-    public static ArrayList<User> fetchGroupMembers(String gid, String lastItem, boolean allUsers, final Handler handler) {
+    public static void fetchGroupMembers(String gid, String lastItem, boolean allUsers, final PrizmDiskCache.CacheRequestDelegate delegate) {
         String path =  String.format(PRIZM_GROUP_USER_FORMAT, getCurrentUser().primaryOrganization, gid);
         if (allUsers) {
             path = path + "?show_all=true&";
@@ -634,51 +636,55 @@ public class User implements Parcelable {
         }
         Log.d("DEBUG", path);
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
-        Object data = PrizmCache.getInstance().performCachedRequest(path, post, HttpMethod.GET, new UserListHandler(handler));
-        if (data instanceof JSONObject) {
-            if (((JSONObject) data).has("values")) {
-                try {
-                    data = ((JSONObject) data).get("values");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        ArrayList<User> userList = new ArrayList<>();
-        if (data instanceof JSONArray) {
-            for (int i = 0; i != ((JSONArray)data).length(); ++i) {
-                try {
-                    JSONObject o = ((JSONArray) data).getJSONObject(i);
-                    User u = new User(o);
-                    userList.add(u);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        return userList;
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
     }
 
-    private static class CoreUserHandler extends Handler {
-        private Handler mHandler;
+    public static class UserListDelegate implements PrizmDiskCache.CacheRequestDelegate
+    {
 
-        public CoreUserHandler(Handler handler) {
-            mHandler = handler;
+        private PrizmDiskCache.CacheRequestDelegate mDelegate;
+
+        public UserListDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
+            mDelegate = delegate;
         }
 
         @Override
-        public void handleMessage(Message msg) {
-            Object obj = msg.obj;
-            User user = null;
-            if (obj instanceof JSONObject) {
-                user = new User((JSONObject)obj);
+        public void cached(String path, Object object) {
+            ArrayList<User> users = null;
+            if (object != null) {
+                users = processObject(object);
             }
-            Message message = mHandler.obtainMessage(1, user);
-            mHandler.sendMessage(message);
+            mDelegate.cached(path, users);
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            ArrayList<User> users = null;
+            if (object != null) {
+                users = processObject(object);
+            }
+            mDelegate.cacheUpdated(path, users);
+        }
+
+        private ArrayList<User> processObject(Object obj) {
+            ArrayList<User> userList = new ArrayList<>();
+            if (obj instanceof  JSONArray) {
+                for (int i = 0; i != ((JSONArray)obj).length(); ++i) {
+                    try {
+                        JSONObject o = ((JSONArray) obj).getJSONObject(i);
+                        User u = new User(o);
+                        userList.add(u);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            return userList;
         }
     }
 
-    private static class UserListHandler extends Handler {
+    public static class UserListHandler extends Handler {
         private Handler mHandler;
 
         public UserListHandler(Handler handler) {

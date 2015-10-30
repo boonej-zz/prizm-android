@@ -14,6 +14,7 @@
         android:layout_width="fill_parent"
         android:layout_height="?attr/actionBarSize"
         android:minHeight="60dp"
+        android:elevation="4dp"
         android:background="?attr/colorPrimary"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
@@ -30,6 +31,7 @@
             />
     </android.support.v7.widget.Toolbar>
     <RelativeLayout
+        android:background="@color/prizm_dominant_background"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
         <ProgressBar
@@ -63,6 +65,7 @@
                 android:nextFocusRight="@+id/leader_dropdown"
                 android:background="@drawable/edit_text_grey_bar"
                 android:hint="@string/label_group_name"
+                android:textCursorDrawable="@drawable/cursor"
                 android:textSize="16.7sp"
                 android:textColor="@color/warm_grey"
                 android:paddingLeft="19.3dp"
@@ -91,6 +94,7 @@
                 android:nextFocusLeft="@id/leader_dropdown"
                 android:nextFocusRight="@id/group_name"
                 android:layout_height="60dp"
+                android:textCursorDrawable="@drawable/cursor"
                 android:background="@drawable/edit_text_grey_bar"
                 android:hint="@string/label_group_description"
                 android:textSize="16.7sp"

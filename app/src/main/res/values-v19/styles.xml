@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="PrizmRegistrationTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="android:windowTranslucentNavigation">true</item>
         <!--<item name="android:windowTranslucentStatus">true</item>-->
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>

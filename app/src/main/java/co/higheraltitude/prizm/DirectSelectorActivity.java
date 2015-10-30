@@ -32,11 +32,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.views.UserAvatarView;
 import co.higheraltitude.prizm.views.UserTagView;
 
-public class DirectSelectorActivity extends AppCompatActivity {
+public class DirectSelectorActivity extends AppCompatActivity implements UserAvatarView.UserAvatarViewDelegate {
     private PrizmCache cache;
     private SearchView mSearchView;
     private static Boolean needUsers = true;
@@ -51,13 +52,9 @@ public class DirectSelectorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         cache = PrizmCache.getInstance();
-        Object theme = PrizmCache.objectCache.get("theme");
 
-        if (theme != null ) {
-            setTheme((int)theme);
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
+        setTheme(User.getTheme());
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_direct_selector);
         Toolbar actionBar = (Toolbar)findViewById(R.id.profile_nav_bar);
@@ -74,19 +71,20 @@ public class DirectSelectorActivity extends AppCompatActivity {
         mEditText.setActivated(false);
         mProgressBar = (ProgressBar)findViewById(R.id.progress_bar);
         mProgressBar.setVisibility(View.VISIBLE);
-        mProgressBar.setIndeterminate(true);
+
         loadUsers();
 
 
     }
 
-    private static void loadUsers() {
+    private void loadUsers() {
         if (needUsers) {
+            mProgressBar.setIndeterminate(true);
             String name = null;
             if (mUserAdapter.getCount() > 0) {
                 name = mUserAdapter.getUser(mUserAdapter.getCount() - 1).name;
             }
-            User.fetchUserContacts(User.getCurrentUser().primaryOrganization, name, new UserHandler());
+            User.fetchUserContacts(User.getCurrentUser().primaryOrganization, name, new UserDelegate());
         }
     }
 
@@ -148,7 +146,7 @@ public class DirectSelectorActivity extends AppCompatActivity {
         startActivityForResult(intent, VOICE_RESULT);
     }
 
-    private static class UserAdapter extends ArrayAdapter<User> {
+    private class UserAdapter extends ArrayAdapter<User> {
         private UserNameFilter filter = new UserNameFilter();
         private ArrayList<User> baseList;
         private ArrayList<User> userList;
@@ -169,6 +167,7 @@ public class DirectSelectorActivity extends AppCompatActivity {
                 userTagView = UserAvatarView.inflate(parent);
             }
             userTagView.setUser(getItem(position));
+            userTagView.setDelegate(DirectSelectorActivity.this);
             return userTagView;
         }
 
@@ -223,18 +222,33 @@ public class DirectSelectorActivity extends AppCompatActivity {
         }
     }
 
-    private static class UserHandler extends Handler {
+    private class UserDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        private boolean emptySet = true;
         @Override
-        public void handleMessage(Message msg) {
-            ArrayList<User> u = (ArrayList<User>)msg.obj;
-            if (u.size() > 0) {
-                mUserAdapter.addUsers(u);
-                mUserAdapter.notifyDataSetChanged();
-                loadUsers();
-//                loadUsers();
-            } else {
-                mProgressBar.setIndeterminate(false);
-                mProgressBar.setVisibility(View.INVISIBLE);
+        public void cached(String path, Object object) {
+            processUsers(object);
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            processUsers(object);
+            mProgressBar.setIndeterminate(false);
+            mProgressBar.setVisibility(View.GONE);
+            emptySet = false;
+        }
+
+        private void processUsers(Object object) {
+            if (object instanceof ArrayList) {
+                ArrayList<User> users = (ArrayList<User>) object;
+                if (users.size() > 0) {
+                    if (emptySet) {
+                        mUserAdapter.clear();
+                    }
+                    mUserAdapter.addAll(users);
+                    mUserAdapter.notifyDataSetChanged();
+                    loadUsers();
+                }
             }
         }
     }
@@ -269,5 +283,11 @@ public class DirectSelectorActivity extends AppCompatActivity {
             mUserAdapter.getFilter().filter(s);
             mUserAdapter.notifyDataSetChanged();
         }
+    }
+
+    public void avatarViewClicked(UserAvatarView view) {
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, view.getUser());
+        startActivity(intent);
     }
 }

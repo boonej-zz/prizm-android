@@ -19,10 +19,11 @@
     <item name="cool_blue" type="color">#5188B9</item>
     <item name="warm_grey" type="color">#7C7C7C</item>
     <item name="light_navy" type="color">#334B8F</item>
-    <item name="white" type="color">#F3F3F3</item>
+    <item name="white" type="color">#FAFAFA</item>
     <item name="dark_sky_blue" type="color">#4A90E2</item>
     <item name="medium_pink" type="color">#EE7AAA</item>
     <item name="dusk_blue" type="color">#2F38A2</item>
+    <item name="dusk_blue_10_percent" type="color">#332F38A2</item>
     <item name="dusk_blue_50_percent" type = "color">#802F38A2</item>
     <item name="brownish_grey" type="color">#616161</item>
     <item name="darkish_purple" type="color">#771C62</item>
@@ -38,5 +39,8 @@
     <item name="charcoal_grey_dark" type="color">#27272E</item>
     <item name="iris" type="color">#5A64CA</item>
     <item name="warm_grey_50" type="color">#807C7C7C</item>
+    <item name="pale_grey" type="color">#f4f5f7</item>
+    <color name="silver">#d6d7d8</color>
+    <color name="french_blue">#3f6cb4</color>
 
 </resources>

@@ -10,6 +10,8 @@
             android:layout_gravity="top|left"
             android:layout_marginTop="4.7dp"
             android:layout_marginLeft="18.3dp"
+            android:src="@drawable/user_missing_avatar"
+            android:scaleType="fitCenter"
             />
         <LinearLayout
             android:layout_width="0dp"
@@ -47,11 +49,32 @@
                     android:textColor="@color/brownish_grey"
                     android:text="45 min ago"
                     />
+                <LinearLayout
+                    android:id="@+id/peep_viewed_section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:orientation="horizontal"
+                    android:layout_marginLeft="14dp">
+                    <ImageView
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:layout_gravity="center_vertical"
+                     android:src="@drawable/ic_remove_red_eye_black_24_px_2"/>
+                    <TextView
+                        android:id="@+id/peep_viewed_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="6.3dp"
+                        android:textSize="12sp"
+                        android:textColor="@color/brownish_grey"
+                        android:text="10"
+                        />
+                </LinearLayout>
             </LinearLayout>
             <LinearLayout
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
+                android:layout_gravity="center_vertical"
                 android:layout_marginTop="6dp">
                 <co.higheraltitude.prizm.views.PeepImageView
                     android:id="@+id/peep_image"
@@ -81,13 +104,15 @@
                 android:id="@+id/peep_like_button"
                 android:layout_width="20dp"
                 android:layout_height="16.7dp"
+                android:layout_gravity="center_vertical"
                 android:layout_marginTop="28dp"
                 android:src="@drawable/like"
                 />
             <TextView
                 android:id="@+id/peep_like_count"
                 android:layout_width="wrap_content"
-                android:layout_height="16.7dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
                 android:textSize="@dimen/font_size_regular"
                 android:textColor="@color/brownish_grey"
                 android:layout_marginTop="26dp"

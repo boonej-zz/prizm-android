@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.network.PrizmAPIService;
 import co.higheraltitude.prizm.views.GroupView;
 
@@ -172,32 +173,11 @@ public class Group implements Parcelable {
         }
     }
 
-    public static ArrayList<Group> fetchGroupsForUser(User user, String organization, Handler handler) {
+    public static void fetchGroupsForUser(User user, String organization, PrizmDiskCache.CacheRequestDelegate delegate) {
         String endpoint = String.format(ENDPOINT_USER_GROUPS, organization, user.uniqueID);
-        PrizmCache cache = PrizmCache.getInstance();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        Object data = cache.performCachedRequest(endpoint, params, HttpMethod.GET, new GroupsListHandler(handler));
-        JSONArray array = null;
-        if (data instanceof JSONArray) {
-            array = (JSONArray)data;
-        } else if (data instanceof JSONObject){
-            if (((JSONObject) data).has("values")) {
-                try {
-                    array = ((JSONObject) data).getJSONArray("values");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-        ArrayList<Group> groups = new ArrayList<>();
-        if (array != null) {
-            try {
-                groups = processGroupJsonArray(array);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return groups;
+        cache.performCachedRequest(endpoint, params, HttpMethod.GET, new GroupsListDelegate(delegate));
     }
 
     public static void createGroup(HashMap<String, Object> parameters, String organization, final Handler handler) {
@@ -253,6 +233,33 @@ public class Group implements Parcelable {
             }
         }
         return groups;
+    }
+
+    private static class GroupsListDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        private PrizmDiskCache.CacheRequestDelegate mDelegate;
+
+        public GroupsListDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
+            mDelegate = delegate;
+        }
+
+        @Override
+         public void cached(String path, Object object) {
+            mDelegate.cached(path, process(object));
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            mDelegate.cacheUpdated(path, process(object));
+        }
+
+        private ArrayList<Group>process(Object obj) {
+            ArrayList<Group> returnGroups = new ArrayList<>();
+            if (obj instanceof JSONArray) {
+                returnGroups = processGroupJsonArray((JSONArray) obj);
+            }
+            return returnGroups;
+        }
     }
 
     private static class GroupsListHandler extends Handler {

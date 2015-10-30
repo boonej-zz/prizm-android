@@ -6,22 +6,28 @@
         <item name="android:textColor">@android:color/white</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
         <item name="popupMenuStyle">@style/PrizmPopupStyle</item>
+        <item name="android:editTextStyle">@style/PrizmEditTextStyle</item>
     </style>
 
     <style name="PrizmRegistrationTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="colorPrimary">@color/ha_transparent_color</item>
         <item name="colorPrimaryDark">@color/grey_light_transparent</item>
         <item name="android:editTextStyle">@style/PrizmRegistrationEditTextStyle</item>
     </style>
 
-
+    <style name="PrizmEditTextStyle" parent="Widget.AppCompat.EditText">
+        <item name="android:textCursorDrawable">@drawable/cursor</item>
+        <item name="android:cursorVisible">true</item>
+    </style>
 
     <style name="PrizmRegistrationEditTextStyle" parent="Widget.AppCompat.EditText">
         <item name="android:textSize">@dimen/font_size_small</item>
         <item name="android:textColor">@android:color/black</item>
         <item name="android:fontFamily">sans-serif-light</item>
-        <item name="android:background">@drawable/bkg_registration_edit_text</item>
+        <item name="android:textCursorDrawable">@drawable/cursor</item>
+
         <!--<item name="android:layout_marginBottom">6dp</item>-->
 
         <!--<item name="android:paddingBottom">17.9dp</item>-->
@@ -34,8 +40,8 @@
 
         <item name="android:textColorHint">@color/warm_grey</item>
         <item name="colorAccent">@color/warm_grey</item>
-        <item name="colorControlNormal">@color/prizm_light_navy</item>
-        <item name="colorControlActivated">@color/prizm_light_navy</item>
+        <item name="colorControlNormal">@color/silver</item>
+        <item name="colorControlActivated">@color/cool_blue</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:paddingTop">0dp</item>
     </style>
@@ -56,6 +62,7 @@
     </style>
 
     <style name="PrizmBlue" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/dusk_blue</item>
         <item name="colorPrimaryDark">@color/prizm_blue_dark</item>
         <item name="colorAccent">@android:color/white</item>
@@ -64,6 +71,7 @@
     </style>
 
     <style name="PrizmRed" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/red_primary</item>
         <item name="colorPrimaryDark">@color/red_dark</item>
         <item name="colorAccent">@android:color/white</item>
@@ -72,6 +80,7 @@
     </style>
 
     <style name="PrizmPurple" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/grape</item>
         <item name="colorPrimaryDark">@color/grape_purple</item>
         <item name="colorAccent">@android:color/white</item>
@@ -80,6 +89,7 @@
     </style>
 
     <style name="PrizmPink" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/warm_purple</item>
         <item name="colorPrimaryDark">@color/darkish_purple</item>
         <item name="colorAccent">@android:color/white</item>
@@ -88,6 +98,7 @@
     </style>
 
     <style name="PrizmGreen" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/dark_turquoise</item>
         <item name="colorPrimaryDark">@color/evergreen</item>
         <item name="colorAccent">@android:color/white</item>
@@ -96,6 +107,7 @@
     </style>
 
     <style name="PrizmOrange" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/dull_orange</item>
         <item name="colorPrimaryDark">@color/copper</item>
         <item name="colorAccent">@android:color/white</item>
@@ -104,6 +116,7 @@
     </style>
 
     <style name="PrizmBlack" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
         <item name="colorPrimary">@color/charcoal_grey</item>
         <item name="colorPrimaryDark">@color/charcoal_grey_dark</item>
         <item name="colorAccent">@android:color/white</item>
@@ -134,8 +147,8 @@
     </style>
 
     <style name="FullscreenTheme" parent="PrizmTheme">
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowBackground">@null</item>
+        <!--<item name="android:windowContentOverlay">@null</item>-->
+        <!--<item name="android:windowBackground">@null</item>-->
         <item name="metaButtonBarStyle">@style/ButtonBar</item>
         <item name="metaButtonBarButtonStyle">@style/ButtonBarButton</item>
     </style>
@@ -155,6 +168,10 @@
     <style name="OverlayStyle">
         <item name="android:background">?attr/colorPrimary</item>
         <item name="android:alpha">0.5</item>
+    </style>
+
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_drawable</item>
     </style>
 
 

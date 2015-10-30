@@ -39,4 +39,14 @@ public class MenuItemAdapter extends ArrayAdapter<String> {
         notifyDataSetChanged();
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        return 1;
+    }
+
+    @Override
+    public int getViewTypeCount() {
+        return 1;
+    }
+
 }

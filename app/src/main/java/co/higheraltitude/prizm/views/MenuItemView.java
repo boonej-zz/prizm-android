@@ -68,7 +68,7 @@ public class MenuItemView extends RelativeLayout {
         super.setSelected(selected);
         mSelected = selected;
         if (mSelected) {
-            mTextView.setTextColor(Color.parseColor("#2F38A2"));
+            mTextView.setTextColor(Color.parseColor("#5188B9"));
         } else {
             mTextView.setTextColor(Color.parseColor("#7C7C7C"));
         }
@@ -82,13 +82,13 @@ public class MenuItemView extends RelativeLayout {
             if (mSelected) mImageView.setImageResource(R.drawable.home_icon_selected);
             else mImageView.setImageResource(R.drawable.home_icon);
         } else if (text.equals("Explore")) {
-            if (mSelected) mImageView.setImageResource(R.drawable.explore_icon_selected);
+            if (mSelected) mImageView.setImageResource(R.drawable.explorer_icon_selected);
             else mImageView.setImageResource(R.drawable.explore_icon);
         } else if (text.equals("Insight")) {
             if (mSelected) mImageView.setImageResource(R.drawable.insight_icon_selected);
             else mImageView.setImageResource(R.drawable.insight_icon);
         } else if (text.equals("Graph")) {
-            if (mSelected) mImageView.setImageResource(R.drawable.stats_icon_selected);
+            if (mSelected) mImageView.setImageResource(R.drawable.graph_icon_selected);
             else mImageView.setImageResource(R.drawable.stats_icon);
         } else if (text.equals("Message")) {
             if (mSelected) mImageView.setImageResource(R.drawable.message_icon_selected);
@@ -102,6 +102,9 @@ public class MenuItemView extends RelativeLayout {
         } else if (text.equals("Settings")) {
             if (mSelected) mImageView.setImageResource(R.drawable.settings_icon_selected);
             else mImageView.setImageResource(R.drawable.settings_icon);
+        } else if (text.equals("Help & feedback")) {
+            if (mSelected) mImageView.setImageResource(R.drawable.help_icon_selected);
+            else mImageView.setImageResource(R.drawable.help_icon);
         }
 
         if (text.equals("Settings")) {

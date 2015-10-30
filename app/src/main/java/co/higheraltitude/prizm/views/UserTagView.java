@@ -18,6 +18,7 @@ import java.util.UUID;
 
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.models.User;
 
 /**
@@ -58,8 +59,9 @@ public class UserTagView extends RelativeLayout {
         setViews();
         instanceId = UUID.randomUUID().toString();
         mUser = user;
-        mAvatarView.setImageBitmap(null);
-        PrizmCache.getInstance().fetchDrawable(user.profilePhotoURL, new ImageHandler(this, mAvatarView, instanceId));
+        mAvatarView.setImageResource(R.drawable.user_missing_avatar);
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(getContext());
+        cache.fetchBitmap(user.profilePhotoURL, mAvatarView.getWidth(), new ImageHandler(this, mAvatarView, instanceId));
         mTextView.setText(user.name);
     }
 

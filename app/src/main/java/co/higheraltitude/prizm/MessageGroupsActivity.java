@@ -54,6 +54,8 @@ import java.util.List;
 
 import co.higheraltitude.prizm.adapters.MenuItemAdapter;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
+import co.higheraltitude.prizm.handlers.GroupsHandler;
 import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
 import co.higheraltitude.prizm.models.Group;
@@ -92,12 +94,7 @@ public class MessageGroupsActivity extends AppCompatActivity implements AdapterV
     protected void onCreate(Bundle savedInstanceState) {
 
         cache = PrizmCache.getInstance();
-        Object theme = PrizmCache.objectCache.get("theme");
-        if (theme != null ) {
-            setTheme((int) theme);
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
+        setTheme(User.getTheme());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_message_groups);
 
@@ -133,7 +130,7 @@ public class MessageGroupsActivity extends AppCompatActivity implements AdapterV
                 newGroupView.setVisibility(View.GONE);
             }
             progressBar.setIndeterminate(true);
-            groups = Group.fetchGroupsForUser(currentUser, currentUser.primaryOrganization, new FetchGroupsHandler(getApplicationContext(), this));
+//            groups = Group.fetchGroupsForUser(currentUser, currentUser.primaryOrganization, new GroupsHandler(getApplicationContext(), null));
             ArrayList<String> groupList = new ArrayList<>();
             Iterator i = groups.iterator();
             while (i.hasNext()) {
@@ -170,7 +167,8 @@ public class MessageGroupsActivity extends AppCompatActivity implements AdapterV
         TextView nameView = (TextView)findViewById(R.id.menu_name);
         User u = User.getCurrentUser();
         nameView.setText(u.name);
-        cache.fetchDrawable(u.profilePhotoURL, coverImage);
+        PrizmDiskCache mCache = PrizmDiskCache.getInstance(getApplicationContext());
+        mCache.fetchBitmap(u.profilePhotoURL, coverImage);
         LoadImage li = new LoadImage();
         li.execute(u.profilePhotoURL);
         String [] menuItems = getResources().getStringArray(R.array.menu_items);
@@ -342,66 +340,6 @@ public class MessageGroupsActivity extends AppCompatActivity implements AdapterV
 
                 }
             }
-        }
-    }
-
-    private static class FetchGroupsHandler extends Handler {
-
-        private Context mContext;
-        private MessageGroupsActivity mActivity;
-
-        public FetchGroupsHandler(Context context, MessageGroupsActivity activity) {
-            mContext = context;
-            mActivity = activity;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            try {
-                if (msg.obj != null) {
-                    if (msg.obj instanceof ArrayList) {
-                        ArrayList<Group> obj = (ArrayList<Group>)msg.obj;
-
-                        int objSize = obj.size();
-                        if (groups.size() != obj.size()) {
-                            groups = obj;
-                            ArrayList<String> groupList = new ArrayList<>();
-                            Iterator i = groups.iterator();
-                            while (i.hasNext()) {
-                                Group g = (Group)i.next();
-                                groupList.add(g.name);
-                            }
-                            groupNames = groupList.toArray(groupNames);
-                            int size = groupAdapter.getCount();
-                            try {
-                                for (int j = 0; j != groups.size(); ++j) {
-                                    Group a = groups.get(j);
-                                    if (j < size - 2) {
-                                        Group b = groupAdapter.getItem(j + 2);
-                                        if (!a.uniqueID.equals(b.uniqueID)) {
-                                            groupAdapter.remove(b);
-                                            groupAdapter.insert(a, j + 2);
-                                        }
-                                    } else {
-                                        groupAdapter.add(a);
-                                    }
-                                }
-                                groupAdapter.notifyDataSetChanged();
-
-
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                Toast.makeText(mContext, "Uh oh! There was a problem loading your groups.", Toast.LENGTH_SHORT).show();
-            }
-            mActivity.progressBar.setIndeterminate(false);
-            mActivity.progressBar.setVisibility(View.GONE);
-
         }
     }
 

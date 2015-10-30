@@ -24,8 +24,8 @@
         android:layout_marginRight="8dp"
         android:textColor="#7c7c7c"
         android:background="#00000000"
-        android:textCursorDrawable="@null"
         android:fontFamily="sans-serif"
+        android:textCursorDrawable="@drawable/cursor"
 
         />
 

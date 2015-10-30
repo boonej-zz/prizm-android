@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<co.higheraltitude.prizm.views.InterestView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent" android:layout_weight="1" android:layout_height="wrap_content">
+    <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:orientation="horizontal"
+        android:layout_marginTop="5.3dp">
+        <TextView
+            android:id="@+id/interest_1"
+            android:layout_width="wrap_content"
+            android:layout_height="37dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical|center_horizontal"
+            android:textSize="@dimen/font_size_regular"
+            android:background="@drawable/bkg_interest"
+            android:layout_marginLeft="20dp"
+            android:textColor="@color/light_navy" />
+        <TextView
+            android:id="@+id/interest_2"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="37dp"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical|center_horizontal"
+            android:textSize="@dimen/font_size_regular"
+            android:layout_marginLeft="5.7dp"
+            android:background="@drawable/bkg_interest"
+            android:textColor="@color/light_navy" />
+        <TextView
+            android:id="@+id/interest_3"
+            android:layout_width="wrap_content"
+            android:layout_weight="1"
+            android:layout_height="37dp"
+            android:layout_marginLeft="5.7dp"
+            android:layout_marginRight="18.3dp"
+            android:layout_gravity="center_vertical"
+            android:gravity="center_vertical|center_horizontal"
+            android:textSize="@dimen/font_size_regular"
+            android:background="@drawable/bkg_interest"
+            android:textColor="@color/light_navy" />
+    </LinearLayout>
+
+</co.higheraltitude.prizm.views.InterestView>

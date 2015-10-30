@@ -36,6 +36,7 @@ import java.util.regex.Pattern;
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.ReadMessagesActivity;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.models.Group;
 import co.higheraltitude.prizm.models.Peep;
@@ -53,6 +54,8 @@ public class PeepView extends RelativeLayout {
     private TextView timeAgoView;
     private ImageView likeButton;
     private ImageView imageView;
+    private View viewedSection;
+    private TextView viewedCount;
     private Peep peep;
 
     private Thread thread;
@@ -61,13 +64,12 @@ public class PeepView extends RelativeLayout {
 
     private Boolean isLiked;
 
-    private static LikeButtonListener mLikeButtonListener;
-    private static PeepImageListener mPeepImageListener;
-    private static TagListener mTagListener;
-    private static AvatarListener mAvatarListener;
+    private PeepViewListener mDelegate;
+
 
     private static Pattern userTag;
     private static Pattern hashTag;
+    private PrizmDiskCache mCache;
 
 
     public static PeepView inflate(ViewGroup parent) {
@@ -89,23 +91,13 @@ public class PeepView extends RelativeLayout {
         LayoutInflater.from(context).inflate(R.layout.group_view_children, this, true);
     }
 
-    public static void setLikeButtonListener(LikeButtonListener listener) {
-        mLikeButtonListener = listener;
+    public void setDelegate(PeepViewListener delegate) {
+        mDelegate = delegate;
     }
 
-    public static void setmPeepImageListener(PeepImageListener listener) {
-        mPeepImageListener = listener;
-    }
-
-    public static void setTagListener(TagListener listener) {
-        mTagListener = listener;
-    }
-
-    public static void setAvatarListener(AvatarListener listener) {
-        mAvatarListener = listener;
-    }
 
     public void setPeep(Peep peep) {
+        mCache = PrizmDiskCache.getInstance(getContext());
         if (userTag == null) {
             userTag = Pattern.compile("@\\([^)]+\\)");
         }
@@ -124,7 +116,7 @@ public class PeepView extends RelativeLayout {
         while (matcher.find()) {
             String match = matcher.group();
             if (match != null) {
-                String m = match.substring(2, match.length() - 2);
+                String m = match.substring(2, match.length() - 1);
                 final String[] split = m.split("\\|");
                 matches.add(split);
                 text = text.replace(match, "@" + split[0]);
@@ -144,8 +136,8 @@ public class PeepView extends RelativeLayout {
             ClickableSpan span = new ClickableSpan() {
                 @Override
                 public void onClick(View widget) {
-                    if (mTagListener != null) {
-                        mTagListener.tagClicked(TagListener.TAG_TYPE_USER, id);
+                    if (mDelegate != null) {
+                        mDelegate.tagClicked(PeepViewListener.TAG_TYPE_USER, id);
                     }
                 }
             };
@@ -158,8 +150,8 @@ public class PeepView extends RelativeLayout {
             ClickableSpan span = new ClickableSpan() {
                 @Override
                 public void onClick(View widget) {
-                    if (mTagListener != null) {
-                        mTagListener.tagClicked(TagListener.TAG_TYPE_HASH, match);
+                    if (mDelegate != null) {
+                        mDelegate.tagClicked(PeepViewListener.TAG_TYPE_HASH, match);
                     }
                 }
             };
@@ -175,7 +167,7 @@ public class PeepView extends RelativeLayout {
         imageView.setImageDrawable(null);
         imageView.setVisibility(INVISIBLE);
         authorView.setText(peep.creatorName);
-        avatarView.setImageBitmap(null);
+        avatarView.setImageDrawable(getContext().getResources().getDrawable(R.drawable.user_missing_avatar));
 
 
 
@@ -194,17 +186,49 @@ public class PeepView extends RelativeLayout {
         View likesArea = findViewById(R.id.likes_area);
         likesArea.setOnClickListener(new mLikeButtonListener(this));
         ImageHandler ih = new ImageHandler(this, avatarView, this.instanceId, ImageHandler.PEEP_IMAGE_TYPE_AVATAR);
-        cache.fetchDrawable(peep.creatorProfilePhotoUrl, ih);
+        mCache.fetchBitmap(peep.creatorProfilePhotoUrl, 125, ih);
         if (peep.imageUrl != null && !peep.imageUrl.isEmpty()) {
             imageView.setVisibility(VISIBLE);
-            cache.fetchDrawable(peep.imageUrl, new ImageHandler(this, imageView, this.instanceId,
+            mCache.fetchBitmap(peep.imageUrl, imageView.getMaxWidth(), new ImageHandler(this, imageView, this.instanceId,
                     ImageHandler.PEEP_IMAGE_TYPE_IMAGE));
         }
         final Peep mPeep = peep;
         avatarView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mAvatarListener.avatarClicked(mPeep.creatorId);
+                mDelegate.avatarClicked(mPeep.creatorId);
+            }
+        });
+        viewedSection.setVisibility(INVISIBLE);
+        if (peep.myPeep) {
+            if (User.getCurrentUser().role != null && (User.getCurrentUser().role.equals("leader") || User.getCurrentUser().role.equals("owner")
+                    || User.getCurrentUser().role.equals("ambassador"))) {
+                if (peep.readCount > 0) {
+                    int count = 0;
+                    if (User.getCurrentUser().role.equals("owner")) {
+                        count = peep.readCount - 1;
+                        viewedCount.setText(String.valueOf(count));
+                        if (count > 0) {
+                            viewedSection.setVisibility(VISIBLE);
+                        }
+                    } else {
+                        count = peep.readCount - 2;
+                        viewedCount.setText(String.valueOf(count));
+                        if (count > 0) {
+                            viewedSection.setVisibility(VISIBLE);
+                        }
+                    }
+                } else {
+                    viewedSection.setVisibility(INVISIBLE);
+                }
+            }
+        }
+        viewedSection.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.viewedButtonClicked(PeepView.this);
+                }
             }
         });
     }
@@ -229,11 +253,13 @@ public class PeepView extends RelativeLayout {
                 onImageClicked(v);
             }
         });
+        viewedSection = findViewById(R.id.peep_viewed_section);
+        viewedCount = (TextView)findViewById(R.id.peep_viewed_count);
 
     }
 
     public void onImageClicked(View view){
-        mPeepImageListener.peepImageTapped(this);
+        mDelegate.peepImageClicked(this);
     }
 
 
@@ -247,8 +273,8 @@ public class PeepView extends RelativeLayout {
         }
 
         public void onClick(View view) {
-            if (mLikeButtonListener != null) {
-                mLikeButtonListener.likeButtonClicked(mView);
+            if (mView.mDelegate != null) {
+                mView.mDelegate.likeButtonClicked(mView);
             }
         }
     }
@@ -273,7 +299,7 @@ public class PeepView extends RelativeLayout {
                 Bitmap bmp = (Bitmap)msg.obj;
                 if (mType == PEEP_IMAGE_TYPE_AVATAR) {
                     AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(mPeepView.getResources());
-                    Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(Bitmap.createScaledBitmap(bmp, 128, 128, false));
+                    Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(bmp);
                     mImageView.setImageDrawable(avatarDrawable);
                 } else if (mType == PEEP_IMAGE_TYPE_IMAGE) {
                     mImageView.setImageBitmap(bmp);
@@ -295,23 +321,16 @@ public class PeepView extends RelativeLayout {
         }
     }
 
-    public static interface LikeButtonListener {
-        public void likeButtonClicked(PeepView peepView);
-    }
 
-    public static interface PeepImageListener {
-        public void peepImageTapped(PeepView peepView);
-    }
+    public interface PeepViewListener {
+        int TAG_TYPE_USER = 1;
+        int TAG_TYPE_HASH = 0;
 
-    public static interface TagListener {
-        public static int TAG_TYPE_HASH = 0;
-        public static int TAG_TYPE_USER = 1;
-
-        public void tagClicked(int tagType, String tag);
-    }
-
-    public static interface AvatarListener {
-        public void avatarClicked(String creatorId);
+        void avatarClicked(String creatorId);
+        void tagClicked(int tagType, String tag);
+        void peepImageClicked(PeepView peepView);
+        void likeButtonClicked(PeepView peepView);
+        void viewedButtonClicked(PeepView peepView);
     }
 
 }

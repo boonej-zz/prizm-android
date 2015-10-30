@@ -9,6 +9,8 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
 
@@ -27,11 +30,12 @@ import java.io.InputStream;
 import java.net.URL;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
 import co.higheraltitude.prizm.models.User;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache.CacheRequestDelegate {
 
     private TextView textView = null;
     private TextView locationView = null;
@@ -39,15 +43,14 @@ public class ProfileActivity extends AppCompatActivity {
     private Bitmap coverImage = null;
     private ImageView avatarView = null;
     private ImageView badgeView = null;
+    private ProgressBar progressBar = null;
+    private View locationArea = null;
+    private User user = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Object theme = PrizmCache.getInstance().objectCache.get("theme");
-        if (theme != null ) {
-            setTheme((int)theme);
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
+        setTheme(User.getTheme());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
         Toolbar actionBar = (Toolbar)findViewById(R.id.profile_nav_bar);
@@ -59,55 +62,85 @@ public class ProfileActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         User profile = intent.getParcelableExtra(LoginActivity.EXTRA_PROFILE);
+        User.fetchUserCore(profile, this);
         textView = (TextView)findViewById(R.id.profile_name);
         avatarView = (ImageView)findViewById(R.id.profile_avatar_photo);
         locationView = (TextView)findViewById(R.id.profile_location);
+        locationArea = findViewById(R.id.profile_location_area);
+        locationArea.setVisibility(View.INVISIBLE);
+        progressBar = (ProgressBar)findViewById(R.id.progress_bar);
+        progressBar.setIndeterminate(true);
+        configureViews();
+    }
 
-        coverPhotoView = (ImageView)findViewById(R.id.profile_cover_photo);
-        badgeView = (ImageView)findViewById(R.id.avatar_badge);
-        if (profile.role.equals("ambassador")) {
-            badgeView.setImageResource(R.drawable.ambassador_badge);
-        } else if (profile.role.equals("leader")) {
-            badgeView.setImageResource(R.drawable.leader_badge);
-        } else if (profile.subtype.equals("luminary")) {
-            badgeView.setImageResource(R.drawable.luminary_badge);
-        } else {
-            badgeView.setVisibility(View.GONE);
-        }
-        textView.setText(profile.name);
-
-        String locationString = "";
-        if (profile.city != null) {
-            locationString = profile.city;
-            if (profile.state != null) {
-                locationString = locationString + ", " + profile.state;
+    private void configureViews() {
+        if (user != null) {
+            coverPhotoView = (ImageView) findViewById(R.id.profile_cover_photo);
+            badgeView = (ImageView) findViewById(R.id.avatar_badge);
+            if (user.role != null && user.role.equals("ambassador")) {
+                badgeView.setImageResource(R.drawable.ambassador_badge);
+            } else if (user.role != null && user.role.equals("leader")) {
+                badgeView.setImageResource(R.drawable.leader_badge);
+            } else if (user.subtype != null && user.subtype.equals("luminary")) {
+                badgeView.setImageResource(R.drawable.luminary_badge);
+            } else {
+                badgeView.setVisibility(View.GONE);
             }
-        } else if (profile.state != null) {
-            locationString = profile.state;
+            textView.setText(user.name);
+
+            String locationString = "";
+            if (user.city != null) {
+                locationString = user.city;
+                if (user.state != null) {
+                    locationString = locationString + ", " + user.state;
+                }
+            } else if (user.state != null) {
+                locationString = user.state;
+            }
+
+            locationView.setText(locationString);
+            if (!locationString.isEmpty()) {
+                locationArea.setVisibility(View.VISIBLE);
+            }
+
+//        BitmapFactory.Options options = new BitmapFactory.Options();
+//        options.inMutable = false;
+//        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.profile_default_avatar, options);
+//        AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
+//        Drawable avatarDrawable = avatarDrawableFactory.getBorderedRoundedAvatarDrawable(Bitmap.createScaledBitmap(bmp, 128, 128, false));
+//        avatarView.setImageDrawable(avatarDrawable);
+
+            PrizmDiskCache cache = PrizmDiskCache.getInstance(getApplicationContext());
+            if (user.coverPhotoURL != null && !user.coverPhotoURL.isEmpty()) {
+
+                cache.fetchBitmap(user.coverPhotoURL, coverPhotoView.getWidth(), new CoverGradientHandler(coverPhotoView,
+                        (ImageView) findViewById(R.id.cover_photo_gradient)));
+
+            }
+            if (user.profilePhotoURL != null && !user.profilePhotoURL.isEmpty()) {
+                new LoadImage().execute(user.profilePhotoURL, "avatar");
+            }
+        }
+    }
+
+    private class CoverGradientHandler extends Handler {
+
+        private ImageView mImageView;
+        private  ImageView mGradientView;
+
+        public CoverGradientHandler(ImageView imageView, ImageView gradientView) {
+            mImageView = imageView;
+            mGradientView = gradientView;
         }
 
-        locationView.setText(locationString);
-
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inMutable = false;
-        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.profile_default_avatar, options);
-        AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
-        Drawable avatarDrawable = avatarDrawableFactory.getBorderedRoundedAvatarDrawable(Bitmap.createScaledBitmap(bmp, 128, 128, false));
-        avatarView.setImageDrawable(avatarDrawable);
-
-        PrizmCache cache = PrizmCache.getInstance();
-        if (android.os.Build.VERSION.SDK_INT >= 21) {
-            coverPhotoView.setImageDrawable(getDrawable(R.drawable.cover_photo_holder));
-        } else {
-            coverPhotoView.setImageDrawable(getResources().getDrawable(R.drawable.cover_photo_holder));
+        @Override
+        public void handleMessage(Message message) {
+            if (message.obj != null) {
+                mGradientView.setVisibility(View.VISIBLE);
+                Bitmap bmp = (Bitmap)message.obj;
+                mImageView.setImageBitmap(bmp);
+            }
         }
-        if (profile.coverPhotoURL != null && !profile.coverPhotoURL.isEmpty()) {
-            cache.fetchDrawable(profile.coverPhotoURL, coverPhotoView);
-        }
-        if (profile.profilePhotoURL != null && !profile.profilePhotoURL.isEmpty()) {
-            new LoadImage().execute(profile.profilePhotoURL, "avatar");
-        }
-
     }
 
 
@@ -166,4 +199,22 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
     }
+
+    @Override
+    public void cached(String path, Object object) {
+        fillProfile(object);
+    }
+
+    @Override
+    public void cacheUpdated(String path, Object object) {
+        fillProfile(object);
+    }
+
+    private void fillProfile(Object object) {
+        user = (User)object;
+        configureViews();
+        progressBar.setIndeterminate(false);
+        progressBar.setVisibility(View.GONE);
+    }
+
 }

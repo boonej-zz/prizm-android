@@ -53,7 +53,7 @@
         <item>Military</item>
     </string-array>
 
-    <string-array name="menu_items">
+    <string-array name="menu_items_premium">
         <item>Home</item>
         <item>Explore</item>
         <item>Insight</item>
@@ -62,6 +62,27 @@
         <item>Survey</item>
         <item>Calendar</item>
         <item>Settings</item>
+        <item>Help &amp; feedback</item>
+    </string-array>
+
+    <string-array name="settings_items">
+        <item>Who to Follow</item>
+        <item>Friends</item>
+        <item>Interests</item>
+        <item>Likes</item>
+        <item>Sharing</item>
+        <item>Support</item>
+        <item>Like us on Twitter</item>
+        <item>Follow us on Facebook</item>
+    </string-array>
+
+    <string-array name="menu_items">
+        <item>Home</item>
+        <item>Explore</item>
+        <item>Insight</item>
+        <item>Graph</item>
+        <item>Settings</item>
+        <item>Help &amp; feedback</item>
     </string-array>
 
 </resources>

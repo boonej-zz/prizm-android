@@ -11,6 +11,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.RequiresPermission;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -38,6 +39,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
+import co.higheraltitude.prizm.fragments.MessageGroupFragment;
 import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.models.Group;
 import co.higheraltitude.prizm.models.Peep;
@@ -46,7 +49,7 @@ import co.higheraltitude.prizm.views.HashTagView;
 import co.higheraltitude.prizm.views.PeepView;
 import co.higheraltitude.prizm.views.UserTagView;
 
-public class ReadMessagesActivity extends AppCompatActivity {
+public class ReadMessagesActivity extends AppCompatActivity implements PeepView.PeepViewListener {
 
     public static String EXTRA_IS_DIRECT = "co.higheraltitude.prizm.extra_is_direct";
     public static String EXTRA_IS_ALL = "co.higheraltitude.prizm.extra_is_all";
@@ -57,6 +60,8 @@ public class ReadMessagesActivity extends AppCompatActivity {
     public static String EXTRA_ORGANIZATION = "co.higheraltitude.prizm.extra_organization";
     public static String EXTRA_ORG_MEMBER_COUNT = "co.higheraltitude.prizm.extra_org_member_count";
 
+    public int UPDATE_TYPE_NEWER = 0;
+    public int UPDATE_TYPE_OLDER = 1;
     public static int RESULT_IMAGE_POST = 939;
 
     private PrizmCache cache;
@@ -73,8 +78,7 @@ public class ReadMessagesActivity extends AppCompatActivity {
     private String organization;
     private Boolean atBottom = true;
     private String role;
-    private static ArrayList<Peep> peeps = new ArrayList<>();
-    private static PeepAdapter peepAdapter;
+    private PeepAdapter peepAdapter;
     private TextWatcher textWatcher;
 
     // Tagging
@@ -106,22 +110,12 @@ public class ReadMessagesActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         cache = PrizmCache.getInstance();
-        Object theme = PrizmCache.objectCache.get("theme");
-
-        if (theme != null ) {
-            setTheme((int)theme);
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
+        setTheme(User.getTheme());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_read_messages);
 
-        UserFetchHandler.activity = this;
         progressBar = (ProgressBar)findViewById(R.id.progress_bar);
         progressBar.setIndeterminate(true);
-        PeepView.setLikeButtonListener(new PeepLikeClickListener(this));
-        PeepView.setmPeepImageListener(new PeepImageClickListener(this));
-        PeepView.setTagListener(new TagClickListener(this));
         Intent intent = getIntent();
         isAll = intent.getBooleanExtra(EXTRA_IS_ALL, false);
         isDirect = intent.getBooleanExtra(EXTRA_IS_DIRECT, false);
@@ -279,6 +273,7 @@ public class ReadMessagesActivity extends AppCompatActivity {
                     if (currentTag.isEmpty()) {
                         typingTag = false;
                         tagStart = - 1;
+                        tagList.setAdapter(null);
                     }
                     if (typingTag) {
                         if (tagType == TAG_TYPE_USER) {
@@ -342,9 +337,6 @@ public class ReadMessagesActivity extends AppCompatActivity {
     @Override
     public void onResume(){
         super.onResume();
-        PeepView.setLikeButtonListener(new PeepLikeClickListener(this));
-        PeepView.setmPeepImageListener(new PeepImageClickListener(this));
-        PeepView.setTagListener(new TagClickListener(this));
     }
 
     @Override
@@ -413,42 +405,53 @@ public class ReadMessagesActivity extends AppCompatActivity {
         HashMap<String, String> query = new HashMap<>();
         query.put("requestor", User.getCurrentUser().uniqueID);
 
-        peeps = Peep.fetchPeeps(organization, groupName, directUser, query, new PeepRequestHandler(this));
-        peepAdapter = new PeepAdapter(getApplicationContext(), peeps);
+        peepAdapter = new PeepAdapter(getApplicationContext(), new ArrayList<Peep>());
+        peepAdapter.activity = this;
         listView.setAdapter(peepAdapter);
+        Peep.fetchPeeps(organization, groupName, directUser, query, new PeepRequestDelegate());
+    }
+
+    private void showProgress() {
+        progressBar.setVisibility(View.VISIBLE);
+        progressBar.setIndeterminate(true);
+    }
+
+    private void hideProgress() {
+        progressBar.setIndeterminate(false);
+        progressBar.setVisibility(View.GONE);
     }
 
     private void fetchOlderPeeps() {
 
-        if (peeps != null) {
-            if (peeps.size() > 0) {
+        if (peepAdapter != null) {
+            if (peepAdapter.getCount() > 0) {
                 if (!isUpdating) {
                     progressBar.setIndeterminate(true);
                     progressBar.setVisibility(View.VISIBLE);
                     isUpdating = true;
-                    Peep lastPeep = peeps.get(0);
+                    Peep lastPeep = peepAdapter.getItem(0);
                     HashMap<String, String> query = new HashMap<>();
                     query.put("before", lastPeep.createDate);
                     query.put("requestor", User.getCurrentUser().uniqueID);
                     Peep.fetchPeeps(organization, groupName, directUser, query,
-                            new PeepUpdateHandler(this, PeepUpdateHandler.UPDATE_TYPE_OLDER));
+                            new PeepUpdateDelegate(UPDATE_TYPE_OLDER));
                 }
             }
         }
     }
 
     private void fetchNewerPeeps() {
-        if (!isUpdating && firstFetchComplete) {
+        if (!isUpdating) {
             isUpdating = true;
-            if (peeps != null && peeps.size() > 0) {
+            if (peepAdapter != null && peepAdapter.getCount() > 0) {
                 progressBar.setIndeterminate(true);
                 progressBar.setVisibility(View.VISIBLE);
-                Peep firstPeep = peeps.get(peeps.size() - 1);
+                Peep firstPeep = peepAdapter.getItem(peepAdapter.getCount() - 1);
                 HashMap<String, String> query = new HashMap<>();
                 query.put("after", firstPeep.createDate);
                 query.put("requestor", User.getCurrentUser().uniqueID);
                 Peep.fetchPeeps(organization, groupName, directUser, query,
-                        new PeepUpdateHandler(this, PeepUpdateHandler.UPDATE_TYPE_NEWER));
+                        new PeepUpdateDelegate(UPDATE_TYPE_NEWER));
             } else {
                 loadMessages();
             }
@@ -472,10 +475,22 @@ public class ReadMessagesActivity extends AppCompatActivity {
 
     private void sendPeepClicked(){
         String peepText = createPeepEditText.getText().toString();
-        Peep.postPeep(peepText, organization, groupName, directUser, new PeepUpdateHandler(this, PeepUpdateHandler.UPDATE_TYPE_NEWER));
+        isUpdating = true;
+        Peep.postPeep(peepText, organization, groupName, directUser, new PostPeepHandler(this));
         createPeepEditText.setText(null);
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+    }
+
+    private static class PostPeepHandler extends Handler {
+        public PostPeepHandler(ReadMessagesActivity activity) {
+            mActivity = activity;
+        }
+        private ReadMessagesActivity mActivity;
+        public void handleMessage(Message message) {
+            mActivity.isUpdating = false;
+            mActivity.fetchNewerPeeps();
+        }
     }
 
     private void getUserTags(String tag){
@@ -486,7 +501,8 @@ public class ReadMessagesActivity extends AppCompatActivity {
                 query.put("group", group.uniqueID);
             }
 
-            userTagAdapter = new UserTagAdapter(this, User.searchUsers(query, new UserTagHandler(this)));
+            userTagAdapter = new UserTagAdapter(this, new ArrayList<User>());
+            User.searchUsers(query, new UserTagDelegate(this));
         }
 
 
@@ -506,10 +522,11 @@ public class ReadMessagesActivity extends AppCompatActivity {
     private void getHashTags(String tag){
         if (hashTagAdapter == null) {
             ArrayList<String> groups = new ArrayList<>();
-            String [] groupArray = MessageGroupsActivity.groupNames;
+
+            ArrayList<String> groupArray = MessageGroupFragment.getGroupNames();
             groups.add("#all");
-            for (int i = 0; i != groupArray.length; ++i) {
-                groups.add("#" + groupArray[i]);
+            for (String g : groupArray) {
+                groups.add("#" + g);
             }
             hashTagAdapter = new HashTagAdapter(this, groups);
         }
@@ -522,126 +539,202 @@ public class ReadMessagesActivity extends AppCompatActivity {
         hashTagAdapter.notifyDataSetChanged();
     }
 
-    private static class PeepRequestHandler extends Handler {
-        private ReadMessagesActivity mActivity;
-
-        public PeepRequestHandler(ReadMessagesActivity activity) {
-            mActivity = activity;
+    private class PeepRequestDelegate implements PrizmDiskCache.CacheRequestDelegate {
+        @Override
+        public void cached(String path, Object object) {
+            ArrayList<Peep> peeps = (ArrayList<Peep>)object;
+            if (peeps.size() > 0) peepAdapter.addAll(peeps);
+            peepAdapter.notifyDataSetChanged();
         }
 
         @Override
-        public void handleMessage(Message msg) {
-            try {
-                if (msg.obj != null) {
-                    if (msg.obj instanceof ArrayList) {
-                        ArrayList<Peep> obj = (ArrayList<Peep>)msg.obj;
+        public void cacheUpdated(String path, Object object) {
+            peepAdapter.clear();
+            ArrayList<Peep> peeps = (ArrayList<Peep>)object;
+            if (peeps.size() > 0) peepAdapter.addAll(peeps);
 
-                        if (peeps.size() != obj.size()) {
-                            peeps = obj;
-                            int size = peepAdapter.getCount();
-                            try {
-                                for (int i = 0; i != peeps.size(); ++i) {
-                                    Peep a = peeps.get(i);
-                                    if (i < size) {
-                                        Peep b = peepAdapter.getItem(i);
-                                        if (!a.uniqueId.equals(b.uniqueId)) {
-                                            peepAdapter.remove(b);
-                                            peepAdapter.insert(a, i);
-                                        }
-                                    } else {
-                                        peepAdapter.add(a);
-                                    }
-                                }
-                                peepAdapter.notifyDataSetChanged();
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            } finally {
-                                mActivity.firstFetchComplete = true;
-                            }
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                Toast.makeText(mActivity, "Uh oh! There was a problem loading your groups.", Toast.LENGTH_SHORT).show();
-            } finally {
-                mActivity.isUpdating = false;
-                mActivity.progressBar.setIndeterminate(false);
-                mActivity.progressBar.setVisibility(View.INVISIBLE);
-            }
+            hideProgress();
+            isUpdating = false;
         }
     }
 
-    private static class PeepUpdateHandler extends Handler {
-        private ReadMessagesActivity mActivity;
+    private class PeepUpdateDelegate implements PrizmDiskCache.CacheRequestDelegate {
         private int mUpdateType;
-        public static int UPDATE_TYPE_NEWER = 0;
-        public static int UPDATE_TYPE_OLDER = 1;
 
-        public PeepUpdateHandler(ReadMessagesActivity activity, int updateType) {
-            mActivity = activity;
+        public PeepUpdateDelegate(int updateType) {
             mUpdateType = updateType;
         }
 
         @Override
-        public void handleMessage(Message msg) {
-            mActivity.messageString = "";
-            try {
-                if (msg.obj != null) {
-                    if (msg.obj instanceof ArrayList) {
-                        ArrayList<Peep> obj = (ArrayList<Peep>)msg.obj;
-                        if (obj.size() == 0) {
-                            mActivity.noOlderMessages = true;
-                        } else {
-                            int firstVisibleItem = mActivity.listView.getFirstVisiblePosition();
-                            int oldCount = peepAdapter.getCount();
-                            View view = mActivity.listView.getChildAt(0);
-                            int pos = (view == null ? 0 :  view.getBottom());
-                            if (mUpdateType == UPDATE_TYPE_OLDER) {
-                                peeps.addAll(0, obj);
-                                for (int i = 0; i != obj.size(); ++i) {
-                                    peepAdapter.insert(peeps.get(i), i);
-                                }
-                                peepAdapter.notifyDataSetChanged();
-                                mActivity.listView.setSelectionFromTop(firstVisibleItem + peepAdapter.getCount() - oldCount + 1, pos);
+        public void cached(String path, Object object) {
 
-                            } else if (mUpdateType == UPDATE_TYPE_NEWER) {
-                                peeps.addAll(obj);
-                                peepAdapter.addAll(obj);
-                                peepAdapter.notifyDataSetChanged();
-                                mActivity.atBottom = false;
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            processPeeps(object, false);
+            peepAdapter.notifyDataSetChanged();
+            hideProgress();
+            isUpdating = false;
+            atBottom = false;
+        }
+
+        private void processPeeps(Object object, Boolean cached) {
+            if (object instanceof ArrayList) {
+                ArrayList<Peep> peeps = (ArrayList<Peep>)object;
+                if (cached) {
+
+                } else {
+                    if (mUpdateType == UPDATE_TYPE_NEWER) {
+                        peepAdapter.addAll(peeps);
+                        peepAdapter.notifyDataSetChanged();
+                    } else if (mUpdateType == UPDATE_TYPE_OLDER) {
+                        if (peeps.size() == 0) {
+                            noOlderMessages = true;
+                        } else {
+                            final int firstVisibleItem = listView.getFirstVisiblePosition();
+                            final int oldCount = peepAdapter.getCount();
+                            final View view = listView.getChildAt(0);
+                            final int pos = (view == null ? 0 :  view.getBottom());
+                            for (int i = 0; i != peeps.size(); ++i) {
+                                peepAdapter.insert(peeps.get(i), i);
                             }
-                        }
-                    } else if (msg.obj instanceof Peep) {
-                        Peep obj = (Peep)msg.obj;
-                        Iterator iterator = peeps.iterator();
-                        int idx = -1;
-                        Peep p = null;
-                        while (iterator.hasNext()) {
-                            p = (Peep)iterator.next();
-                            if (p.uniqueId.equals(obj.uniqueId)) {
-                                idx = peeps.indexOf(p);
-                                break;
-                            }
-                        }
-                        if (idx != -1 && p != null) {
-                            peeps.remove(idx);
-                            peeps.add(idx, obj);
-                            peepAdapter.remove(p);
-                            peepAdapter.insert(obj, idx);
                             peepAdapter.notifyDataSetChanged();
+
+                            listView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    listView.setSelectionFromTop(firstVisibleItem + peepAdapter.getCount() - oldCount + 1, pos);
+                                }
+                            });
+
+                        }
+
+
+                    }
+                }
+
+            } else if (object instanceof Peep) {
+                Peep obj = (Peep)object;
+                int idx = -1;
+                Peep p = null;
+                int c = peepAdapter.getCount() - 10;
+                if (c < 0) c = 0;
+                for (int i = c; i != peepAdapter.getCount(); ++i) {
+                    p = peepAdapter.getItem(i);
+                    if (p.uniqueId.equals(obj.uniqueId)) {
+                        idx = i;
+                        break;
+                    }
+                }
+                if (idx != -1 && p != null) {
+                    peepAdapter.remove(p);
+                    peepAdapter.insert(obj, idx);
+                    peepAdapter.notifyDataSetChanged();
+                } else {
+                    peepAdapter.add(obj);
+                    peepAdapter.notifyDataSetChanged();
+                }
+            }
+        }
+    }
+
+    public void avatarClicked(String creatorId) {
+        User user = new User();
+        user.uniqueID = creatorId;
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
+        startActivity(intent);
+    }
+
+    public void tagClicked(int tagType, String tag) {
+        if (tagType == TAG_TYPE_HASH) {
+            Intent intent = new Intent(getApplicationContext(), ReadMessagesActivity.class);
+            intent.putExtra(EXTRA_ORGANIZATION, organization);
+            boolean exists = false;
+            if (tag.equals("#all")) {
+                exists = true;
+                intent.putExtra(EXTRA_IS_ALL, true);
+            } else {
+                int l = MessageGroupsActivity.groupNames.length;
+
+                for (int i = 0; i != l; ++i) {
+                    if (MessageGroupsActivity.groupNames[i].equals(tag)) {
+                        exists = true;
+                        break;
+                    }
+                }
+                intent.putExtra(EXTRA_GROUP_NAME, "~" + tag.substring(1));
+            }
+            if (exists) {
+                startActivity(intent);
+            }
+        } else if (tagType == TAG_TYPE_USER) {
+//            Toast.makeText(getApplicationContext(), tag, Toast.LENGTH_LONG).show();
+            User user = new User();
+            user.uniqueID = tag;
+            Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+            intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
+            startActivity(intent);
+        }
+    }
+
+    public void peepImageClicked(PeepView peepView) {
+        Peep peep = peepView.getPeep();
+        Intent intent = new Intent(this.getApplicationContext(), FullScreenImageActivity.class);
+        intent.putExtra(FullScreenImageActivity.EXTRA_IMAGE_URL, peep.imageUrl);
+        startActivity(intent);
+    }
+
+    public void likeButtonClicked(PeepView peepView) {
+        Peep peep = peepView.getPeep();
+        if (!peep.myPeep) {
+            showProgress();
+            peep.likePeep(new LikeHandler(this));
+        } else {
+            if (peep.likesCount > 0) {
+                Intent intent = new Intent(getApplicationContext(), LikesActivity.class);
+                intent.putExtra(LikesActivity.EXTRA_PEEP, peep);
+                startActivity(intent);
+            }
+        }
+    }
+
+    private static class LikeHandler extends Handler {
+
+        private ReadMessagesActivity mActivity;
+        public LikeHandler(ReadMessagesActivity activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void handleMessage(Message message) {
+            if (message.obj != null) {
+                Peep mPeep = (Peep)message.obj;
+                int size = mActivity.peepAdapter.getCount();
+
+                for (int i = 0; i != size; ++i) {
+                    Peep a = mActivity.peepAdapter.getItem(i);
+                    if (i < size) {
+                        if (a.uniqueId.equals(mPeep.uniqueId)) {
+                            mActivity.peepAdapter.remove(a);
+                            mActivity.peepAdapter.insert(mPeep, i);
                         }
                     }
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                Toast.makeText(mActivity, "Uh oh! There was a problem loading your groups.", Toast.LENGTH_SHORT).show();
-            } finally {
-                mActivity.isUpdating = false;
-                mActivity.progressBar.setIndeterminate(false);
-                mActivity.progressBar.setVisibility(View.INVISIBLE);
+                mActivity.peepAdapter.notifyDataSetChanged();
+
             }
+            mActivity.hideProgress();
+
         }
+
+    }
+
+    public void viewedButtonClicked(PeepView peepView) {
+        Intent intent = new Intent(getApplicationContext(), MessageReaders.class);
+        intent.putExtra(MessageReaders.EXTRA_MESSAGE, peepView.getPeep());
+        startActivity(intent);
     }
 
     private static class PeepAdapter extends ArrayAdapter<Peep> {
@@ -651,7 +744,7 @@ public class ReadMessagesActivity extends AppCompatActivity {
             super(c, 0, items);
         }
 
-        public Activity activity;
+        public ReadMessagesActivity activity;
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -660,43 +753,12 @@ public class ReadMessagesActivity extends AppCompatActivity {
                 peepView = PeepView.inflate(parent);
             }
             peepView.setPeep(getItem(position));
-            peepView.setAvatarListener(new AvatarClickListener());
+            peepView.setDelegate(activity);
             peepView.setEnabled(false);
             return peepView;
         }
     }
 
-    private static class PeepLikeClickListener implements PeepView.LikeButtonListener {
-
-        private ReadMessagesActivity mActivity;
-
-        public PeepLikeClickListener(ReadMessagesActivity activity) {
-            mActivity = activity;
-        }
-
-        public void likeButtonClicked(PeepView peepView) {
-            Peep peep = peepView.getPeep();
-            if (!peep.myPeep) {
-                peep.likePeep(new PeepUpdateHandler(mActivity, PeepUpdateHandler.UPDATE_TYPE_NEWER));
-            }
-        }
-    }
-
-    private static class PeepImageClickListener implements PeepView.PeepImageListener {
-
-        private ReadMessagesActivity mActivity;
-
-        public PeepImageClickListener(ReadMessagesActivity activity) {
-            mActivity = activity;
-        }
-
-        public void peepImageTapped(PeepView pv) {
-            Peep peep = pv.getPeep();
-            Intent intent = new Intent(mActivity, FullScreenImageActivity.class);
-            intent.putExtra(FullScreenImageActivity.EXTRA_IMAGE_URL, peep.imageUrl);
-            mActivity.startActivity(intent);
-        }
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -705,8 +767,9 @@ public class ReadMessagesActivity extends AppCompatActivity {
                 Uri selectedImage = data.getData();
                 ImageHelper ih = ImageHelper.getInstance();
                 Bitmap bmp = ih.bitmapFromUri(selectedImage);
-                String path = ih.uploadImage(bmp, new RefreshListHandler());
-                Peep.postPeep("", path, organization, groupName, directUser, new PeepUpdateHandler(this, PeepUpdateHandler.UPDATE_TYPE_NEWER) );
+                String path = ih.uploadImage(bmp, new RefreshListHandler(this));
+                isUpdating = true;
+                Peep.postPeep("", path, organization, groupName, directUser, new PostPeepHandler(this));
                 Toast.makeText(getApplicationContext(), getString(R.string.notify_upload), Toast.LENGTH_SHORT).show();
             }
 
@@ -715,60 +778,40 @@ public class ReadMessagesActivity extends AppCompatActivity {
     }
 
     private static class RefreshListHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            peepAdapter.notifyDataSetChanged();
-        }
-    }
-
-    private static class TagClickListener implements PeepView.TagListener {
         private ReadMessagesActivity mActivity;
-
-        public TagClickListener(ReadMessagesActivity activity) {
+        public RefreshListHandler(ReadMessagesActivity activity) {
             mActivity = activity;
         }
         @Override
-        public void tagClicked(int type, String tag) {
-            if (type == TAG_TYPE_HASH) {
-                Intent intent = new Intent(mActivity.getApplicationContext(), ReadMessagesActivity.class);
-                intent.putExtra(EXTRA_ORGANIZATION, mActivity.organization);
-                boolean exists = false;
-                if (tag.equals("#all")) {
-                    exists = true;
-                   intent.putExtra(EXTRA_IS_ALL, true);
-                } else {
-                    int l = MessageGroupsActivity.groupNames.length;
+        public void handleMessage(Message msg) {
+            mActivity.peepAdapter.notifyDataSetChanged();
+        }
+    }
 
-                    for (int i = 0; i != l; ++i) {
-                        if (MessageGroupsActivity.groupNames[i].equals(tag)) {
-                            exists = true;
-                            break;
-                        }
-                    }
-                    intent.putExtra(EXTRA_GROUP_NAME, "~" + tag.substring(1));
-                }
-                if (exists) {
-                    mActivity.startActivity(intent);
-                }
-            } else if (type == TAG_TYPE_USER) {
-                Toast.makeText(mActivity.getApplicationContext(), tag, Toast.LENGTH_SHORT).show();
+    private static class UserTagDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        private ReadMessagesActivity mActivity;
+
+        public UserTagDelegate(ReadMessagesActivity activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void cached(String path, Object object) {
+            if (object instanceof ArrayList) {
+                mActivity.userTagAdapter.setBaseList((ArrayList<User>) object);
             }
         }
-    }
-
-    private static class UserTagHandler extends Handler {
-
-        private ReadMessagesActivity mActivity;
-
-        public UserTagHandler(ReadMessagesActivity activity) {
-            mActivity = activity;
-        }
 
         @Override
-        public void handleMessage(Message msg) {
-            mActivity.userTagAdapter.setBaseList((ArrayList<User>)msg.obj);
+        public void cacheUpdated(String path, Object object) {
+            if (object instanceof ArrayList) {
+                mActivity.userTagAdapter.setBaseList((ArrayList<User>) object);
+            }
         }
+
     }
+
 
     private class UserTagAdapter extends ArrayAdapter<User> {
 
@@ -782,6 +825,13 @@ public class ReadMessagesActivity extends AppCompatActivity {
             this.baseList.addAll(users);
             this.userList = new ArrayList<>();
             this.userList.addAll(users);
+        }
+
+        @Override
+        public int getCount() {
+            int count = super.getCount();
+            count = count > 4?4:count;
+            return count;
         }
 
         public void setBaseList(ArrayList<User> list) {
@@ -932,31 +982,6 @@ public class ReadMessagesActivity extends AppCompatActivity {
         }
     }
 
-    private static class AvatarClickListener implements PeepView.AvatarListener {
-
-
-        @Override
-        public void avatarClicked(String id) {
-            User user = new User();
-            user.uniqueID = id;
-            User.fetchUserCore(user, new UserFetchHandler());
-        }
-    }
-
-    private static class UserFetchHandler extends Handler {
-
-        public static Activity activity;
-
-
-
-        @Override
-        public void handleMessage(Message msg) {
-            User u = (User)msg.obj;
-            Intent intent = new Intent(activity.getApplicationContext(), ProfileActivity.class);
-            intent.putExtra(LoginActivity.EXTRA_PROFILE, u);
-            activity.startActivity(intent);
-        }
-    }
 
 
 

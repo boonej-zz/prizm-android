@@ -4,7 +4,9 @@
     <string name="network_token_endpoint">/oauth2/token</string>
     <string name="network_base_url_v2">https://api.prizmapp.com/v2</string>
     <string name="network_preferences_file_key">co.higheraltitude.prizm.networkprefs</string>
-
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
+    <string name="sender_id">820769524937</string>
 
     <string name="app_name">Prizm</string>
     <string name="hello_world">Hello world!</string>
@@ -74,6 +76,13 @@
     <string name="title_activity_new_group">Create Group</string>
     <string name="title_activity_edit_group">Edit Group</string>
     <string name="title_activity_view_members">Members</string>
+    <string name="viewers_viewed">Viewed</string>
+    <string name="viewers_not_viewed">Not Viewed</string>
 
+    <string name="welcome_title">Welcome to Prizm</string>
+    <string name="welcome_paragraph_1">Prizm lets you privately communicate with people in your favorite organizations and discover new opportunities.</string>
+    <string name="welcome_paragraph_2">If you have a PROGRAM CODE from your organization, go to "Edit Profile" and enter it in the "Program Code" box.</string>
+    <string name="welcome_paragraph_3">If you don\'t have a PROGRAM CODE, please check back soon for more public features.</string>
+    <string name="welcome_paragraph_4">If you would like your organization to start using Prizm, get in touch! info@prizmapp.com</string>
 
 </resources>

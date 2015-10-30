@@ -1,8 +1,12 @@
 package co.higheraltitude.prizm;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -10,11 +14,16 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
+import com.mixpanel.android.mpmetrics.MixpanelAPI;
+
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -23,6 +32,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -32,6 +42,7 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.facebook.FacebookSdk;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.twitter.sdk.android.Twitter;
@@ -47,6 +58,7 @@ import java.util.Arrays;
 
 import co.higheraltitude.prizm.adapters.MenuItemAdapter;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.fragments.ExploreFragment;
 import co.higheraltitude.prizm.fragments.GraphFragment;
 import co.higheraltitude.prizm.fragments.HomeFeedFragment;
@@ -55,9 +67,11 @@ import co.higheraltitude.prizm.fragments.MessageGroupFragment;
 import co.higheraltitude.prizm.fragments.SurveyFragment;
 import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
+import co.higheraltitude.prizm.messaging.RegistrationIntentService;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.network.PrizmAPIService;
 import co.higheraltitude.prizm.views.MenuItemView;
+import co.higheraltitude.prizm.views.PrizmViewPager;
 import io.fabric.sdk.android.Fabric;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
@@ -81,15 +95,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
     static final int DO_LOGIN = 1;
+    static final int DO_SETTINGS = 9328;
 
     // LAYOUT
     private DrawerLayout mDrawerLayout;
     private ListView mNavigationList;
-    private ViewPager mViewPager;
+    private PrizmViewPager mViewPager;
     private ImageView mAvatarView;
+    private ImageView mCoverView;
     private Toolbar mToolbar;
+    private BroadcastReceiver mRegistrationBroadcastReceiver;
+    private ActionBarDrawerToggle mDrawerToggle;
+
+    private Boolean isPremium;
 
     public static Context context;
+
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
 
     @Override
@@ -97,10 +119,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         DualCacheContextUtils.setContext(getApplicationContext());
         PrizmAPIService.registerContext(getApplicationContext());
         mCache = PrizmCache.getInstance();
+        PrizmAPIService.getInstance();
         context = getApplicationContext();
-        Object theme = PrizmCache.objectCache.get("theme");
-        if (theme != null ) {
-            setTheme((int)theme);
+        if (User.getCurrentUser() != null) {
+            setTheme(User.getTheme());
         } else {
             setTheme(R.style.PrizmBlue);
         }
@@ -113,13 +135,31 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
         FacebookSdk.sdkInitialize(getApplicationContext());
         Fabric.with(this, new Twitter(authConfig), new Crashlytics());
-        configureDrawer();
-        configurePages();
-        configureActionBar();
-        if (User.getCurrentUser() != null) {
-            finalizeConfiguration();
-        }
+//        Fabric.with(this, new Twitter(authConfig));
+        configureReceiver();
 
+        isPremium = false;
+        if (User.getCurrentUser() != null) {
+//            if (User.getCurrentUser().primaryOrganization != null &&
+//                    !User.getCurrentUser().primaryOrganization.isEmpty()) {
+            if (User.getCurrentUser().primaryOrganization != null) isPremium = true;
+                configureDrawer();
+                configureActionBar();
+                configurePages();
+
+                if (User.getCurrentUser() != null) {
+                    finalizeConfiguration();
+                }
+                if (User.getCurrentUser().interestCount < 3) {
+                    Intent intent = new Intent(getApplicationContext(), InterestsActivity.class);
+                    intent.putExtra(InterestsActivity.EXTRA_FORCED, true);
+                    startActivity(intent);
+                }
+//            } else {
+//                Toast.makeText(getApplicationContext(), getString(R.string.error_no_membership),
+//                        Toast.LENGTH_LONG).show();
+//            }
+        }
 
 
 
@@ -148,15 +188,21 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private void configureDrawer() {
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
-        ImageView coverImage = (ImageView)findViewById(R.id.menu_cover_view);
+
+        mCoverView = (ImageView)findViewById(R.id.menu_cover_view);
         mAvatarView = (ImageView)findViewById(R.id.menu_avatar_view);
         TextView nameView = (TextView)findViewById(R.id.menu_name);
         User u = User.getCurrentUser();
         nameView.setText(u.name);
-        mCache.fetchDrawable(u.profilePhotoURL, coverImage);
         LoadImage li = new LoadImage();
         li.execute(u.profilePhotoURL);
-        String [] menuItems = getResources().getStringArray(R.array.menu_items);
+        int rid;
+        if (isPremium) {
+            rid = R.array.menu_items_premium;
+        } else {
+            rid = R.array.menu_items;
+        }
+        String [] menuItems = getResources().getStringArray(rid);
         ArrayList<String> menuList = new ArrayList<>(Arrays.asList(menuItems));
         MenuItemAdapter menuItemAdapter = new MenuItemAdapter(getApplicationContext(), menuList);
         mNavigationList  = (ListView)findViewById(R.id.menu_list);
@@ -164,23 +210,58 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mNavigationList.setAdapter(menuItemAdapter);
 
 
+
     }
 
     private void configurePages() {
         if (mViewPager == null) {
-            mViewPager = (ViewPager) findViewById(R.id.main_pager);
+            mViewPager = (PrizmViewPager) findViewById(R.id.main_pager);
         }
         mViewPager.setAdapter(new NavigationPager(getSupportFragmentManager(), MainActivity.this));
+        if (isPremium) {
+            mViewPager.setCurrentItem(4);
+            ((MenuItemAdapter) mNavigationList.getAdapter()).setSelectedItem(4);
+        }
     }
 
     private void configureActionBar() {
         mToolbar = (Toolbar)findViewById(R.id.profile_nav_bar);
         setSupportActionBar(mToolbar);
         mToolbar.setNavigationIcon(R.drawable.menu);
-        mToolbar.setNavigationOnClickListener(new MenuClickListener(mDrawerLayout));
+//        mToolbar.setNavigationOnClickListener(new MenuClickListener(mDrawerLayout));
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.drawer_open,
+                R.string.drawer_close){
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+            }
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+            }
+        };
+        mToolbar.hideOverflowMenu();
+    }
+
+    private void configureReceiver(){
+        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                SharedPreferences sharedPreferences =
+                        PreferenceManager.getDefaultSharedPreferences(context);
+                boolean sentToken = sharedPreferences
+                        .getBoolean(RegistrationIntentService.SENT_TOKEN_TO_SERVER, false);
+
+            }
+        };
     }
 
     private void finalizeConfiguration() {
+        if (checkPlayServices()) {
+            // Start IntentService to register this application with GCM.
+            Intent intent = new Intent(this, RegistrationIntentService.class);
+            startService(intent);
+        }
 //        User u = User.getCurrentUser();
 //        if (mMessageFragment == null) {
 //            mMessageFragment = new MessageGroupFragment();
@@ -191,19 +272,93 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (position < 7) {
+        if (isPremium && position < 7) {
             ((MenuItemAdapter)parent.getAdapter()).setSelectedItem(position);
             mViewPager.setCurrentItem(position, false);
             String text = (String)parent.getAdapter().getItem(position);
+            if (position == 0) {
+                text = "Prizm";
+            }
             mToolbar.setTitle(text);
             mDrawerLayout.closeDrawer(Gravity.LEFT);
-
+        } else if (isPremium && position == 7) {
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivityForResult(intent, DO_SETTINGS);
+            mDrawerLayout.closeDrawer(Gravity.LEFT);
+        } else if (position < 4) {
+            ((MenuItemAdapter)parent.getAdapter()).setSelectedItem(position);
+            mViewPager.setCurrentItem(position, false);
+            String text = (String)parent.getAdapter().getItem(position);
+            if (position == 0) {
+                text = "Prizm";
+            }
+            mToolbar.setTitle(text);
+            mDrawerLayout.closeDrawer(Gravity.LEFT);
+        } else {
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivityForResult(intent, DO_SETTINGS);
+            mDrawerLayout.closeDrawer(Gravity.LEFT);
         }
+    }
+
+    public void profileClicked(View view) {
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, User.getCurrentUser());
+        startActivity(intent);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        // If the nav drawer is open, hide action items related to the content view
+//        boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerLayout);
+        return super.onPrepareOptionsMenu(menu);
     }
 
 
     public static Location lastLocation() {
         return mLastLocation;
+    }
+
+    private boolean checkPlayServices() {
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
+                        .show();
+            } else {
+                Log.i("DEBUG", "This device is not supported.");
+                finish();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private static class RefreshProfileDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        private Context mContext;
+        private Activity mActivity;
+
+        public RefreshProfileDelegate(Context context, Activity activity){
+            mContext = context;
+            mActivity = activity;
+        }
+
+        @Override
+        public void cached(String path, Object user) {
+            Log.d("MESSAGE", "Ignoring cached data, forcing refresh.");
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object user) {
+            DID_START = true;
+            MESSAGES_STARTED = true;
+            if (user instanceof User) User.setCurrentUser((User)user);
+            Intent intent = mActivity.getIntent();
+            mActivity.finish();
+            mActivity.startActivity(intent);
+        }
     }
 
     private static class RefreshProfileHandler extends Handler {
@@ -218,17 +373,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Object obj = msg.obj;
             if (obj != null) {
                 User.setCurrentUser((User)obj);
-                if (User.getCurrentUser().primaryOrganization != null && ! User.getCurrentUser().primaryOrganization.isEmpty()) {
-                    Intent intent = new Intent(mContext, MessageGroupsActivity.class);
 
-                    intent.putExtra(LoginActivity.EXTRA_PROFILE, (User) obj);
-                    mActivity.startActivity(intent);
-                    DID_START = true;
-                    MESSAGES_STARTED = true;
-                } else {
-                    Toast.makeText(mContext, mContext.getString(R.string.error_no_membership), Toast.LENGTH_LONG).show();
-                    User.setCurrentUser(null);
-                }
+                DID_START = true;
+                MESSAGES_STARTED = true;
+                Intent intent = mActivity.getIntent();
+                mActivity.finish();
+                mActivity.startActivity(intent);
+
             }
         }
     }
@@ -236,8 +387,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onResume(){
         super.onResume();
-
-
+        LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
+                new IntentFilter(RegistrationIntentService.REGISTRATION_COMPLETE));
+        if (User.getCurrentUser() == null) {
+            Intent intent = new Intent(getApplicationContext(), Registration.class);
+            startActivityForResult(intent, DO_LOGIN);
+        }
 //        if (MESSAGES_STARTED || DID_START ) {
 //            this.finish();
 //        }
@@ -245,10 +400,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
+    protected void onPause(){
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+        super.onPause();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+        return false;
     }
 
     @Override
@@ -270,10 +431,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         if (requestCode == DO_LOGIN) {
             if (resultCode == RESULT_OK) {
                 User profile = data.getParcelableExtra(LoginActivity.EXTRA_PROFILE);
-                User.fetchUserCore(profile, new RefreshProfileHandler(getApplicationContext(), this));
-
+                User.fetchUserCore(profile, new RefreshProfileDelegate(getApplicationContext(), this));
             }
 
+        } else if (requestCode == DO_SETTINGS) {
+            if (resultCode == RESULT_OK) {
+                Boolean logout = data.getBooleanExtra("logout", false);
+                if (logout) {
+                    PrizmDiskCache cache = PrizmDiskCache.getInstance(getApplicationContext());
+                    cache.clearValue(User.PrizmCurrentUserCacheKey);
+                    Intent intent = this.getIntent();
+                    finish();
+                    startActivity(intent);
+                }
+            }
         }
     }
 
@@ -324,12 +495,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
                 Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(Bitmap.createScaledBitmap(image, 128, 128, false));
                 mAvatarView.setImageDrawable(avatarDrawable);
+                mCoverView.setImageBitmap(coverImage);
+
             }
         }
     }
 
     public class NavigationPager extends FragmentPagerAdapter {
-        final int PAGE_COUNT = 6;
+
+        final int PAGE_COUNT = isPremium?6:4;
 
         private Context context;
 
@@ -345,6 +519,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         @Override
         public Fragment getItem(int position) {
+            mNavigationList.setOnScrollListener(null);
             Fragment fragment = null;
             if (position == 0) {
                 fragment = new HomeFeedFragment();
@@ -368,6 +543,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             return fragment;
         }
+
+
+
 
 
 

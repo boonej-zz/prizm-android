@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
 import co.higheraltitude.prizm.models.Group;
@@ -39,7 +40,7 @@ import co.higheraltitude.prizm.views.UserAvatarView;
 import co.higheraltitude.prizm.views.UserSearchBox;
 
 public class EditGroupActivity extends AppCompatActivity implements UserSearchBox.UserSearchListener,
-        AdapterView.OnItemClickListener{
+        AdapterView.OnItemClickListener {
 
     public static String EXTRA_GROUP = "co.higheraltitude.prizm.edit_group";
     public static int REQUEST_EDIT_GROUP = 9820;
@@ -55,9 +56,8 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
     private ListView mListView;
     private UserSearchBox mSearchBox;
 
-    private static UserAdapter mUserAdapter;
+    private UserAdapter mUserAdapter;
 
-    private static boolean needUsers;
 
 
 
@@ -65,12 +65,8 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
     protected void onCreate(Bundle savedInstanceState) {
 
         Object theme = PrizmCache.getInstance().objectCache.get("theme");
+        setTheme(User.getTheme());
 
-        if (theme != null ) {
-            setTheme((int)theme);
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_group);
         Toolbar actionBar = (Toolbar)findViewById(R.id.profile_nav_bar);
@@ -82,7 +78,6 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
 
         Intent intent = getIntent();
         mGroup = intent.getParcelableExtra(EXTRA_GROUP);
-        needUsers = true;
 
         mSelectedUsers = new ArrayList<>();
         mGroupNameField = (EditText)findViewById(R.id.group_name);
@@ -170,17 +165,15 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
     private void configureList() {
         mUserAdapter = new UserAdapter(getApplicationContext(), new ArrayList<User>());
         mListView.setAdapter(mUserAdapter);
-        loadUsers();
+        loadMembers();
     }
 
-    private static void loadUsers() {
-        if (needUsers) {
-            String name = null;
-            if (mUserAdapter.getCount() > 0) {
-                name = mUserAdapter.getUser(mUserAdapter.getCount() - 1).name;
-            }
-            User.fetchGroupMembers(mGroup.uniqueID, name, true, new UserHandler());
+    public void loadMembers() {
+        String name = null;
+        if (mUserAdapter.getCount() > 0) {
+            name = mUserAdapter.getUser(mUserAdapter.getCount() - 1).name;
         }
+        User.fetchGroupMembers(mGroup.uniqueID, name, true, new UserDelegate());
     }
 
     public void voiceButtonTapped() {
@@ -193,10 +186,12 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
 
     public void onGroupLeaderClicked(View view) {
         ArrayList<User> leaders = new ArrayList<>();
-        for (User u : mUserAdapter.baseList) {
+        for (int i = 0; i != mUserAdapter.getCount(); ++i) {
+            User u = mUserAdapter.getUser(i);
             if (u.role != null && u.role.equals("leader")) {
                 leaders.add(u);
             }
+
         }
         final LeaderAdapter adapter = new LeaderAdapter(getApplicationContext(), leaders);
         final Dialog dialog = new Dialog(EditGroupActivity.this);
@@ -349,27 +344,6 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
         }
     }
 
-    private static class UserHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            ArrayList<User> u = (ArrayList<User>)msg.obj;
-            Iterator<User> iterator = u.iterator();
-            while (iterator.hasNext()) {
-                User user = iterator.next();
-                if (user.isMember) {
-                    mSelectedUsers.add(user);
-                }
-            }
-            if (u.size() > 0) {
-                mUserAdapter.addUsers(u);
-                mUserAdapter.notifyDataSetChanged();
-                loadUsers();
-//                loadUsers();
-            }  else {
-                needUsers = false;
-            }
-        }
-    }
 
     private static class DoneHandler extends Handler {
 
@@ -390,6 +364,44 @@ public class EditGroupActivity extends AppCompatActivity implements UserSearchBo
                 Toast.makeText(mActivity.getApplicationContext(),
                         "Uh oh. There was a problem editing your group.",
                         Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private class UserDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        private boolean emptySet = true;
+        @Override
+        public void cached(String path, Object object) {
+            processUsers(object);
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            processUsers(object);
+
+            emptySet = false;
+        }
+
+        private void processUsers(Object object) {
+            if (object instanceof  ArrayList) {
+                ArrayList<User> users = (ArrayList<User>) object;
+                if (users.size() > 0) {
+                    if (emptySet) {
+                        mUserAdapter.clear();
+                    }
+                    mUserAdapter.addAll(users);
+                    if (mSelectedUsers == null) {
+                        mSelectedUsers = new ArrayList<>();
+                    }
+                    for (User u : users) {
+                        if (u.isMember) {
+                            mSelectedUsers.add(u);
+                        }
+                    }
+                    mUserAdapter.notifyDataSetChanged();
+                    loadMembers();
+                }
             }
         }
     }

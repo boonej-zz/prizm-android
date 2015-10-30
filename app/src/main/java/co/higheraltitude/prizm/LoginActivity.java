@@ -13,6 +13,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.os.Handler;
+import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -86,22 +87,35 @@ public class LoginActivity extends Activity {
             public boolean onEditorAction(TextView v, int actionId, KeyEvent keyEvent) {
                 String email = emailRow.getText();
                 String password = passwordRow.getText();
-                User.login(email, password, new Handler() {
-                    @Override
-                    public void handleMessage(Message message) {
-                        if (message.obj != null) {
-                            User user = (User) message.obj;
-                            Intent intent = new Intent(getApplicationContext(), Registration.class);
-                            intent.putExtra(EXTRA_PROFILE, user);
-                            setResult(RESULT_OK, intent);
-                            finish();
-                        }
-                    }
-                });
+                User.login(email, password, new LoginHandler(LoginActivity.this));
 
                 return true;
             }
         });
+    }
+
+    private static class LoginHandler extends Handler{
+
+        private Activity mActivity;
+
+        public LoginHandler(Activity activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void handleMessage(Message message) {
+            if (message.obj != null) {
+                User user = (User) message.obj;
+                Intent intent = new Intent(mActivity.getApplicationContext(), Registration.class);
+                intent.putExtra(EXTRA_PROFILE, user);
+                mActivity.setResult(RESULT_OK, intent);
+                mActivity.finish();
+            } else {
+                Toast.makeText(mActivity.getApplicationContext(),
+                        "There was a problem with your email address or password. Please try again.",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     public void back(View view){

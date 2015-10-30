@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="co.higheraltitude.prizm.fragments.GraphFragment"
-    android:orientation="vertical">
+    android:orientation="vertical" android:background="@color/prizm_dominant_background">
 
     <RelativeLayout
         android:layout_marginTop="91.3dp"

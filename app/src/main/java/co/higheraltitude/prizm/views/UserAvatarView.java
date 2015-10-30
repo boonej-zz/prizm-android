@@ -21,12 +21,13 @@ import java.util.UUID;
 
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.models.User;
 
 /**
  * Created by boonej on 9/24/15.
  */
-public class UserAvatarView extends RelativeLayout {
+public class UserAvatarView extends RelativeLayout implements View.OnClickListener{
 
     private TextView mTextView;
     private ImageView mAvatarView;
@@ -34,6 +35,7 @@ public class UserAvatarView extends RelativeLayout {
     private User mUser;
     private Boolean mSelectable = false;
     private Boolean mSelected = false;
+    private UserAvatarViewDelegate mDelegate;
 
     private String instanceId;
 
@@ -57,8 +59,13 @@ public class UserAvatarView extends RelativeLayout {
 
     private void setViews() {
         mAvatarView = (ImageView)findViewById(R.id.user_avatar);
+        mAvatarView.setOnClickListener(this);
         mTextView = (TextView)findViewById(R.id.user_name);
         mToggle = (ImageView)findViewById(R.id.user_toggle);
+    }
+
+    public void setDelegate(UserAvatarViewDelegate delegate) {
+        mDelegate = delegate;
     }
 
     public void setSelectable(Boolean selectable) {
@@ -76,10 +83,10 @@ public class UserAvatarView extends RelativeLayout {
         }
         instanceId = UUID.randomUUID().toString();
         mUser = user;
-        mAvatarView.setImageBitmap(null);
+        mAvatarView.setImageDrawable(getContext().getResources().getDrawable(R.drawable.user_missing_avatar));
 
-
-        PrizmCache.getInstance().fetchDrawable(user.profilePhotoURL, new ImageHandler(this, mAvatarView, instanceId));
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(getContext());
+        cache.fetchBitmap(user.profilePhotoURL, mAvatarView.getWidth(), new ImageHandler(this, mAvatarView, instanceId));
         mTextView.setText(user.name);
         if (mSelected) {
             Log.d("DEBUG", user.name + ": SELECTED");
@@ -135,5 +142,18 @@ public class UserAvatarView extends RelativeLayout {
             }
         }
     }
+
+    @Override
+    public void onClick(View v) {
+        if (mDelegate != null) {
+            mDelegate.avatarViewClicked(this);
+        }
+
+    }
+
+    public static interface UserAvatarViewDelegate {
+        void avatarViewClicked(UserAvatarView view);
+    }
+
 
 }

@@ -1,28 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <co.higheraltitude.prizm.views.MenuItemView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="wrap_content">
-    <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:orientation="horizontal"
-        android:paddingTop="10dp"
-        android:paddingBottom="9.3dp" >
+    <RelativeLayout android:layout_height="50dp" android:layout_width="fill_parent" android:orientation="horizontal"
+        >
         <ImageView
             android:id="@+id/menu_icon"
-            android:layout_width="16dp"
-            android:layout_height="18dp"
-            android:layout_gravity="center_vertical|center_horizontal"
-            android:scaleType="fitCenter"
-            android:layout_marginTop="8.7dp"
-            android:layout_marginBottom="8.7dp"
-            android:layout_marginLeft="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="38dp"
             />
         <TextView
             android:id="@+id/menu_item_text"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="10dp"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="89.3dp"
             android:textSize="16sp"
             android:textColor="@color/warm_grey" />
-    </LinearLayout>
+    </RelativeLayout>
 
 </co.higheraltitude.prizm.views.MenuItemView>

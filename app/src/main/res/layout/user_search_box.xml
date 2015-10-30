@@ -24,6 +24,7 @@
         android:layout_weight="1"
         android:nextFocusRight="@id/search_users"
         android:textColor="@color/warm_grey"
+        android:textCursorDrawable="@drawable/cursor"
         android:nextFocusLeft="@id/search_users"
         android:background="#00000000" />
     <ImageButton

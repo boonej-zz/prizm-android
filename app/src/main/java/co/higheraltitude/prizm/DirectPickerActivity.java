@@ -17,16 +17,18 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.models.Group;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.views.UserAvatarView;
 import co.higheraltitude.prizm.views.UserTagView;
 
-public class DirectPickerActivity extends AppCompatActivity {
+public class DirectPickerActivity extends AppCompatActivity implements UserAvatarView.UserAvatarViewDelegate {
     private PrizmCache cache;
     private String mOrganization;
     private ListView listView;
@@ -38,13 +40,7 @@ public class DirectPickerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         cache = PrizmCache.getInstance();
-        Object theme = PrizmCache.objectCache.get("theme");
-
-        if (theme != null ) {
-            setTheme((int)theme);
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
+        setTheme(User.getTheme());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_direct_picker);
         Toolbar actionBar = (Toolbar)findViewById(R.id.profile_nav_bar);
@@ -55,8 +51,7 @@ public class DirectPickerActivity extends AppCompatActivity {
         mOrganization = intent.getStringExtra(EXTRA_ORGANIZATION);
         listView = (ListView)findViewById(R.id.group_list);
         listView.setOnItemClickListener(new UserClickListener());
-        progressBar = (ProgressBar)findViewById(R.id.progress_bar);
-        progressBar.setIndeterminate(true);
+
         fetchUsers();
     }
 
@@ -83,8 +78,10 @@ public class DirectPickerActivity extends AppCompatActivity {
     }
 
     private void fetchUsers() {
-        userAdapter = new UserAdapter(getApplicationContext(),
-                User.fetchAvailableMessageRecipients(mOrganization, new UserHandler(this)));
+        progressBar = (ProgressBar)findViewById(R.id.progress_bar);
+        progressBar.setIndeterminate(true);
+        userAdapter = new UserAdapter(getApplicationContext(), new ArrayList<User>());
+        User.fetchAvailableMessageRecipients(mOrganization, new UserDelegate());
         listView.setAdapter(userAdapter);
     }
 
@@ -100,25 +97,33 @@ public class DirectPickerActivity extends AppCompatActivity {
         }
     }
 
-    private static class UserHandler extends Handler {
+    private class UserDelegate implements PrizmDiskCache.CacheRequestDelegate {
 
-        private DirectPickerActivity mActivity;
-
-        public UserHandler(DirectPickerActivity activity){
-            mActivity = activity;
+        @Override
+        public void cached(String path, Object object) {
+            process(object);
         }
 
-        public void handleMessage(Message msg) {
-            List<User> users = (List<User>)msg.obj;
-            mActivity.userAdapter = new UserAdapter(mActivity.getApplicationContext(), users);
-            mActivity.listView.setAdapter(mActivity.userAdapter);
-            mActivity.userAdapter.notifyDataSetChanged();
-            mActivity.progressBar.setIndeterminate(false);
-            mActivity.progressBar.setVisibility(View.INVISIBLE);
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            process(object);
+            progressBar.setIndeterminate(false);
+            progressBar.setVisibility(View.GONE);
+        }
+
+        private void process(Object object) {
+            if (object instanceof ArrayList) {
+                List<User> users = (List<User>) object;
+                userAdapter.clear();
+                userAdapter.addAll(users);
+                userAdapter.notifyDataSetChanged();
+                progressBar.setIndeterminate(false);
+                progressBar.setVisibility(View.INVISIBLE);
+            }
         }
     }
 
-    private static class UserAdapter extends ArrayAdapter<User> {
+    private class UserAdapter extends ArrayAdapter<User> {
         public UserAdapter(Context c, List<User> items){
             super(c, 0, items);
         }
@@ -127,6 +132,7 @@ public class DirectPickerActivity extends AppCompatActivity {
             UserAvatarView userTagView = (UserAvatarView) convertView;
             if (userTagView == null) {
                 userTagView = UserAvatarView.inflate(parent);
+                userTagView.setDelegate(DirectPickerActivity.this);
             }
             userTagView.setUser(getItem(position));
             return userTagView;
@@ -138,5 +144,11 @@ public class DirectPickerActivity extends AppCompatActivity {
         public void onClick(View view) {
             finish();
         }
+    }
+
+    public void avatarViewClicked(UserAvatarView view) {
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, view.getUser());
+        startActivity(intent);
     }
 }

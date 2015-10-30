@@ -27,6 +27,7 @@ import org.springframework.http.HttpBasicAuthentication;
 import org.springframework.http.HttpMethod;
 
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -43,6 +44,7 @@ import com.twitter.sdk.android.core.models.User;
 
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
+import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import retrofit.http.GET;
 import retrofit.http.Query;
 
@@ -66,6 +68,9 @@ public class PrizmAPIService {
     private RestTemplate restTemplate;
     private String currentUserID;
     private AWSCredentialsProvider mCredentialsProvider;
+
+    private static SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
 
     private PrizmAPIService() {
 
@@ -98,31 +103,34 @@ public class PrizmAPIService {
     }
 
     private void storeTokens() {
-        PrizmCache cache = PrizmCache.getInstance();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(context);
         try {
             if (accessToken != null)
-                cache.objectCache.put("network_access_token", accessToken);
+                cache.storeString("network_access_token", accessToken);
             if (refreshToken != null)
-                cache.objectCache.put("network_refresh_token", refreshToken);
+                cache.storeString("network_refresh_token", refreshToken);
             if (authorizationCode != null)
-                cache.objectCache.put("network_authorization_code", authorizationCode);
+                cache.storeString("network_authorization_code", authorizationCode);
             if (tokenExpires != null)
-                cache.objectCache.put("network_token_expires", tokenExpires);
+                cache.storeString("network_token_expires", mSimpleDateFormat.format(tokenExpires));
             if (currentUserID != null)
-                cache.objectCache.put("current_user_id", currentUserID);
+                cache.storeString("current_user_id", currentUserID);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
     private void loadData() {
-        PrizmCache cache = PrizmCache.getInstance();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(context);
         try {
-            accessToken = (String) cache.objectCache.get("network_access_token");
-            refreshToken = (String) cache.objectCache.get("network_refresh_token");
-            authorizationCode = (String) cache.objectCache.get("network_authorization_code");
-            currentUserID = (String) cache.objectCache.get("current_user_id");
-            tokenExpires = (Date) cache.objectCache.get("network_token_expires");
+            accessToken = cache.readString("network_access_token");
+            refreshToken = cache.readString("network_refresh_token");
+            authorizationCode = cache.readString("network_authorization_code");
+            currentUserID = cache.readString("current_user_id");
+            String dateString = cache.readString("network_token_expires");
+            if (dateString != "") {
+                tokenExpires = mSimpleDateFormat.parse(dateString);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -159,19 +167,24 @@ public class PrizmAPIService {
         paramMap.add("redirect_uri", redirectURL);
         HttpHeaders headers = getHeaders("token");
         HttpEntity<?> request = new HttpEntity<Object>(paramMap, headers);
-        ResponseEntity<String> response = template.exchange(path, HttpMethod.POST, request, String.class);
-        String responseString = response.getBody();
-        JSONObject object = new JSONObject(responseString);
-        JSONArray dataArray = object.getJSONArray("data");
-        if (dataArray.length() > 0) {
-            JSONObject authObject = dataArray.getJSONObject(0);
-            accessToken = authObject.getString("access_token");
-            double expires = authObject.getDouble("expires_in");
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.SECOND, (int)Math.floor(expires));
-            tokenExpires = calendar.getTime();
+        try {
+            ResponseEntity<String> response = template.exchange(path, HttpMethod.POST, request, String.class);
+            String responseString = response.getBody();
+            JSONObject object = new JSONObject(responseString);
+            JSONArray dataArray = object.getJSONArray("data");
+            if (dataArray.length() > 0) {
+                JSONObject authObject = dataArray.getJSONObject(0);
+                accessToken = authObject.getString("access_token");
+                refreshToken = authObject.getString("refresh_token");
+                double expires = authObject.getDouble("expires_in");
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.SECOND, (int) Math.floor(expires));
+                tokenExpires = calendar.getTime();
+            }
+            storeTokens();
+        } catch (Exception ex) {
+            authorize();
         }
-        storeTokens();
     }
 
     private void refreshToken() throws JSONException {
@@ -186,20 +199,25 @@ public class PrizmAPIService {
         HttpHeaders headers = getHeaders("token");
         HttpEntity<?> request = new HttpEntity<Object>(paramMap, headers);
 
-
-        ResponseEntity<String> response = rt.exchange(path, HttpMethod.POST, request, String.class);
-        String responseString = response.getBody();
-        JSONObject object = new JSONObject(responseString);
-        JSONArray dataArray = object.getJSONArray("data");
-        if (dataArray.length() > 0) {
-            JSONObject authObject = dataArray.getJSONObject(0);
-            accessToken = authObject.getString("access_token");
-            double expires = authObject.getDouble("expires_in");
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.SECOND, (int)Math.floor(expires));
-            tokenExpires = calendar.getTime();
+        try {
+            ResponseEntity<String> response = rt.exchange(path, HttpMethod.POST, request, String.class);
+            String responseString = response.getBody();
+            JSONObject object = new JSONObject(responseString);
+            JSONArray dataArray = object.getJSONArray("data");
+            if (dataArray.length() > 0) {
+                JSONObject authObject = dataArray.getJSONObject(0);
+                accessToken = authObject.getString("access_token");
+                refreshToken = authObject.getString("refresh_token");
+                double expires = authObject.getDouble("expires_in");
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.SECOND, (int) Math.floor(expires));
+                tokenExpires = calendar.getTime();
+            }
+            storeTokens();
+        } catch (Exception ex) {
+            authorize();
+            getToken();
         }
-        storeTokens();
     }
 
     private String getAuthorizationString() throws UnsupportedEncodingException{
@@ -250,7 +268,7 @@ public class PrizmAPIService {
             Thread thread = new Thread() {
                 @Override
                 public void run() {
-                    if (accessToken == null || refreshToken == null) {
+                    if (accessToken.equals("") || refreshToken.equals("")) {
                         try {
                             authorize();
                         } catch (JSONException ex) {
@@ -258,7 +276,7 @@ public class PrizmAPIService {
                             return;
                         }
                     }
-                    if (tokenExpires != null && refreshToken != null) {
+                    if (tokenExpires != null && !refreshToken.equals("")) {
                         Calendar now = Calendar.getInstance();
                         if (!now.getTime().before(tokenExpires)) {
                             try {
