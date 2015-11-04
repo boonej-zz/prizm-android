@@ -97,9 +97,13 @@ public class InterestView extends RelativeLayout implements View.OnClickListener
     private void layoutSelection(Interest interest, TextView view) {
         if (view != null) {
             if (interest.selected) {
+                String text = String.format("#%s", interest.text.toLowerCase());
+                view.setText(text);
                 view.setBackgroundResource(R.drawable.bkg_interest_selected);
                 view.setTextColor(Color.parseColor("#ffffff"));
             } else {
+                view.setText(String.format("%s%s", interest.text.substring(0, 1).toUpperCase(),
+                        interest.text.substring(1)));
                 view.setBackgroundResource(R.drawable.bkg_interest);
                 view.setTextColor(Color.parseColor("#334b8f"));
             }

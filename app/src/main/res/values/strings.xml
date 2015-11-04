@@ -21,6 +21,8 @@
     <string name="action_edit_group">Edit Group</string>
     <string name="action_edit_members">Edit Members</string>
     <string name="action_mute">Mute</string>
+    <string name="action_unmute">Unmute</string>
+    <string name="action_edit_profile">Edit Profile</string>
 
     <string name="label_group_name">Group Name</string>
     <string name="label_group_leader">Group Leader</string>

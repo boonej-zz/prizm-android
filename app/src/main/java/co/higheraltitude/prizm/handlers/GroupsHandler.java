@@ -21,6 +21,7 @@ public class GroupsHandler implements PrizmDiskCache.CacheRequestDelegate {
 
     private Context mContext;
     private MessageGroupFragment mFragment;
+    private Boolean updated = false;
 
     public GroupsHandler(Context context,
                               MessageGroupFragment fragment) {
@@ -30,10 +31,13 @@ public class GroupsHandler implements PrizmDiskCache.CacheRequestDelegate {
 
     @Override
     public void cached(String path, Object object) {
-        process(object);
+        if (object != null && !updated) {
+            process(object);
+        }
     }
     @Override
     public void cacheUpdated(String path, Object object) {
+        updated = true;
         process(object);
     }
 
@@ -54,24 +58,9 @@ public class GroupsHandler implements PrizmDiskCache.CacheRequestDelegate {
                         }
                         if (groupList.size() > 0) MessageGroupFragment.setGroupNames(groupList);
                         GroupAdapter adapter = mFragment.getAdapter();
-                        int size = adapter.getCount();
-                        try {
-                            for (int j = 0; j != groups.size(); ++j) {
-                                Group a = groups.get(j);
-                                if (j < size - 2) {
-                                    Group b = adapter.getItem(j + 2);
-                                    if (!a.uniqueID.equals(b.uniqueID)) {
-                                        adapter.remove(b);
-                                        adapter.insert(a, j + 2);
-                                    }
-                                } else {
-                                    adapter.add(a);
-                                }
-                            }
-                            adapter.notifyDataSetChanged();
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
+                        adapter.clear();
+                        adapter.addAll(groups);
+                        adapter.notifyDataSetChanged();
                     }
                 }
             }

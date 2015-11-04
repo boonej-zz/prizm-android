@@ -77,12 +77,12 @@ public class PrizmAPIService {
     }
 
     private RestTemplate restTemplate() {
-        if (restTemplate == null) {
-            restTemplate = new RestTemplate();
-            restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-            restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
-            restTemplate.getMessageConverters().add(new GsonHttpMessageConverter());
-        }
+
+        restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
+        restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
+        restTemplate.getMessageConverters().add(new GsonHttpMessageConverter());
+
         return restTemplate;
     }
 

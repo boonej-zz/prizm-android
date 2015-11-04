@@ -47,6 +47,8 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
     private View locationArea = null;
     private User user = null;
 
+    private View mEditProfileButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Object theme = PrizmCache.getInstance().objectCache.get("theme");
@@ -70,6 +72,10 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         locationArea.setVisibility(View.INVISIBLE);
         progressBar = (ProgressBar)findViewById(R.id.progress_bar);
         progressBar.setIndeterminate(true);
+        mEditProfileButton = findViewById(R.id.edit_profile_button);
+        if (profile.uniqueID.equals(User.getCurrentUser().uniqueID)) {
+            mEditProfileButton.setVisibility(View.VISIBLE);
+        }
         configureViews();
     }
 
@@ -121,6 +127,11 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
                 new LoadImage().execute(user.profilePhotoURL, "avatar");
             }
         }
+    }
+
+    public void editProfileClicked(View view) {
+        Intent intent = new Intent(getApplicationContext(), EditProfile.class);
+        startActivity(intent);
     }
 
     private class CoverGradientHandler extends Handler {

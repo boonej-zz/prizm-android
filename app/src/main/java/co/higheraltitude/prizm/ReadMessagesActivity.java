@@ -121,7 +121,7 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
         isDirect = intent.getBooleanExtra(EXTRA_IS_DIRECT, false);
         group = intent.getParcelableExtra(EXTRA_GROUP);
         directUser = intent.getParcelableExtra(EXTRA_DIRECT_USER);
-        currentUser = intent.getParcelableExtra(EXTRA_CURRENT_USER);
+        currentUser = User.getCurrentUser();
         organization = intent.getStringExtra(EXTRA_ORGANIZATION);
         groupTag = intent.getStringExtra(EXTRA_GROUP_NAME);
         orgMemberCount = intent.getIntExtra(EXTRA_ORG_MEMBER_COUNT, 0);
@@ -343,13 +343,20 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         int resource;
+        boolean muted = group != null?group.muted:currentUser.allMuted;
         if (role != null) {
-            if (role.equals("leader") || role.equals("owner")) {
-                resource = R.menu.menu_read_messages_owner;
-            } else if (role.equals("ambassador")) {
-                resource = R.menu.menu_read_messages_ambassador;
-            } else {
-                resource = R.menu.menu_read_messages;
+            if (role.equals("leader") || role.equals("owner") || role.equals("ambassador")) {
+                if (muted) {
+                    resource = R.menu.menu_read_messages_owner_muted;
+                } else {
+                    resource = R.menu.menu_read_messages_owner;
+                }
+            }  else {
+                if (muted) {
+                    resource = R.menu.menu_read_messages_muted;
+                } else {
+                    resource = R.menu.menu_read_messages;
+                }
             }
         } else {
             resource = R.menu.menu_read_messages;
@@ -365,8 +372,18 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (role.equals(User.ROLE_LEADER) || role.equals(User.ROLE_OWNER)) {
-            startEditGroup();
+        if (id == R.id.action_edit_group) {
+            if (role.equals(User.ROLE_LEADER) || role.equals(User.ROLE_OWNER)) {
+                startEditGroup();
+            }
+        }
+
+        if (id == R.id.action_mute) {
+            Group.muteGroup(groupName, new MuteGroupHandler(this));
+        }
+
+        if (id == R.id.action_unmute) {
+            Group.unmuteGroup(groupName, new MuteGroupHandler(this));
         }
 
         //noinspection SimplifiableIfStatement
@@ -374,7 +391,27 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
             return true;
         }
 
+
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private static class MuteGroupHandler extends Handler {
+        private ReadMessagesActivity mActivity;
+        public MuteGroupHandler(ReadMessagesActivity activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void handleMessage(Message message) {
+            if (message.obj != null && message.obj instanceof Group) {
+                mActivity.group = (Group)message.obj;
+                mActivity.invalidateOptionsMenu();
+            } else if (message.obj != null && message.obj instanceof User) {
+                mActivity.currentUser = (User)message.obj;
+                mActivity.invalidateOptionsMenu();
+            }
+        }
     }
 
     private void startEditGroup() {
@@ -560,6 +597,7 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
 
     private class PeepUpdateDelegate implements PrizmDiskCache.CacheRequestDelegate {
         private int mUpdateType;
+        private boolean mChangesMade = false;
 
         public PeepUpdateDelegate(int updateType) {
             mUpdateType = updateType;
@@ -572,8 +610,8 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
 
         @Override
         public void cacheUpdated(String path, Object object) {
+            mChangesMade = false;
             processPeeps(object, false);
-            peepAdapter.notifyDataSetChanged();
             hideProgress();
             isUpdating = false;
             atBottom = false;
@@ -586,8 +624,10 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
 
                 } else {
                     if (mUpdateType == UPDATE_TYPE_NEWER) {
-                        peepAdapter.addAll(peeps);
-                        peepAdapter.notifyDataSetChanged();
+                        if (peeps.size() > 0 ) {
+                            peepAdapter.addAll(peeps);
+                            peepAdapter.notifyDataSetChanged();
+                        }
                     } else if (mUpdateType == UPDATE_TYPE_OLDER) {
                         if (peeps.size() == 0) {
                             noOlderMessages = true;

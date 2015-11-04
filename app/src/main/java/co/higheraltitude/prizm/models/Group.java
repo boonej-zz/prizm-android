@@ -45,10 +45,13 @@ public class Group implements Parcelable {
     public String description;
     public String leaderName;
     public String leader;
+    public Boolean muted = false;
     public int memberCount;
 
     private static String ENDPOINT_USER_GROUPS = "/organizations/%s/users/%s/groups";
     private static String FORMAT_GROUPS = "/organizations/%s/groups";
+    private static String FORMAT_MUTE_POST_1 = "/organizations/%s/groups/%s/mutes";
+    private static String FORMAT_MUTE_DELETE_1 = "/organizations/%s/groups/%s/mutes/%s";
 
     public Group(Parcel in) {
         HashMap<String, String> map = map();
@@ -62,7 +65,7 @@ public class Group implements Parcelable {
                 try {
                     Field field = c.getField(key);
                     Object value = null;
-                    if (field.getType() == boolean.class) {
+                    if (field.getType() == Boolean.class) {
                         value = bundle.getBoolean(key);
                         field.set(this, value);
                     } else if (field.getType() == String.class) {
@@ -100,8 +103,8 @@ public class Group implements Parcelable {
                 Field field = c.getField(key);
                 Object value = field.get(this);
                 if (value != null) {
-                    if (value.getClass() == boolean.class) {
-                        bundle.putBoolean(key, (boolean) value);
+                    if (key.equals("muted")) {
+                        bundle.putBoolean(key, (Boolean)value);
                     } else if (value.getClass() == String.class) {
                         bundle.putString(key, (String) value);
                     } else if (key.equals("memberCount")) {
@@ -137,6 +140,7 @@ public class Group implements Parcelable {
             put("leader_name", "leaderName");
             put("leader_id", "leader");
             put("member_count", "memberCount");
+            put("muted", "muted");
         }};
         return map;
     }
@@ -160,9 +164,6 @@ public class Group implements Parcelable {
                     field = c.getDeclaredField((String) pair.getValue());
                     field.setAccessible(true);
                     Object value = object.get((String) pair.getKey());
-                    if (pair.getKey().equals("member_count")) {
-                        Log.d("DEBUG", String.valueOf(value));
-                    }
                     if (value != null && !value.equals(JSONObject.NULL)) {
                         field.set(this, value);
                     }
@@ -211,6 +212,28 @@ public class Group implements Parcelable {
         }
         post.add("members", gson.toJson(array));
         PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.PUT, new SingleGroupHandler(handler), true);
+    }
+
+    public static void muteGroup(String group, final Handler handler) {
+        String path = String.format(FORMAT_MUTE_POST_1, User.getCurrentUser().primaryOrganization,
+                group);
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        post.add("user", User.getCurrentUser().uniqueID);
+        if (group.equals("all")) {
+            PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.POST,
+                    new User.UserUpdateHandler(handler), true);
+        } else {
+            PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.POST,
+                    new SingleGroupHandler(handler), true);
+        }
+    }
+
+    public static void unmuteGroup(String group, final Handler handler) {
+        String path = String.format(FORMAT_MUTE_DELETE_1, User.getCurrentUser().primaryOrganization,
+                group, User.getCurrentUser().uniqueID);
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.DELETE,
+                new SingleGroupHandler(handler), true);
     }
 
     public static void fetchOrganizationMemberCount(String organization, Handler handler) {

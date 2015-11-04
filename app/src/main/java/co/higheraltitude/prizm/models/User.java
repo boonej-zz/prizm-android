@@ -77,13 +77,23 @@ public class User implements Parcelable {
     public String role;
     public Boolean isMember;
     public String theme;
+    public String type;
     public String subtype;
+    public String mascot;
+    public int population;
     public Boolean read;
+    public String programCode;
     public int interestCount;
+    public String dateFounded;
+    public String contactFirstName;
+    public String contactLastName;
+    public String contactEmail;
+    public Boolean allMuted = false;
 
     public static String PrizmCurrentUserCacheKey = "current_user";
     private static final String PRIZM_LOGIN_ENDPOINT = "/oauth2/login";
     private static final String PRIZM_USER_ENDPOINT = "/users";
+    private static final String PRIZM_USER_SPECIFIC_ENDPOINT  = "/users/%s";
     private static final String PRIZM_MESSAGE_USER_FORMAT = "/organizations/%s/users/%s/messages?format=digest";
     private static final String PRIZM_MESSAGE_USER_FORMAT_2 = "/organizations/%s/users/%s/contacts";
     private static final String PRIZM_GROUP_USER_FORMAT = "/organizations/%s/groups/%s/members";
@@ -121,6 +131,8 @@ public class User implements Parcelable {
                         bundle.putBoolean(key, (boolean) value);
                     } else if (value.getClass() == String.class) {
                         bundle.putString(key, (String) value);
+                    } else if (key.equals("allMuted")) {
+                        bundle.putBoolean(key, (Boolean)value);
                     }
                 }
             } catch (Exception e) {
@@ -199,6 +211,15 @@ public class User implements Parcelable {
             put("subtype", "subtype");
             put("read", "read");
             put("interest_count", "interestCount");
+            put("type", "type");
+            put("program_code", "programCode");
+            put("mascot", "mascot");
+            put("date_founded", "dateFounded");
+            put("enrollment", "population");
+            put("contact_first", "contactFirstName");
+            put("contact_last", "contactLastName");
+            put("contact_email", "contactEmail");
+            put("allMuted", "allMuted");
         }};
         return map;
     }
@@ -449,6 +470,58 @@ public class User implements Parcelable {
         cache.clearValue(PrizmCurrentUserCacheKey);
         System.exit(0);
 
+    }
+
+    public static void update(HashMap<String, String> map, final Handler handler) {
+        PrizmAPIService service = PrizmAPIService.getInstance();
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        Collection<String> properties = map.keySet();
+        Iterator iterator = properties.iterator();
+        while (iterator.hasNext()) {
+            String key = (String)iterator.next();
+            Object value = map.get(key);
+            if (value != null) {
+                post.add(key, value.toString());
+            }
+        }
+        String path = String.format(PRIZM_USER_SPECIFIC_ENDPOINT, User.getCurrentUser().uniqueID);
+        service.performAuthorizedRequest(path, post, HttpMethod.PUT, new UserUpdateHandler(handler), true);
+    }
+
+    public static class UserUpdateHandler extends  Handler {
+
+        private Handler mHandler;
+
+        public UserUpdateHandler(Handler handler) {
+            mHandler = handler;
+        }
+        public void handleMessage(Message message) {
+            if (message != null && message.obj != null) {
+                JSONObject userObject = (JSONObject) message.obj;
+                try {
+                    if (userObject.has("data")) {
+                        JSONArray dataArray = userObject.getJSONArray("data");
+                        if (dataArray.length() > 0) {
+                            JSONObject userProfile = dataArray.getJSONObject(0);
+                            User user = new User(userProfile);
+                            setCurrentUser(user);
+                            Message message1 = mHandler.obtainMessage(1, user);
+                            mHandler.sendMessage(message1);
+                        } else {
+                            mHandler.sendEmptyMessage(1);
+                        }
+                    } else {
+                        User user = new User(userObject);
+                        setCurrentUser(user);
+                        Message message1 = mHandler.obtainMessage(1, user);
+                        mHandler.sendMessage(message1);
+                    }
+                } catch (JSONException ex) {
+                    ex.printStackTrace();
+                    mHandler.sendEmptyMessage(1);
+                }
+            }
+        }
     }
 
     public static void register(HashMap<String, String> map, final Handler handler) {
