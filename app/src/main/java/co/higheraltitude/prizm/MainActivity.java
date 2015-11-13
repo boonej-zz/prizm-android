@@ -51,6 +51,8 @@ import com.vincentbrison.openlibraries.android.dualcache.lib.DualCacheContextUti
 
 import net.sectorsieteg.avatars.AvatarDrawableFactory;
 
+import org.json.JSONObject;
+
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -105,7 +107,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private ImageView mCoverView;
     private Toolbar mToolbar;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
+    private View mActivityButton;
     private ActionBarDrawerToggle mDrawerToggle;
+    private TextView mActivityCountBadge;
 
     private Boolean isPremium;
 
@@ -223,6 +227,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void configureActionBar() {
         mToolbar = (Toolbar)findViewById(R.id.profile_nav_bar);
         setSupportActionBar(mToolbar);
+        mActivityButton = findViewById(R.id.activity_button);
         mToolbar.setNavigationIcon(R.drawable.menu);
 //        mToolbar.setNavigationOnClickListener(new MenuClickListener(mDrawerLayout));
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.drawer_open,
@@ -237,6 +242,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         };
         mToolbar.hideOverflowMenu();
+        mActivityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), NotificationFeedActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void configureReceiver(){
@@ -268,6 +280,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        if (position == 0) {
+            mActivityButton.setVisibility(View.VISIBLE);
+        } else {
+            mActivityButton.setVisibility(View.GONE);
+        }
         if (isPremium && position < 7) {
             ((MenuItemAdapter)parent.getAdapter()).setSelectedItem(position);
             mViewPager.setCurrentItem(position, false);
@@ -301,6 +318,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
         intent.putExtra(LoginActivity.EXTRA_PROFILE, User.getCurrentUser());
         startActivity(intent);
+    }
+
+    public void activityButtonClicked(View view) {
+
     }
 
     @Override
@@ -389,6 +410,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Intent intent = new Intent(getApplicationContext(), Registration.class);
             startActivityForResult(intent, DO_LOGIN);
         }
+        mActivityCountBadge = (TextView)findViewById(R.id.activity_count_badge);
+        co.higheraltitude.prizm.models.Activity.fetchCounts(new MainActivity.NotificationCountHandler(mActivityCountBadge));
 //        if (MESSAGES_STARTED || DID_START ) {
 //            this.finish();
 //        }
@@ -550,6 +573,44 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //            return titles[position];
 //        }
 
+    }
+
+    private static class NotificationCountHandler extends Handler {
+
+        private TextView mTextView;
+
+        public NotificationCountHandler(TextView textView) {
+            mTextView = textView;
+        }
+
+        @Override
+        public void handleMessage(Message message) {
+            int count = 0;
+            if (message.obj instanceof JSONObject) {
+                JSONObject obj = (JSONObject)message.obj;
+
+                if (obj.has("activities")) {
+                    try {
+                        count += obj.getInt("activities");
+                    } catch(Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                if (obj.has("trusts")) {
+                    try {
+                        count += obj.getInt("trusts");
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            if (count > 0) {
+                mTextView.setVisibility(View.VISIBLE);
+                mTextView.setText(String.valueOf(count));
+            } else {
+                mTextView.setVisibility(View.INVISIBLE);
+            }
+        }
     }
 
 }

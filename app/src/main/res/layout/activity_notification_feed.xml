@@ -1,10 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="co.higheraltitude.prizm.NotificationFeedActivity">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/profile_nav_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:elevation="4dp"
+        >
+    </android.support.v7.widget.Toolbar>
+    <android.support.design.widget.TabLayout
+        android:background="@color/white"
+        app:tabIndicatorColor="@color/cool_blue"
+        app:tabIndicatorHeight="4dp"
+        android:id="@+id/activity_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="4dp"
+        style="@style/PrizmRegistrationTab"
 
-</RelativeLayout>
+        />
+    <android.support.v4.view.ViewPager
+        android:id="@+id/activity_pager"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+
+        />
+
+</LinearLayout>

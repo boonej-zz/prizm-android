@@ -80,6 +80,8 @@
     <string name="title_activity_view_members">Members</string>
     <string name="viewers_viewed">Viewed</string>
     <string name="viewers_not_viewed">Not Viewed</string>
+    <string name="notifications_activities">Notifications</string>
+    <string name="notifications_requests">Requests</string>
 
     <string name="welcome_title">Welcome to Prizm</string>
     <string name="welcome_paragraph_1">Prizm lets you privately communicate with people in your favorite organizations and discover new opportunities.</string>

@@ -21,6 +21,7 @@
                 android:layout_width="30dp"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="20.4dp"
+                
                 android:layout_gravity="right|center_vertical">
                 <ImageView
                     android:layout_width="14.7dp"
@@ -28,6 +29,7 @@
                     android:layout_marginTop="8dp"
                     android:src="@drawable/activity"/>
                 <TextView
+                    android:id="@+id/activity_count_badge"
                     android:layout_width="16.6dp"
                     android:layout_height="16.6dp"
                     android:text="1"
@@ -35,6 +37,7 @@
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
                     android:layout_alignParentRight="true"
+                    android:visibility="invisible"
 
                     android:background="@drawable/circle_badge"
                     />
