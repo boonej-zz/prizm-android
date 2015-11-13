@@ -165,6 +165,7 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
         if (group == null) {
             if (isDirect) {
                 ib.setVisibility(View.GONE);
+                actionBar.hideOverflowMenu();
             } else if (isAll) {
                 TextView groupCount = (TextView)findViewById(R.id.badge_count);
                 groupCount.setText(String.valueOf(orgMemberCount));
@@ -344,6 +345,9 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
         // Inflate the menu; this adds items to the action bar if it is present.
         int resource;
         boolean muted = group != null?group.muted:currentUser.allMuted;
+        if (isDirect) {
+            return false;
+        }
         if (role != null) {
             if (role.equals("leader") || role.equals("owner") || role.equals("ambassador")) {
                 if (muted) {
@@ -679,11 +683,10 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
         }
     }
 
-    public void avatarClicked(String creatorId) {
-        User user = new User();
-        user.uniqueID = creatorId;
+    public void avatarClicked(User u) {
+
         Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-        intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, u);
         startActivity(intent);
     }
 

@@ -196,7 +196,13 @@ public class PeepView extends RelativeLayout {
         avatarView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mDelegate.avatarClicked(mPeep.creatorId);
+                User u = new User();
+                u.uniqueID = mPeep.creatorId;
+                u.name = mPeep.creatorName;
+                u.type = mPeep.creatorType;
+                u.subtype = mPeep.creatorSubtype;
+                u.profilePhotoURL = mPeep.creatorProfilePhotoUrl;
+                mDelegate.avatarClicked(u);
             }
         });
         viewedSection.setVisibility(INVISIBLE);
@@ -326,7 +332,7 @@ public class PeepView extends RelativeLayout {
         int TAG_TYPE_USER = 1;
         int TAG_TYPE_HASH = 0;
 
-        void avatarClicked(String creatorId);
+        void avatarClicked(User creator);
         void tagClicked(int tagType, String tag);
         void peepImageClicked(PeepView peepView);
         void likeButtonClicked(PeepView peepView);

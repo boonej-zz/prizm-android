@@ -2,6 +2,7 @@ package co.higheraltitude.prizm;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,6 +12,11 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +24,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,21 +40,22 @@ import java.net.URL;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
+import co.higheraltitude.prizm.fragments.PartnerInfoFragment;
+import co.higheraltitude.prizm.fragments.ProfileInfoFragment;
+import co.higheraltitude.prizm.fragments.ProfileMainFragment;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
 import co.higheraltitude.prizm.models.User;
 
-public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache.CacheRequestDelegate {
+public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache.CacheRequestDelegate,
+        ViewPager.OnPageChangeListener {
 
-    private TextView textView = null;
-    private TextView locationView = null;
-    private ImageView coverPhotoView = null;
-    private Bitmap coverImage = null;
-    private ImageView avatarView = null;
-    private ImageView badgeView = null;
+
     private ProgressBar progressBar = null;
-    private View locationArea = null;
-    private User user = null;
+    private User mUser = null;
+    private ImageView mCoverPhotoView = null;
+    private ViewPager mViewPager = null;
+    private View mBlackOverlay = null;
 
     private View mEditProfileButton;
 
@@ -63,51 +73,33 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         actionBar.setNavigationOnClickListener(new BackClickListener(this));
 
         Intent intent = getIntent();
-        User profile = intent.getParcelableExtra(LoginActivity.EXTRA_PROFILE);
-        User.fetchUserCore(profile, this);
-        textView = (TextView)findViewById(R.id.profile_name);
-        avatarView = (ImageView)findViewById(R.id.profile_avatar_photo);
-        locationView = (TextView)findViewById(R.id.profile_location);
-        locationArea = findViewById(R.id.profile_location_area);
-        locationArea.setVisibility(View.INVISIBLE);
+        mUser = intent.getParcelableExtra(LoginActivity.EXTRA_PROFILE);
+        User.fetchUserCore(mUser, this);
+
         progressBar = (ProgressBar)findViewById(R.id.progress_bar);
         progressBar.setIndeterminate(true);
         mEditProfileButton = findViewById(R.id.edit_profile_button);
-        if (profile.uniqueID.equals(User.getCurrentUser().uniqueID)) {
+        if (mUser.uniqueID.equals(User.getCurrentUser().uniqueID)) {
             mEditProfileButton.setVisibility(View.VISIBLE);
         }
+        mViewPager = (ViewPager)findViewById(R.id.profile_view_pager);
+        mViewPager.setAdapter(new ProfilePager(getSupportFragmentManager(), ProfileActivity.this));
+        mViewPager.addOnPageChangeListener(this);
+
         configureViews();
     }
 
     private void configureViews() {
-        if (user != null) {
-            coverPhotoView = (ImageView) findViewById(R.id.profile_cover_photo);
-            badgeView = (ImageView) findViewById(R.id.avatar_badge);
-            if (user.role != null && user.role.equals("ambassador")) {
-                badgeView.setImageResource(R.drawable.ambassador_badge);
-            } else if (user.role != null && user.role.equals("leader")) {
-                badgeView.setImageResource(R.drawable.leader_badge);
-            } else if (user.subtype != null && user.subtype.equals("luminary")) {
-                badgeView.setImageResource(R.drawable.luminary_badge);
-            } else {
-                badgeView.setVisibility(View.GONE);
-            }
-            textView.setText(user.name);
+        mCoverPhotoView = (ImageView)findViewById(R.id.profile_cover_photo);
+        mBlackOverlay = findViewById(R.id.black_overlay);
 
-            String locationString = "";
-            if (user.city != null) {
-                locationString = user.city;
-                if (user.state != null) {
-                    locationString = locationString + ", " + user.state;
-                }
-            } else if (user.state != null) {
-                locationString = user.state;
-            }
 
-            locationView.setText(locationString);
-            if (!locationString.isEmpty()) {
-                locationArea.setVisibility(View.VISIBLE);
-            }
+
+        if (mUser != null) {
+
+
+
+
 
 //        BitmapFactory.Options options = new BitmapFactory.Options();
 //        options.inMutable = false;
@@ -117,15 +109,13 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
 //        avatarView.setImageDrawable(avatarDrawable);
 
             PrizmDiskCache cache = PrizmDiskCache.getInstance(getApplicationContext());
-            if (user.coverPhotoURL != null && !user.coverPhotoURL.isEmpty()) {
+            if (mUser.coverPhotoURL != null && !mUser.coverPhotoURL.isEmpty()) {
 
-                cache.fetchBitmap(user.coverPhotoURL, coverPhotoView.getWidth(), new CoverGradientHandler(coverPhotoView,
+                cache.fetchBitmap(mUser.coverPhotoURL, mCoverPhotoView.getWidth(), new CoverGradientHandler(mCoverPhotoView,
                         (ImageView) findViewById(R.id.cover_photo_gradient)));
 
             }
-            if (user.profilePhotoURL != null && !user.profilePhotoURL.isEmpty()) {
-                new LoadImage().execute(user.profilePhotoURL, "avatar");
-            }
+
         }
     }
 
@@ -186,6 +176,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         }
 
         protected Bitmap doInBackground(String... args) {
+            Bitmap coverImage = null;
             try {
                 coverImage = BitmapFactory.decodeStream((InputStream) new URL(args[0]).getContent());
                 field = args[1];
@@ -199,11 +190,9 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         protected void onPostExecute(Bitmap image) {
             if(image != null){
                 if (field == "cover") {
-                    coverPhotoView.setImageBitmap(image);
+                    mCoverPhotoView.setImageBitmap(image);
                 } else if (field == "avatar") {
-                    AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
-                    Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(Bitmap.createScaledBitmap(image, 128, 128, false));
-                    avatarView.setImageDrawable(avatarDrawable);
+
                 }
             }else{
                 Log.d("DEBUG", "Image Does Not exist or Network Error");
@@ -213,7 +202,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
 
     @Override
     public void cached(String path, Object object) {
-        fillProfile(object);
+
     }
 
     @Override
@@ -222,10 +211,90 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
     }
 
     private void fillProfile(Object object) {
-        user = (User)object;
+        mUser = (User)object;
+        ((ProfilePager)mViewPager.getAdapter()).setUser(mUser);
         configureViews();
         progressBar.setIndeterminate(false);
         progressBar.setVisibility(View.GONE);
+    }
+
+    public class ProfilePager extends FragmentPagerAdapter {
+
+        final int PAGE_COUNT = 2;
+
+        private Context context;
+
+        public ProfilePager(FragmentManager fm, Context context) {
+            super(fm);
+            this.context = context;
+        }
+
+        @Override
+        public int getCount() {
+            return PAGE_COUNT;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            if (position == 0) {
+                return new ProfileMainFragment();
+            } else {
+                if (mUser != null && mUser.type != null && mUser.type.equals("institution_verified")) {
+                    return new PartnerInfoFragment();
+                } else {
+                    return new ProfileInfoFragment();
+                }
+            }
+        }
+
+        public void setUser(User user) {
+            ((ProfileMainFragment)getItem(0)).setUser(user);
+            if (user.type != null && user.type.equals("institution_verified")) {
+                ((PartnerInfoFragment) getItem(1)).setUser(user);
+            } else {
+                ((ProfileInfoFragment) getItem(1)).setUser(user);
+            }
+        }
+
+
+
+
+
+
+
+
+
+//        @Override
+//        public CharSequence getPageTitle(int position) {
+//            return titles[position];
+//        }
+
+
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        if (position == 0) {
+            mBlackOverlay.setVisibility(View.INVISIBLE);
+            Animation fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
+            mBlackOverlay.startAnimation(fadeOut);
+        } else {
+            if (mBlackOverlay.getVisibility() == View.INVISIBLE) {
+                mBlackOverlay.setVisibility(View.VISIBLE);
+                mBlackOverlay.setAlpha(0);
+                final OvershootInterpolator oi = new OvershootInterpolator();
+                ViewCompat.animate(mBlackOverlay).alpha(1.f).withLayer().setDuration(600).setInterpolator(oi).start();
+            }
+        }
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+
     }
 
 }

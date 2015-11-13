@@ -56,6 +56,7 @@ public class Peep implements Parcelable {
     public String creatorProfilePhotoUrl = "";
     public String creatorId = "";
     public String creatorSubtype = "";
+    public String creatorType = "";
     public Boolean creatorActive = false;
     public String creatorName ="";
     public String imageUrl;
@@ -194,6 +195,7 @@ public class Peep implements Parcelable {
             put("my_post", "myPeep");
             put("likes_count", "likesCount");
             put("read_count", "readCount");
+            put("creator_type", "creatorType");
         }};
         return map;
     }

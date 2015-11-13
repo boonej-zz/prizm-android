@@ -218,10 +218,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             mViewPager = (PrizmViewPager) findViewById(R.id.main_pager);
         }
         mViewPager.setAdapter(new NavigationPager(getSupportFragmentManager(), MainActivity.this));
-        if (isPremium) {
-            mViewPager.setCurrentItem(4);
-            ((MenuItemAdapter) mNavigationList.getAdapter()).setSelectedItem(4);
-        }
     }
 
     private void configureActionBar() {

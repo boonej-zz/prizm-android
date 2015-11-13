@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -82,7 +83,7 @@ public class PrizmGcmListenerService extends GcmListenerService {
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setColor(getColor(R.color.dusk_blue))
+                .setColor(Color.parseColor("#2F38A2"))
                 .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);
 

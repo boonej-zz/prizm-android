@@ -244,6 +244,8 @@
             android:screenOrientation="portrait"
             android:theme="@style/PrizmBlue" >
         </activity>
+        <activity android:name=".NotificationFeedActivity" >
+        </activity>
     </application>
 
 </manifest>

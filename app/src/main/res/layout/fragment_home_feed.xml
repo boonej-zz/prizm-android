@@ -1,77 +1,39 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="co.higheraltitude.prizm.fragments.HomeFeedFragment"
-    android:orientation="vertical" android:background="@color/prizm_dominant_background">
-    <ScrollView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:orientation="vertical"
-        android:layout_height="wrap_content">
-        <ImageView android:layout_height="116.7dp"
-            android:layout_width="94dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="45.7dp"
-            android:src="@drawable/prizmlogo"
-            />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="33.3dp"
-            android:gravity="top"
-            android:layout_gravity="center_horizontal"
-            android:textSize="@dimen/font_size_regular"
-            android:textColor="@color/brownish_grey"
-            android:text="@string/welcome_title"
-            android:layout_marginTop="53.7dp"
-            />
-        <TextView
-            android:layout_width="288dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="17.7dp"
-            android:layout_gravity="center_horizontal"
-            android:textAlignment="center"
-            android:gravity="center"
-            android:textSize="12sp"
-            android:textColor="@color/brownish_grey"
-            android:text="@string/welcome_paragraph_1"
-            />
-        <TextView
-            android:layout_width="288dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="17.7dp"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center"
-            android:textAlignment="center"
-            android:textSize="12sp"
-            android:textColor="@color/brownish_grey"
-            android:text="@string/welcome_paragraph_2"
-            />
-        <TextView
-            android:layout_width="288dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="17.7dp"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center"
-            android:textAlignment="center"
-            android:textSize="12sp"
-            android:textColor="@color/brownish_grey"
-            android:text="@string/welcome_paragraph_3"
-            />
-        <TextView
-            android:layout_width="288dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="17.7dp"
-            android:gravity="center"
-            android:autoLink="all"
-            android:layout_gravity="center_horizontal"
-            android:textAlignment="center"
-            android:textSize="12sp"
-            android:textColor="@color/brownish_grey"
-            android:text="@string/welcome_paragraph_4"
-            />
-    </LinearLayout>
-    </ScrollView>
+    android:background="@color/prizm_dominant_background"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-</LinearLayout>
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_marginTop="0dp"
+        android:layout_width="fill_parent"
+        android:layout_height="5dp"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:indeterminateDrawable="@drawable/progress_bar"
+        android:indeterminateDuration="800"
+        android:indeterminate="true"/>
+    <ListView
+        android:id="@+id/home_feed_list_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:divider="@android:color/transparent"
+        android:paddingBottom="40dp"
+        android:clipToPadding="false">
+    </ListView>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floating_action_button"
+        android:layout_width="56.7dp"
+        android:layout_height="56.7dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:scaleType="center"
+        app:backgroundTint="?attr/colorPrimary"
+        android:src="@drawable/shape"
+        android:elevation="6dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="16.3dp" />
+
+
+</RelativeLayout>
