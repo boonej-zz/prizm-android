@@ -1,6 +1,7 @@
 package co.higheraltitude.prizm;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -25,8 +26,10 @@ import co.higheraltitude.prizm.models.Trust;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.views.ActivityView;
 import co.higheraltitude.prizm.views.TrustRequestView;
+import co.higheraltitude.prizm.views.UserAvatarView;
 
-public class NotificationFeedActivity extends AppCompatActivity {
+public class NotificationFeedActivity extends AppCompatActivity
+        implements TrustRequestView.TrustRequestDelegate, ActivityView.ActivityViewDelegate {
 
     private TabLayout mTabLayout;
     private ViewPager mViewPager;
@@ -148,6 +151,7 @@ public class NotificationFeedActivity extends AppCompatActivity {
                 view = ActivityView.inflate(parent);
             }
             view.setActivity(getItem(position));
+            view.setDelegate(NotificationFeedActivity.this);
 
             return view;
         }
@@ -167,6 +171,7 @@ public class NotificationFeedActivity extends AppCompatActivity {
                 view = TrustRequestView.inflate(parent);
             }
             view.setTrust(getItem(position));
+            view.setDelegate(NotificationFeedActivity.this);
 
             return view;
         }
@@ -280,5 +285,31 @@ public class NotificationFeedActivity extends AppCompatActivity {
 //            cacheLoaded = false;
 
         }
+    }
+
+    @Override
+    public void avatarButtonClicked(Trust trust) {
+        User u = new User();
+        u.uniqueID = trust.fromId;
+        u.subtype = trust.fromSubtype;
+        u.type = trust.fromType;
+        u.profilePhotoURL = trust.fromProfilePhotoUrl;
+        u.name = trust.fromName;
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, u);
+        startActivity(intent);
+    }
+
+    @Override
+    public void avatarPhotoClicked(Activity activity) {
+        User u = new User();
+        u.uniqueID = activity.fromId;
+        u.subtype = activity.fromSubtype;
+        u.type = activity.fromType;
+        u.profilePhotoURL = activity.fromProfilePhotoUrl;
+        u.name = activity.fromName;
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, u);
+        startActivity(intent);
     }
 }

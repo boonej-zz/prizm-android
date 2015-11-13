@@ -36,7 +36,7 @@ public class ActivityView extends RelativeLayout {
     private TextView mMessageView;
 
 
-    private HomePostViewDelegate mDelegate;
+    private ActivityViewDelegate mDelegate;
 
 
     public static ActivityView inflate(ViewGroup parent) {
@@ -45,7 +45,7 @@ public class ActivityView extends RelativeLayout {
         return view;
     }
 
-    public void setDelegate(HomePostViewDelegate delegate) {
+    public void setDelegate(ActivityViewDelegate delegate) {
         mDelegate = delegate;
     }
 
@@ -137,6 +137,14 @@ public class ActivityView extends RelativeLayout {
 
     private void setViews() {
         mAvatarView = (ImageView)findViewById(R.id.avatar_view);
+        mAvatarView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.avatarPhotoClicked(mActivity);
+                }
+            }
+        });
         mCreatorTextView = (TextView)findViewById(R.id.notification_from);
         mMessageView = (TextView)findViewById(R.id.notification_message);
         mDateAgoTextView = (TextView)findViewById(R.id.notification_time_ago);
@@ -172,8 +180,8 @@ public class ActivityView extends RelativeLayout {
         }
     }
 
-    public interface HomePostViewDelegate {
-        void avatarButtonClicked(Post post);
+    public interface ActivityViewDelegate {
+        void avatarPhotoClicked(Activity activity);
     }
 
 

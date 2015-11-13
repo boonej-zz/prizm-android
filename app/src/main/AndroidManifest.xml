@@ -244,10 +244,11 @@
             android:screenOrientation="portrait"
             android:theme="@style/PrizmBlue" >
         </activity>
-        <activity android:name=".NotificationFeedActivity"
+        <activity
+            android:name=".NotificationFeedActivity"
             android:label="Activity"
             android:screenOrientation="portrait"
-            android:theme="@style/PrizmBlue">
+            android:theme="@style/PrizmBlue" >
         </activity>
     </application>
 

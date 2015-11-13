@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -34,7 +35,12 @@ public class TrustRequestView extends RelativeLayout {
     private TextView mDateAgoTextView;
     private TextView mMessageView;
 
+    private TrustRequestDelegate mDelegate;
 
+
+    public void setDelegate(TrustRequestDelegate delegate) {
+        mDelegate = delegate;
+    }
 
     public static TrustRequestView inflate(ViewGroup parent) {
         TrustRequestView view = (TrustRequestView)LayoutInflater.from(parent.getContext())
@@ -90,6 +96,14 @@ public class TrustRequestView extends RelativeLayout {
 
     private void setViews() {
         mAvatarView = (ImageView)findViewById(R.id.avatar_view);
+        mAvatarView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.avatarButtonClicked(mTrust);
+                }
+            }
+        });
         mCreatorTextView = (TextView)findViewById(R.id.notification_from);
         mMessageView = (TextView)findViewById(R.id.notification_message);
         mDateAgoTextView = (TextView)findViewById(R.id.notification_time_ago);
@@ -122,6 +136,10 @@ public class TrustRequestView extends RelativeLayout {
                 }
             }
         }
+    }
+
+    public interface TrustRequestDelegate {
+        void avatarButtonClicked(Trust trust);
     }
 
 
