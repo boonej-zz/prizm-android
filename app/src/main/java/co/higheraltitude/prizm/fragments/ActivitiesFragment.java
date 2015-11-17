@@ -74,6 +74,10 @@ public class ActivitiesFragment extends Fragment implements AdapterView.OnItemCl
 
     }
 
+    public void scrollToTop() {
+        mListView.smoothScrollToPositionFromTop(0, 0);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

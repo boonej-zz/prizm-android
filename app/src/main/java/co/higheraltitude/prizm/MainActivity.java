@@ -125,11 +125,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mCache = PrizmCache.getInstance();
         PrizmAPIService.getInstance();
         context = getApplicationContext();
-        if (User.getCurrentUser() != null) {
-            setTheme(User.getTheme());
-        } else {
-            setTheme(R.style.PrizmBlue);
-        }
+        setTheme(User.getTheme());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         DID_START = false;
@@ -247,6 +243,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), NotificationFeedActivity.class);
                 startActivity(intent);
+            }
+        });
+        mToolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Fragment f = getSupportFragmentManager().findFragmentByTag("android:switcher:" +
+                        R.id.main_pager + ":" + mViewPager.getCurrentItem());
+                if (f instanceof HomeFeedFragment) {
+                    ((HomeFeedFragment)f).scrollToTop();
+                } else if (f instanceof MessageGroupFragment) {
+                    ((MessageGroupFragment)f).scrollToTop();
+                }
             }
         });
     }
@@ -411,7 +419,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             startActivityForResult(intent, DO_LOGIN);
         }
         mActivityCountBadge = (TextView)findViewById(R.id.activity_count_badge);
-        co.higheraltitude.prizm.models.Activity.fetchCounts(new MainActivity.NotificationCountHandler(mActivityCountBadge));
+        if (User.getCurrentUser() != null) {
+            co.higheraltitude.prizm.models.Activity.fetchCounts(new MainActivity.NotificationCountHandler(mActivityCountBadge));
+        }
 //        if (MESSAGES_STARTED || DID_START ) {
 //            this.finish();
 //        }

@@ -15,16 +15,19 @@ import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.delegates.UserDelegate;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.models.Peep;
+import co.higheraltitude.prizm.models.Post;
 import co.higheraltitude.prizm.models.User;
 
 public class LikesActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     public static final String EXTRA_PEEP = "co_higheraltitude_extra_peep";
+    public static final String EXTRA_POST = "co_higheraltitude_extra_post";
 
     private ListView mListView;
     private UserAdapter mUserAdapter;
 
     private Peep mPeep;
+    private Post mPost;
 
 
     @Override
@@ -40,11 +43,16 @@ public class LikesActivity extends AppCompatActivity implements AdapterView.OnIt
 
         Intent intent = getIntent();
         mPeep = intent.getParcelableExtra(EXTRA_PEEP);
+        mPost = intent.getParcelableExtra(EXTRA_POST);
         mListView = (ListView)findViewById(R.id.member_list);
         mUserAdapter = new UserAdapter(getApplicationContext(), new ArrayList<User>());
         mListView.setAdapter(mUserAdapter);
         mListView.setOnItemClickListener(this);
-        mPeep.getLikes(new UserListDelegate());
+        if (mPeep != null) {
+            mPeep.getLikes(new UserListDelegate());
+        } else if (mPost != null) {
+            mPost.getLikes(mPost, new UserListDelegate());
+        }
     }
 
     private class UserListDelegate implements PrizmDiskCache.CacheRequestDelegate {

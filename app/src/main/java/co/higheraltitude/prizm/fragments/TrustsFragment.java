@@ -67,6 +67,10 @@ public class TrustsFragment extends Fragment implements AdapterView.OnItemClickL
 
     }
 
+    public void scrollToTop() {
+        mListView.smoothScrollToPositionFromTop(0, 0);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

@@ -37,6 +37,7 @@ public class Activity implements Parcelable {
     public static final String ACTIVITY_TYPE_GROUP_APPROVE = "group_approved";
     public static final String ACTIVITY_TYPE_LEADER = "leader";
     public static final String ACTIVITY_TYPE_TAG = "tag";
+    public static final String ACTIVITY_TYPE_FOLLOW = "follow";
 
     public String uniqueId;
     public String createDate;

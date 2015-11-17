@@ -105,6 +105,10 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
     private int orgMemberCount = 0;
     private ArrayList<ImageSpan> deletedSpans = new ArrayList<>();
 
+    public void scrollToTop() {
+        listView.smoothScrollToPositionFromTop(listView.getAdapter().getCount() - 1, 0);
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +151,12 @@ public class ReadMessagesActivity extends AppCompatActivity implements PeepView.
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+        actionBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scrollToTop();
             }
         });
         View ib = findViewById(R.id.action_members_button);

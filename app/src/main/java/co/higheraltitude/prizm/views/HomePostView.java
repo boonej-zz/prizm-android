@@ -52,6 +52,8 @@ public class HomePostView extends RelativeLayout {
     private TextView mPostViaText;
     private TextView mLikesCount;
     private TextView mCommentCount;
+    private View mLikesButton;
+    private ImageView mLikesImageView;
 
     private HomePostViewDelegate mDelegate;
 
@@ -90,10 +92,18 @@ public class HomePostView extends RelativeLayout {
         mCreatorTextView.setText(mPost.creatorName);
         mDateAgoTextView.setText(String.format("%s ago", mPost.timeSince));
         mPostViaText.setText(null);
+        if (mPost.isLiked) {
+            mLikesImageView.setImageResource(R.drawable.like_icon_2);
+        } else {
+            mLikesImageView.setImageResource(R.drawable.like);
+        }
         if (mPost.likesCount == 0) {
             mLikesCount.setText(null);
         } else {
             mLikesCount.setText(String.valueOf(mPost.likesCount));
+        }
+        if (mPost.ownPost) {
+            mLikesImageView.setImageResource(R.drawable.like);
         }
         if (mPost.commentsCount == 0) {
             mCommentCount.setText(null);
@@ -114,6 +124,7 @@ public class HomePostView extends RelativeLayout {
             mCache.fetchBitmap(mPost.creatorProfilePhotoUrl, mPostImageView.getWidth(), new ImageHandler(this,
                     mAvatarView, mInstanceId, ImageHandler.POST_IMAGE_TYPE_AVATAR));
         }
+
 
     }
 
@@ -137,6 +148,16 @@ public class HomePostView extends RelativeLayout {
         mPostViaText = (TextView)findViewById(R.id.post_via_text);
         mLikesCount = (TextView)findViewById(R.id.likes_count);
         mCommentCount = (TextView)findViewById(R.id.comment_count);
+        mLikesButton = findViewById(R.id.likes_button);
+        mLikesButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.likeButtonClicked(mPost);
+                }
+            }
+        });
+        mLikesImageView = (ImageView)findViewById(R.id.likes_image);
     }
 
     private static class ImageHandler extends Handler {
@@ -170,6 +191,7 @@ public class HomePostView extends RelativeLayout {
 
     public interface HomePostViewDelegate {
         void avatarButtonClicked(Post post);
+        void likeButtonClicked(Post post);
     }
 
 

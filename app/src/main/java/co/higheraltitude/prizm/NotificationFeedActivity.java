@@ -51,10 +51,24 @@ public class NotificationFeedActivity extends AppCompatActivity
         actionBar.setNavigationIcon(R.drawable.backarrow_icon);
         actionBar.setNavigationOnClickListener(new BackClickListener(this));
         actionBar.hideOverflowMenu();
+        actionBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Fragment f = getSupportFragmentManager().findFragmentByTag("android:switcher:" +
+                        R.id.activity_pager + ":" + mViewPager.getCurrentItem());
+                if (f instanceof ActivitiesFragment) {
+                    ((ActivitiesFragment)f).scrollToTop();
+                } else if (f instanceof TrustsFragment) {
+                    ((TrustsFragment)f).scrollToTop();
+                }
+            }
+        });
         configureViews();
         fetchActivities(false);
         fetchTrusts(false);
     }
+
+
 
     private void configureViews()
     {

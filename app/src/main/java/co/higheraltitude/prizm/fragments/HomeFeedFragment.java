@@ -5,8 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +19,12 @@ import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import co.higheraltitude.prizm.LikesActivity;
 import co.higheraltitude.prizm.LoginActivity;
 import co.higheraltitude.prizm.ProfileActivity;
 import co.higheraltitude.prizm.R;
@@ -95,6 +100,10 @@ implements HomePostView.HomePostViewDelegate {
             }
         });
 
+    }
+
+    public void scrollToTop() {
+        mListView.smoothScrollToPositionFromTop(0, 0);
     }
 
     private boolean listIsAtTop()   {
@@ -233,6 +242,39 @@ implements HomePostView.HomePostViewDelegate {
         Intent intent = new Intent(getContext(), ProfileActivity.class);
         intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
         getActivity().startActivity(intent);
+    }
+
+    public void likeButtonClicked(Post post) {
+        if (post.ownPost) {
+            Intent intent = new Intent(getContext(), LikesActivity.class);
+            intent.putExtra(LikesActivity.EXTRA_POST, post);
+            getActivity().startActivity(intent);
+        } else {
+            if (post.isLiked) {
+                Post.unlikePost(post, new LikeHandler(mAdapter, mAdapter.getPosition(post)));
+            } else {
+                Post.likePost(post, new LikeHandler(mAdapter, mAdapter.getPosition(post)));
+            }
+        }
+    }
+
+    private static class LikeHandler extends Handler
+    {
+        private HomeFeedAdapter mAdapter;
+        private int mPosition;
+        public LikeHandler(HomeFeedAdapter adapter, int position) {
+            mAdapter = adapter;
+            mPosition = position;
+        }
+        @Override
+        public void handleMessage(Message message) {
+            if (message.obj != null && message.obj instanceof  Post) {
+                Post p = (Post)message.obj;
+                Post o = mAdapter.getItem(mPosition);
+                mAdapter.remove(o);
+                mAdapter.insert(p, mPosition);
+            }
+        }
     }
 
 

@@ -78,34 +78,36 @@ public class ActivityView extends RelativeLayout {
         String text = "";
         if (mActivity.action.equals(Activity.ACTIVITY_TYPE_LIKE)) {
             if (mActivity.commentId != null) {
-                text = "Liked your comment.";
+                text = "liked your comment.";
             } else if (mActivity.postId != null) {
-                text = "Liked your post.";
+                text = "liked your post.";
             } else if (mActivity.messageId != null) {
-                text = "Liked your message.";
+                text = "liked your message.";
             }
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_COMMENT)) {
-            text = "Commented on your post.";
+            text = "commented on your post.";
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_GROUP_ADD)) {
-            text = "Added you to the " + mActivity.groupName + " group.";
+            text = "added you to the " + mActivity.groupName + " group.";
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_INSIGHT)) {
-            text = "Sent you an Insight.";
+            text = "sent you an Insight.";
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_POST)) {
-            text = "Created a new post.";
+            text = "created a new post.";
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_GROUP_APPROVE)) {
-            text = "Approved your membership.";
+            text = "approved your membership.";
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_TAG)) {
             if (mActivity.commentId != null) {
-                text = "Tagged you in a comment.";
+                text = "tagged you in a comment.";
             } else if (mActivity.postId != null) {
-                text = "Tagged you in a post.";
+                text = "tagged you in a post.";
             }
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_TRUST_REQUEST)) {
-            text = "Invited you to a trust.";
+            text = "invited you to a trust.";
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_TRUST_ACCEPT)) {
-            text = "Accepted your trust request.";
+            text = "accepted your trust request.";
         } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_LEADER)) {
-            text = "Made you a leader.";
+            text = "made you a leader.";
+        } else if (mActivity.action.equals(Activity.ACTIVITY_TYPE_FOLLOW)) {
+            text = "started following you.";
         }
         String timeSince = String.format("%s ago", mActivity.timeSince);
         mDateAgoTextView.setText(timeSince);

@@ -240,6 +240,10 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
         }
     }
 
+    public void scrollToTop() {
+        mListView.smoothScrollToPositionFromTop(0, 0);
+    }
+
 
     public void loadGroups() {
         if (mUser == null || mUser.primaryOrganization == null) {
