@@ -93,9 +93,9 @@ public class HomePostView extends RelativeLayout {
         mDateAgoTextView.setText(String.format("%s ago", mPost.timeSince));
         mPostViaText.setText(null);
         if (mPost.isLiked) {
-            mLikesImageView.setImageResource(R.drawable.like_icon_2);
+            mLikesImageView.setImageResource(R.drawable.like_selected_icon);
         } else {
-            mLikesImageView.setImageResource(R.drawable.like);
+            mLikesImageView.setImageResource(R.drawable.like_icon);
         }
         if (mPost.likesCount == 0) {
             mLikesCount.setText(null);

@@ -173,9 +173,9 @@ public class PeepView extends RelativeLayout {
 
         likesView.setText(String.valueOf(likeCount));
         if (peep.liked) {
-            likeButton.setImageDrawable(getResources().getDrawable(R.drawable.like_icon_2));
+            likeButton.setImageDrawable(getResources().getDrawable(R.drawable.like_selected_icon));
         } else {
-            likeButton.setImageDrawable(getResources().getDrawable(R.drawable.like));
+            likeButton.setImageDrawable(getResources().getDrawable(R.drawable.like_icon));
         }
         timeAgoView.setText(peep.timeAgo());
         if (likeCount == 0) {
