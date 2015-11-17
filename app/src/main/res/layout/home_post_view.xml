@@ -69,8 +69,10 @@
                 android:layout_centerVertical="true"
                 android:gravity="right">
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/category_image"
+                    android:layout_width="17.3dp"
+                    android:layout_height="17.3dp"
+                    android:scaleType="fitCenter"
                     android:src="@drawable/checkmarksm" />
                 <TextView
                     android:id="@+id/post_via_text"

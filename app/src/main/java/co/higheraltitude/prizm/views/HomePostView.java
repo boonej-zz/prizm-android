@@ -54,6 +54,7 @@ public class HomePostView extends RelativeLayout {
     private TextView mCommentCount;
     private View mLikesButton;
     private ImageView mLikesImageView;
+    private ImageView mCategoryImageView;
 
     private HomePostViewDelegate mDelegate;
 
@@ -124,6 +125,19 @@ public class HomePostView extends RelativeLayout {
             mCache.fetchBitmap(mPost.creatorProfilePhotoUrl, mPostImageView.getWidth(), new ImageHandler(this,
                     mAvatarView, mInstanceId, ImageHandler.POST_IMAGE_TYPE_AVATAR));
         }
+        if (mPost.category.equals("aspiration")) {
+            mCategoryImageView.setImageResource(R.drawable.aspitation_active_icon);
+        } else if (mPost.category.equals("passion")) {
+            mCategoryImageView.setImageResource(R.drawable.passion_active_icon);
+        } else if (mPost.category.equals("experience")) {
+            mCategoryImageView.setImageResource(R.drawable.experience_active_icon);
+        } else if (mPost.category.equals("inspiration")) {
+            mCategoryImageView.setImageResource(R.drawable.inspiration_active_icon);
+        } else if (mPost.category.equals("personal")) {
+            mCategoryImageView.setImageResource(R.drawable.private_active_icon);
+        } else if (mPost.category.equals("achievement")) {
+            mCategoryImageView.setImageResource(R.drawable.achievement_active_icon);
+        }
 
 
     }
@@ -158,6 +172,7 @@ public class HomePostView extends RelativeLayout {
             }
         });
         mLikesImageView = (ImageView)findViewById(R.id.likes_image);
+        mCategoryImageView = (ImageView)findViewById(R.id.category_image);
     }
 
     private static class ImageHandler extends Handler {
