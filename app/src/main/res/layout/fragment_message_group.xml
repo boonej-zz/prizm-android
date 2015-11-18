@@ -49,8 +49,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:clipChildren="false"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
                         android:orientation="horizontal"
-                        android:layout_marginBottom="20dp">
+                        >
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -75,6 +77,8 @@
                         android:id="@+id/new_group_button"
                         android:layout_width="wrap_content"
                         android:clipChildren="false"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
                         android:layout_height="wrap_content" android:orientation="horizontal">
                         <TextView
                             android:layout_width="wrap_content"

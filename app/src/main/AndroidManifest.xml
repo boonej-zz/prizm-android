@@ -250,6 +250,12 @@
             android:screenOrientation="portrait"
             android:theme="@style/PrizmBlue" >
         </activity>
+        <activity
+            android:name=".FullBleedPostActivity"
+            android:label="Post"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
     </application>
 
 </manifest>

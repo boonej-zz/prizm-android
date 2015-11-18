@@ -24,6 +24,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.higheraltitude.prizm.FullBleedPostActivity;
 import co.higheraltitude.prizm.LikesActivity;
 import co.higheraltitude.prizm.LoginActivity;
 import co.higheraltitude.prizm.ProfileActivity;
@@ -233,6 +234,7 @@ implements HomePostView.HomePostViewDelegate {
         }
     }
 
+    @Override
     public void avatarButtonClicked(Post post) {
         User user = new User();
         user.uniqueID = post.creatorId;
@@ -244,6 +246,7 @@ implements HomePostView.HomePostViewDelegate {
         getActivity().startActivity(intent);
     }
 
+    @Override
     public void likeButtonClicked(Post post) {
         if (post.ownPost) {
             Intent intent = new Intent(getContext(), LikesActivity.class);
@@ -256,6 +259,13 @@ implements HomePostView.HomePostViewDelegate {
                 Post.likePost(post, new LikeHandler(mAdapter, mAdapter.getPosition(post)));
             }
         }
+    }
+
+    @Override
+    public void postImageClicked(Post post){
+        Intent intent = new Intent(getContext(), FullBleedPostActivity.class);
+        intent.putExtra(FullBleedPostActivity.EXTRA_POST, post);
+        getActivity().startActivity(intent);
     }
 
     private static class LikeHandler extends Handler

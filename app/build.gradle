@@ -22,9 +22,9 @@ android {
     buildToolsVersion "23.0.0"
     defaultConfig {
         applicationId "co.higheraltitude.prizm"
-        minSdkVersion 17
+        minSdkVersion 19
         targetSdkVersion 23
-        versionCode 53
+        versionCode 54
         versionName '0.7.4'
         multiDexEnabled true
     }

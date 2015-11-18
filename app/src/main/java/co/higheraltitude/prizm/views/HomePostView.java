@@ -55,6 +55,7 @@ public class HomePostView extends RelativeLayout {
     private View mLikesButton;
     private ImageView mLikesImageView;
     private ImageView mCategoryImageView;
+    private View mCommentButton;
 
     private HomePostViewDelegate mDelegate;
 
@@ -148,6 +149,14 @@ public class HomePostView extends RelativeLayout {
 
     private void setViews() {
         mPostImageView = (ImageView)findViewById(R.id.post_image_view);
+        mPostImageView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.postImageClicked(mPost);
+                }
+            }
+        });
         mAvatarView = (ImageView)findViewById(R.id.avatar_view);
         mAvatarView.setOnClickListener(new OnClickListener() {
             @Override
@@ -173,6 +182,15 @@ public class HomePostView extends RelativeLayout {
         });
         mLikesImageView = (ImageView)findViewById(R.id.likes_image);
         mCategoryImageView = (ImageView)findViewById(R.id.category_image);
+        mCommentButton = findViewById(R.id.comment_button);
+        mCommentButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.postImageClicked(mPost);
+                }
+            }
+        });
     }
 
     private static class ImageHandler extends Handler {
@@ -207,6 +225,7 @@ public class HomePostView extends RelativeLayout {
     public interface HomePostViewDelegate {
         void avatarButtonClicked(Post post);
         void likeButtonClicked(Post post);
+        void postImageClicked(Post post);
     }
 
 

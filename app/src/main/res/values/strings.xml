@@ -73,6 +73,7 @@
     <string name="title_activity_read_messages">ReadMessagesActivity</string>
 
     <string name="title_activity_full_screen_image">FullScreenImageActivity</string>
+    <string name="title_comments">Comments</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_new_group">Create Group</string>
