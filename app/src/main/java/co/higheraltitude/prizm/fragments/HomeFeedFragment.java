@@ -205,6 +205,7 @@ implements HomePostView.HomePostViewDelegate {
                 mAdapter.addAll(posts);
             }
             isUpdating = false;
+            mAdapter.notifyDataSetChanged();
         }
 
         private void update(Object object) {
@@ -230,6 +231,7 @@ implements HomePostView.HomePostViewDelegate {
             isUpdating = false;
             hideProgressBar();
             cacheLoaded = false;
+            mAdapter.notifyDataSetChanged();
 
         }
     }

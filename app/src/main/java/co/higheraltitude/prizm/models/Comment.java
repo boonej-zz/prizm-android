@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -16,7 +15,6 @@ import org.springframework.util.MultiValueMap;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -27,21 +25,16 @@ import co.higheraltitude.prizm.network.PrizmAPIService;
 /**
  * Created by boonej on 11/11/15.
  */
-public class Post implements Parcelable{
+public class Comment implements Parcelable{
 
-    public static final String POST_HOME_FEED_FORMAT = "/users/%s/home";
-    public static final String POST_LIKE_FORMAT = "/posts/%s/likes";
-    public static final String POST_UNLIKE_FORMAT = "/posts/%s/likes/%s";
+    public static final String COMMENT_FORMAT = "/posts/%s/comments?requestor=%s";
+    public static final String LIKE_COMMENT_FORMAT = "/posts/%s/comments/%s/likes";
+    public static final String UNLIKE_COMMENT_FORMAT = "/posts/%s/comments/%s/likes/%s";
+
 
     public String uniqueId;
-    public String category;
-    public String externalProvider;
-    public String hashTags;
-    public int commentsCount;
+    public String status;
     public int likesCount;
-    public String filePath;
-    public double locationLatitude;
-    public double locationLongitude;
     public String createDate;
     public String text;
     public String timeSince;
@@ -51,34 +44,28 @@ public class Post implements Parcelable{
     public String creatorProfilePhotoUrl;
     public boolean isLiked;
     public String creatorName;
-    public boolean ownPost;
+    public boolean ownComment;
 
     private static HashMap<String, String> map() {
         HashMap<String, String> map = new HashMap<String, String>(){{
             put("_id", "uniqueId");
             put("create_date", "createDate");
             put("text", "text");
-            put("category", "category");
-            put("external_provider", "externalProvider");
-            put("hash_tags", "hashTags");
-            put("comments_count", "commentsCount");
             put("likes_count", "likesCount");
-            put("file_path", "filePath");
-            put("location_latitude", "locationLatitude");
-            put("location_longitude", "locationLongitude");
             put("time_since", "timeSince");
             put("creator_id", "creatorId");
             put("creator_type", "creatorType");
             put("creator_subtype", "creatorSubtype");
             put("creator_profile_photo_url", "creatorProfilePhotoUrl");
             put("creator_name", "creatorName");
-            put("is_liked", "isLiked");
-            put("own_post", "ownPost");
+            put("comment_liked", "isLiked");
+            put("own_comment", "ownComment");
+            put("status", "status");
         }};
         return map;
     }
 
-    public Post(JSONObject object) {
+    public Comment(JSONObject object) {
         HashMap<String, String> map = map();
         if (object.has("nameValuePairs")) {
             try {
@@ -88,7 +75,7 @@ public class Post implements Parcelable{
             }
         }
         Iterator iterator = map.entrySet().iterator();
-        Class<?> c = Post.class;
+        Class<?> c = Comment.class;
         while(iterator.hasNext()) {
             Map.Entry pair = (Map.Entry)iterator.next();
             Field field;
@@ -116,11 +103,11 @@ public class Post implements Parcelable{
         }
     }
 
-    public Post(Parcel in) {
+    public Comment(Parcel in) {
         HashMap<String, String> map = map();
         Collection<String> properties = map.values();
         Iterator iterator = properties.iterator();
-        Class<?> c = Post.class;
+        Class<?> c = Comment.class;
         if (in != null) {
             Bundle bundle = in.readBundle();
             while (iterator.hasNext()) {
@@ -128,13 +115,13 @@ public class Post implements Parcelable{
                 try {
                     Field field = c.getField(key);
                     Object value = null;
-                    if (field.getType() == boolean.class) {
+                    if (field.getType() == Boolean.class) {
                         value = bundle.getBoolean(key);
                         field.set(this, value);
                     } else if (field.getType() == String.class) {
                         value = bundle.getString(key);
                         field.set(this, value);
-                    } else if (field.getType() == int.class) {
+                    } else if (field.getType() == Integer.class) {
                         value = bundle.getInt(key);
                         field.set(this, value);
                     }
@@ -159,21 +146,17 @@ public class Post implements Parcelable{
 
         Bundle bundle = new Bundle();
         Iterator iterator = properties.iterator();
-        Class<?> c = Post.class;
+        Class<?> c = Comment.class;
         while (iterator.hasNext()) {
             String key = (String)iterator.next();
             try {
                 Field field = c.getField(key);
                 Object value = field.get(this);
                 if (value != null) {
-                    if (value.getClass().equals(Boolean.class)) {
+                    if (value.getClass() == boolean.class) {
                         bundle.putBoolean(key, (boolean) value);
-                    } else if (value instanceof String) {
+                    } else if (value.getClass() == String.class) {
                         bundle.putString(key, (String) value);
-                    } else if (value.getClass().equals(Integer.class)) {
-                        bundle.putInt(key, (int)value);
-                    } else if (value.getClass().equals(Double.class)) {
-                        bundle.putDouble(key, (double)value);
                     }
                 }
             } catch (Exception e) {
@@ -183,27 +166,27 @@ public class Post implements Parcelable{
         dest.writeBundle(bundle);
     }
 
-    public static final Parcelable.Creator CREATOR =
-            new Parcelable.Creator() {
-                public Post createFromParcel(Parcel in) {
-                    return new Post(in);
+    public static final Creator CREATOR =
+            new Creator() {
+                public Comment createFromParcel(Parcel in) {
+                    return new Comment(in);
                 }
 
-                public Post[] newArray(int size) {
-                    return new Post[size];
+                public Comment[] newArray(int size) {
+                    return new Comment[size];
                 }
             };
 
 
-    private static ArrayList<Post> processPostList(Object obj)
+    private static ArrayList<Comment> processCommentList(Object obj)
     {
-        ArrayList<Post> results = new ArrayList<>();
+        ArrayList<Comment> results = new ArrayList<>();
         if (obj instanceof JSONArray) {
             JSONArray array = (JSONArray)obj;
             int length = array.length();
             for (int i = 0; i != length; ++i) {
                 try {
-                    Post post = new Post(array.getJSONObject(i));
+                    Comment post = new Comment(array.getJSONObject(i));
                     results.add(post);
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -214,76 +197,67 @@ public class Post implements Parcelable{
         return results;
     }
 
-    public static void fetchHomeFeed(String lastDate, final PrizmDiskCache.CacheRequestDelegate delegate) {
-        String path = String.format(POST_HOME_FEED_FORMAT, User.getCurrentUser().uniqueID);
-        if (lastDate != null && !lastDate.isEmpty()) {
-            path = path + "?last=" + lastDate;
-        }
-        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+    public static void fetchComments(Post post, PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(COMMENT_FORMAT, post.uniqueId, User.getCurrentUser().uniqueID);
+        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
-        cache.performCachedRequest(path, post, HttpMethod.GET, new PostListDelegate(delegate));
-
+        cache.performCachedRequest(path, data, HttpMethod.GET, new CommentListDelegate(delegate));
     }
 
-    public static void likePost(Post post, final Handler handler) {
-        String path = String.format(POST_LIKE_FORMAT, post.uniqueId);
+    public static void likeComment(Post post, Comment comment, Handler handler) {
+        String path = String.format(LIKE_COMMENT_FORMAT, post.uniqueId, comment.uniqueId);
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         data.add("user", User.getCurrentUser().uniqueID);
         PrizmAPIService.getInstance().performAuthorizedRequest(path, data, HttpMethod.PUT,
-                new SinglePostHandler(handler), true);
+                new CommentListHandler(handler), true);
     }
 
-    public static void unlikePost(Post post, final Handler handler) {
-        String path = String.format(POST_UNLIKE_FORMAT, post.uniqueId, User.getCurrentUser().uniqueID);
+    public static void unlikeComment(Post post, Comment comment, Handler handler) {
+        String path = String.format(UNLIKE_COMMENT_FORMAT, post.uniqueId, comment.uniqueId,
+                User.getCurrentUser().uniqueID);
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         PrizmAPIService.getInstance().performAuthorizedRequest(path, data, HttpMethod.DELETE,
-                new SinglePostHandler(handler), true);
+                new CommentListHandler(handler), true);
     }
 
-    public static void getLikes(Post post, final PrizmDiskCache.CacheRequestDelegate delegate) {
-        String path = String.format(POST_LIKE_FORMAT, post.uniqueId);
-        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
-        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
-        cache.performCachedRequest(path, data, HttpMethod.GET, new User.UserListDelegate(delegate));
-    }
 
-    private static class SinglePostHandler extends Handler {
-
-        private Handler mHandler;
-
-        public SinglePostHandler(Handler handler) {
-            mHandler = handler;
-        }
-
-        @Override
-        public void handleMessage(Message message) {
-            if (message.obj instanceof JSONObject) {
-                Post p = new Post((JSONObject)message.obj);
-                Message m = mHandler.obtainMessage(1, p);
-                mHandler.sendMessage(m);
-            }
-        }
-    }
-
-    private static class PostListDelegate implements PrizmDiskCache.CacheRequestDelegate
+    private static class CommentListDelegate implements PrizmDiskCache.CacheRequestDelegate
     {
 
         private PrizmDiskCache.CacheRequestDelegate mDelegate;
 
-        public PostListDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
+        public CommentListDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
             mDelegate = delegate;
         }
 
         @Override
         public void cached(String path, Object object)
         {
-           mDelegate.cached(path, processPostList(object));
+           mDelegate.cached(path, processCommentList(object));
         }
 
         @Override
         public void cacheUpdated(String path, Object object)
         {
-            mDelegate.cacheUpdated(path, processPostList(object));
+            mDelegate.cacheUpdated(path, processCommentList(object));
+        }
+    }
+
+    private static class CommentListHandler extends Handler {
+
+        private Handler mHandler;
+
+        public CommentListHandler(Handler handler) {
+            mHandler = handler;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.obj instanceof JSONArray) {
+                ArrayList<Comment> comments = processCommentList(msg.obj);
+                Message message = mHandler.obtainMessage(1, comments);
+                mHandler.sendMessage(message);
+            }
         }
     }
 }
