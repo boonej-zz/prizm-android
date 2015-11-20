@@ -24,7 +24,7 @@ android {
         applicationId "co.higheraltitude.prizm"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 54
+        versionCode 56
         versionName '0.7.4'
         multiDexEnabled true
     }

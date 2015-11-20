@@ -202,7 +202,23 @@ public class CommentView extends RelativeLayout {
             }
         });
         mCommentLikeText = (TextView)findViewById(R.id.comment_like_count);
+        mCommentLikeText.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.likeButtonClicked(mComment);
+                }
+            }
+        });
         mCommentTimeAgo = (TextView)findViewById(R.id.comment_time);
+        mCommentTimeAgo.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.likeButtonClicked(mComment);
+                }
+            }
+        });
         if (mComment.isLiked) {
             mCommentLikeIcon.setImageResource(R.drawable.like_comment_selected_icon);
         } else {

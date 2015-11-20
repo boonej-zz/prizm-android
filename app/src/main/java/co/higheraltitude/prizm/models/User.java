@@ -99,6 +99,7 @@ public class User implements Parcelable {
     private static final String PRIZM_GROUP_USER_FORMAT = "/organizations/%s/groups/%s/members";
     private static final String PRIZM_ORG_USER_FORMAT = "/organizations/%s/members";
     private static final String PRIZM_DEVICE_REGISTER_FORMAT = "/users/%s/devices";
+    private static final String USER_TAGS_FORMAT = "/users/%s/tags?tag=%s";
 
     public static String ROLE_LEADER = "leader";
     public static String ROLE_OWNER = "owner";
@@ -486,6 +487,13 @@ public class User implements Parcelable {
         }
         String path = String.format(PRIZM_USER_SPECIFIC_ENDPOINT, User.getCurrentUser().uniqueID);
         service.performAuthorizedRequest(path, post, HttpMethod.PUT, new UserUpdateHandler(handler), true);
+    }
+
+    public static void getAvailableTags(String tag, PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(USER_TAGS_FORMAT, getCurrentUser().uniqueID, tag);
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
     }
 
     public static class UserUpdateHandler extends  Handler {

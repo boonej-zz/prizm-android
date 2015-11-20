@@ -1,6 +1,7 @@
 package co.higheraltitude.prizm;
 
 import android.app.ActionBar;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -13,11 +14,15 @@ import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ClickableSpan;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ScrollView;
@@ -35,13 +40,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
+import co.higheraltitude.prizm.handlers.NonScrollListView;
 import co.higheraltitude.prizm.listeners.BackClickListener;
+import co.higheraltitude.prizm.listeners.TagWatcher;
+import co.higheraltitude.prizm.listeners.UserTagClickListener;
 import co.higheraltitude.prizm.models.Comment;
 import co.higheraltitude.prizm.models.Post;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.views.CommentView;
+import co.higheraltitude.prizm.views.UserTagView;
 
-public class FullBleedPostActivity extends AppCompatActivity implements CommentView.CommentViewDelegate {
+public class FullBleedPostActivity extends AppCompatActivity
+        implements CommentView.CommentViewDelegate, TagWatcher.TagWatcherDelegate,
+        UserTagClickListener.UserTagClickListenerDelegate {
 
     public static final String EXTRA_POST = "extra_post";
 
@@ -63,9 +74,13 @@ public class FullBleedPostActivity extends AppCompatActivity implements CommentV
     private TextView mPostText;
     private View mPostTextArea;
     private ImageView mPostTextAvatar;
-    private ListView mCommentsList;
+    private NonScrollListView mCommentsList;
     private CommentsListAdapter mAdapter;
     private ScrollView mScrollView;
+    private EditText mCreateCommentText;
+    private UserTagAdapter mUserTagAdapter;
+    private ListView mTagPickerList;
+    private String mCurrentTag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -142,8 +157,22 @@ public class FullBleedPostActivity extends AppCompatActivity implements CommentV
             }
         });
         mPostTextArea = findViewById(R.id.post_text_area);
-        mCommentsList = (ListView)findViewById(R.id.comments_list);
+        mCommentsList = (NonScrollListView)findViewById(R.id.comments_list);
         mScrollView = (ScrollView)findViewById(R.id.comments_scroll_view);
+        mCreateCommentText = (EditText)findViewById(R.id.new_comment_text);
+        mCreateCommentText.addTextChangedListener(new TagWatcher(mCreateCommentText, this));
+        mCreateCommentText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                Comment.createComment(mPost, mCreateCommentText.getText().toString(),
+                        new CommentLikeHandler(FullBleedPostActivity.this));
+                mCreateCommentText.setText(null);
+                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                return true;
+            }
+        });
+        mTagPickerList = (ListView)findViewById(R.id.tag_picker_list);
 
 
     }
@@ -152,6 +181,10 @@ public class FullBleedPostActivity extends AppCompatActivity implements CommentV
     {
         mAdapter = new CommentsListAdapter(getApplicationContext(), new ArrayList<Comment>());
         mCommentsList.setAdapter(mAdapter);
+        mUserTagAdapter = new UserTagAdapter(getApplicationContext(), new ArrayList<User>());
+        mTagPickerList.setAdapter(mUserTagAdapter);
+        mTagPickerList.setOnItemClickListener(new UserTagClickListener(getApplicationContext(),
+                mCreateCommentText, this));
     }
 
     private void layoutPost()
@@ -295,11 +328,51 @@ public class FullBleedPostActivity extends AppCompatActivity implements CommentV
 
     @Override
     public void likeButtonClicked(Comment comment){
-        if (comment.isLiked) {
-            Comment.unlikeComment(mPost, comment, new CommentLikeHandler(this));
+        if (comment.ownComment) {
+            Intent intent = new Intent(getApplicationContext(), LikesActivity.class);
+            intent.putExtra(LikesActivity.EXTRA_POST, mPost);
+            intent.putExtra(LikesActivity.EXTRA_COMMENT, comment);
+            startActivity(intent);
         } else {
-            Comment.likeComment(mPost, comment, new CommentLikeHandler(this));
+            if (comment.isLiked) {
+                Comment.unlikeComment(mPost, comment, new CommentLikeHandler(this));
+            } else {
+                Comment.likeComment(mPost, comment, new CommentLikeHandler(this));
+            }
         }
+    }
+
+    @Override
+    public void noTagsPresent() {
+        mUserTagAdapter.clear();
+    }
+
+    @Override
+    public void userTagsFound(String tag) {
+        mCurrentTag = tag;
+        User.getAvailableTags(tag.substring(1), new UserTagDelegate());
+    }
+
+    @Override
+    public void hashTagsFound(String tag) {
+
+    }
+
+    @Override
+    public void fieldHasText(Boolean hasText) {
+        if (!hasText) {
+            mCurrentTag = "";
+        }
+    }
+
+    @Override
+    public String currentTag() {
+        return mCurrentTag;
+    }
+
+    @Override
+    public void tagSelected() {
+        mUserTagAdapter.clear();
     }
 
     private static class ImageHandler extends Handler {
@@ -342,6 +415,7 @@ public class FullBleedPostActivity extends AppCompatActivity implements CommentV
             if (object instanceof ArrayList) {
                 ArrayList<Comment> commentList = (ArrayList<Comment>)object;
                 mAdapter.addAll(commentList);
+                mAdapter.notifyDataSetChanged();
             }
         }
 
@@ -360,8 +434,31 @@ public class FullBleedPostActivity extends AppCompatActivity implements CommentV
                     }
                     mAdapter.add(c);
                 }
+                mAdapter.notifyDataSetChanged();
             }
         }
+    }
+
+    private class UserTagDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        @Override
+        public void cached(String path, Object object) {
+            process(object);
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            process(object);
+        }
+
+        private void process(Object object) {
+            if (object instanceof ArrayList) {
+                ArrayList<User> users = (ArrayList<User>)object;
+                mUserTagAdapter.clear();
+                mUserTagAdapter.addAll(users);
+            }
+        }
+
     }
 
     private class CommentsListAdapter extends ArrayAdapter<Comment> {
@@ -413,6 +510,90 @@ public class FullBleedPostActivity extends AppCompatActivity implements CommentV
                 mActivity.mAdapter.clear();
                 mActivity.mAdapter.addAll(comments);
                 mActivity.mAdapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    private class UserTagAdapter extends ArrayAdapter<User> {
+
+        private UserNameFilter filter;
+        private ArrayList<User> baseList;
+        private ArrayList<User> userList;
+
+        public UserTagAdapter(Context c, List<User> users) {
+            super(c, 0, users);
+            this.baseList = new ArrayList<>();
+            this.baseList.addAll(users);
+            this.userList = new ArrayList<>();
+            this.userList.addAll(users);
+        }
+
+        @Override
+        public int getCount() {
+            int count = super.getCount();
+            count = count > 4?4:count;
+            return count;
+        }
+
+        public void setBaseList(ArrayList<User> list) {
+            baseList = new ArrayList<>();
+            baseList.addAll(list);
+            userList = new ArrayList<>();
+            userList.addAll(list);
+            notifyDataSetChanged();
+            clear();
+            addAll(baseList);
+            notifyDataSetInvalidated();
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            UserTagView view = (UserTagView)convertView;
+            if (view == null) {
+                view = UserTagView.inflate(parent);
+            }
+            view.setUser(getItem(position));
+            return view;
+        }
+
+        @Override
+        public Filter getFilter() {
+            if (filter == null) {
+                filter = new UserNameFilter();
+            }
+            return filter;
+        }
+
+        private class UserNameFilter extends Filter {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                constraint = constraint.toString().toLowerCase().substring(1);
+                FilterResults results = new FilterResults();
+                Iterator<User> iterator = baseList.iterator();
+                ArrayList<User> filt = new ArrayList<>();
+
+                if (constraint != null && constraint.toString().length() > 0) {
+                    while (iterator.hasNext()) {
+                        User u = iterator.next();
+                        if (u.name.toLowerCase().contains(constraint)) {
+                            filt.add(u);
+                        }
+                    }
+                }
+                results.values = filt;
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                userList = (ArrayList<User>)results.values;
+                notifyDataSetChanged();
+                clear();
+                Iterator<User> iterator = userList.iterator();
+                while (iterator.hasNext()) {
+                    add(iterator.next());
+                }
+                notifyDataSetInvalidated();
             }
         }
     }

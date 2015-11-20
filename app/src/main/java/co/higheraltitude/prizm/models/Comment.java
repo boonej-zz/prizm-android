@@ -30,6 +30,7 @@ public class Comment implements Parcelable{
     public static final String COMMENT_FORMAT = "/posts/%s/comments?requestor=%s";
     public static final String LIKE_COMMENT_FORMAT = "/posts/%s/comments/%s/likes";
     public static final String UNLIKE_COMMENT_FORMAT = "/posts/%s/comments/%s/likes/%s";
+    public static final String CREATE_COMMENT_FORMAT = "/posts/%s/comments";
 
 
     public String uniqueId;
@@ -217,6 +218,24 @@ public class Comment implements Parcelable{
                 User.getCurrentUser().uniqueID);
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         PrizmAPIService.getInstance().performAuthorizedRequest(path, data, HttpMethod.DELETE,
+                new CommentListHandler(handler), true);
+    }
+
+    public static void getCommentLikes(Post post, Comment comment,
+                                       PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(LIKE_COMMENT_FORMAT, post.uniqueId, comment.uniqueId);
+        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, data, HttpMethod.GET, new User.UserListDelegate(delegate));
+    }
+
+    public static void createComment(Post post, String text,
+                                     Handler handler) {
+        String path = String.format(CREATE_COMMENT_FORMAT, post.uniqueId);
+        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
+        data.add("creator", User.getCurrentUser().uniqueID);
+        data.add("text", text);
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, data, HttpMethod.POST,
                 new CommentListHandler(handler), true);
     }
 

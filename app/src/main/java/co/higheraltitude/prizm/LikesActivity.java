@@ -14,6 +14,7 @@ import co.higheraltitude.prizm.adapters.UserAdapter;
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.delegates.UserDelegate;
 import co.higheraltitude.prizm.listeners.BackClickListener;
+import co.higheraltitude.prizm.models.Comment;
 import co.higheraltitude.prizm.models.Peep;
 import co.higheraltitude.prizm.models.Post;
 import co.higheraltitude.prizm.models.User;
@@ -22,12 +23,14 @@ public class LikesActivity extends AppCompatActivity implements AdapterView.OnIt
 
     public static final String EXTRA_PEEP = "co_higheraltitude_extra_peep";
     public static final String EXTRA_POST = "co_higheraltitude_extra_post";
+    public static final String EXTRA_COMMENT = "co_higheraltitude_extra_comment";
 
     private ListView mListView;
     private UserAdapter mUserAdapter;
 
     private Peep mPeep;
     private Post mPost;
+    private Comment mComment;
 
 
     @Override
@@ -44,6 +47,7 @@ public class LikesActivity extends AppCompatActivity implements AdapterView.OnIt
         Intent intent = getIntent();
         mPeep = intent.getParcelableExtra(EXTRA_PEEP);
         mPost = intent.getParcelableExtra(EXTRA_POST);
+        mComment = intent.getParcelableExtra(EXTRA_COMMENT);
         mListView = (ListView)findViewById(R.id.member_list);
         mUserAdapter = new UserAdapter(getApplicationContext(), new ArrayList<User>());
         mListView.setAdapter(mUserAdapter);
@@ -51,7 +55,11 @@ public class LikesActivity extends AppCompatActivity implements AdapterView.OnIt
         if (mPeep != null) {
             mPeep.getLikes(new UserListDelegate());
         } else if (mPost != null) {
-            mPost.getLikes(mPost, new UserListDelegate());
+            if (mComment != null) {
+                Comment.getCommentLikes(mPost, mComment, new UserListDelegate());
+            } else {
+                Post.getLikes(mPost, new UserListDelegate());
+            }
         }
     }
 
