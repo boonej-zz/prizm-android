@@ -18,8 +18,8 @@
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
             <RelativeLayout
                 android:id="@+id/activity_button"
-                android:layout_width="32dp"
-                android:layout_height="wrap_content"
+                android:layout_width="72dp"
+                android:layout_height="fill_parent"
                 android:layout_marginRight="20.4dp"
                 android:layout_marginTop="-4dp"
                 
@@ -27,8 +27,16 @@
                 <ImageView
                     android:layout_width="14.7dp"
                     android:layout_height="24dp"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginLeft="40dp"
+                    android:layout_alignParentLeft="true"
+                    android:layout_centerVertical="true"
                     android:src="@drawable/activity"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:orientation="vertical"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerInParent="true">
                 <TextView
                     android:id="@+id/activity_count_badge"
                     android:layout_width="16.6dp"
@@ -37,11 +45,13 @@
                     android:gravity="center"
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
-                    android:layout_alignParentRight="true"
+
                     android:visibility="invisible"
+
 
                     android:background="@drawable/circle_badge"
                     />
+                </LinearLayout>
             </RelativeLayout>
         </android.support.v7.widget.Toolbar>
         <co.higheraltitude.prizm.views.PrizmViewPager
