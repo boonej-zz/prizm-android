@@ -60,6 +60,9 @@ public class Activity implements Parcelable {
     public String postFilePath;
     public String postText;
     public String messageId;
+    public String organizationId;
+    public String targetId;
+    public String targetName;
 
     private static HashMap<String, String> map() {
         HashMap<String, String> map = new HashMap<String, String>() {{
@@ -84,6 +87,9 @@ public class Activity implements Parcelable {
             put("post_file_path", "postFilePath");
             put("post_text", "postText");
             put("message_id", "messageId");
+            put("organization_id", "organizationId");
+            put("target_id", "targetId");
+            put("target_name", "targetName");
         }};
         return map;
     }

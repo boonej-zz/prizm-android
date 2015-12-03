@@ -55,6 +55,7 @@ public class FullBleedPostActivity extends AppCompatActivity
         UserTagClickListener.UserTagClickListenerDelegate {
 
     public static final String EXTRA_POST = "extra_post";
+    public static final String EXTRA_POST_ID = "extra_post_id";
 
     private Post mPost;
 
@@ -68,6 +69,7 @@ public class FullBleedPostActivity extends AppCompatActivity
     private View mLikesButton;
     private ImageView mLikesImageView;
     private ImageView mCategoryImageView;
+    private TextView mHashTagsTextView;
     private View mCommentButton;
     private PrizmDiskCache mCache;
     private TextView mPostTextCreator;
@@ -81,6 +83,7 @@ public class FullBleedPostActivity extends AppCompatActivity
     private UserTagAdapter mUserTagAdapter;
     private ListView mTagPickerList;
     private String mCurrentTag;
+    private String mPostId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,10 +93,16 @@ public class FullBleedPostActivity extends AppCompatActivity
         configureActionBar();
         mCache = PrizmDiskCache.getInstance(getApplicationContext());
         mPost = getIntent().getParcelableExtra(EXTRA_POST);
+        mPostId = getIntent().getStringExtra(EXTRA_POST_ID);
         configureViews();
-        layoutPost();
+
         configureAdapter();
-        Comment.fetchComments(mPost, new CommentDelegate());
+        if (mPost != null) {
+            layoutPost();
+            Comment.fetchComments(mPost, new CommentDelegate());
+        } else if (mPostId != null && !mPostId.isEmpty()) {
+            Post.fetchPost(mPostId, new PostDelegate());
+        }
     }
 
     private void configureActionBar()
@@ -173,6 +182,7 @@ public class FullBleedPostActivity extends AppCompatActivity
             }
         });
         mTagPickerList = (ListView)findViewById(R.id.tag_picker_list);
+        mHashTagsTextView = (TextView)findViewById(R.id.hash_tag_view);
 
 
     }
@@ -203,6 +213,7 @@ public class FullBleedPostActivity extends AppCompatActivity
                 new ImageHandler(this, mPostImageView, ImageHandler.POST_IMAGE_TYPE_IMAGE));
         mCommentCount.setText(String.valueOf(mPost.commentsCount));
         mLikesCount.setText(String.valueOf(mPost.likesCount));
+        mHashTagsTextView.setText(mPost.hashTags);
         if (mPost.commentsCount == 0) {
             mCommentCount.setVisibility(View.INVISIBLE);
         }
@@ -396,6 +407,32 @@ public class FullBleedPostActivity extends AppCompatActivity
                 mImageView.setImageDrawable(avatarDrawable);
             } else if (mType == POST_IMAGE_TYPE_IMAGE) {
                 mImageView.setImageBitmap(bmp);
+            }
+        }
+    }
+
+    private class PostDelegate implements PrizmDiskCache.CacheRequestDelegate {
+        @Override
+        public void cached(String path, Object object) {
+            process(object);
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object) {
+            process(object);
+        }
+
+        private void process(Object object) {
+            if (object != null && object instanceof Post) {
+                if (mPost == null) {
+                    mPost = (Post) object;
+                    layoutPost();
+                    Comment.fetchComments(mPost, new CommentDelegate());
+                } else {
+                    mPost = (Post) object;
+                    layoutPost();
+                }
+
             }
         }
     }

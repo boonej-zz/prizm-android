@@ -14,11 +14,14 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
+import co.higheraltitude.prizm.FullBleedPostActivity;
 import co.higheraltitude.prizm.LoginActivity;
 import co.higheraltitude.prizm.NotificationFeedActivity;
 import co.higheraltitude.prizm.ProfileActivity;
 import co.higheraltitude.prizm.R;
+import co.higheraltitude.prizm.ReadMessagesActivity;
 import co.higheraltitude.prizm.models.Activity;
+import co.higheraltitude.prizm.models.Group;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.views.UserAvatarView;
 
@@ -65,6 +68,7 @@ public class ActivitiesFragment extends Fragment implements AdapterView.OnItemCl
         mActivityAdapter = adapter;
         if (mListView != null) {
             mListView.setAdapter(mActivityAdapter);
+
         }
     }
 
@@ -84,6 +88,7 @@ public class ActivitiesFragment extends Fragment implements AdapterView.OnItemCl
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_activities, container, false);
         mListView = (ListView)v.findViewById(R.id.activity_list);
+        mListView.setOnItemClickListener(this);
         if (mActivityAdapter != null) {
             mListView.setAdapter(mActivityAdapter);
             mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -129,7 +134,40 @@ public class ActivitiesFragment extends Fragment implements AdapterView.OnItemCl
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Activity activity = mActivityAdapter.getItem(position);
+        Intent intent = null;
+        if (activity.postId != null) {
+            intent = new Intent(getContext(), FullBleedPostActivity.class);
+            intent.putExtra(FullBleedPostActivity.EXTRA_POST_ID, activity.postId);
+        }
+        if (activity.messageId != null) {
+            intent = new Intent(getContext(), ReadMessagesActivity.class);
 
+            intent.putExtra(ReadMessagesActivity.EXTRA_ORGANIZATION, activity.organizationId);
+
+
+            Group group = new Group();
+            if (activity.groupId == null) {
+                if (activity.targetId != null) {
+                    User target = new User();
+                    target.uniqueID = activity.targetId;
+                    target.name = activity.targetName;
+                    intent.putExtra(ReadMessagesActivity.EXTRA_DIRECT_USER, target);
+                    intent.putExtra(ReadMessagesActivity.EXTRA_IS_DIRECT, true);
+                } else {
+                    intent.putExtra(ReadMessagesActivity.EXTRA_IS_ALL, true);
+                }
+
+            } else {
+                group.uniqueID = activity.groupId;
+                group.name = activity.groupName;
+                intent.putExtra(ReadMessagesActivity.EXTRA_GROUP, group);
+            }
+
+        }
+        if (intent != null) {
+            getActivity().startActivity(intent);
+        }
     }
 
 

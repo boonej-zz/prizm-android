@@ -4,12 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="0dp"
-    android:layout_margin="0dp"
+    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+    android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="@dimen/activity_vertical_margin"
+    android:layout_marginBottom="@dimen/activity_vertical_margin"
     android:orientation="vertical"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="co.higheraltitude.prizm.MainActivity">
-
+    tools:context="co.higheraltitude.prizm.MainActivity"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
     <android.support.v7.widget.Toolbar
         android:id="@+id/profile_nav_bar"
         android:layout_width="fill_parent"
@@ -22,8 +26,7 @@
     </android.support.v7.widget.Toolbar>
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:background="@color/prizm_dominant_background"
-        android:layout_height="wrap_content">
+        android:layout_height="fill_parent">
         <ProgressBar
             android:id="@+id/progress_bar"
             android:layout_width="fill_parent"
@@ -32,65 +35,17 @@
             android:indeterminateDrawable="@drawable/progress_bar"
             android:indeterminateDuration="800"
             android:indeterminate="true"/>
-        <ImageView android:id="@+id/profile_cover_photo"
+        <ListView
+            android:id="@+id/post_list"
             android:layout_width="fill_parent"
-            android:layout_height="161dp"
-            android:scaleType="centerCrop"
-            android:background="@color/dusk_blue_10_percent"
-            />
-        <ImageView
-            android:id="@+id/cover_photo_gradient"
-            android:layout_width="fill_parent"
-            android:layout_height="161dp"
-            android:background="@drawable/cover_gradient"
-            android:alpha="0.5"
-            android:visibility="invisible"
-            />
-        <View
-            android:id="@+id/black_overlay"
-            android:layout_width="fill_parent"
-            android:layout_height="161dp"
-            android:background="@color/black_overlay"
-            android:visibility="invisible" />
-        <android.support.v4.view.ViewPager
-            android:id="@+id/profile_view_pager"
-            android:layout_width="fill_parent"
-            android:layout_height="161dp"></android.support.v4.view.ViewPager>
-       
-
+            android:layout_height="fill_parent"
+            android:divider="@android:color/transparent" />
     </RelativeLayout>
-    <RelativeLayout
-        android:id="@+id/edit_profile_button"
-        android:layout_width="fill_parent"
-        android:layout_height="46dp"
-        android:onClick="editProfileClicked"
-        android:visibility="gone"
-        android:background="?attr/selectableItemBackground">
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:orientation="horizontal">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/user_icon" android:layout_gravity="center_vertical"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginLeft="6.5dp"
-                android:textSize="16sp"
-                android:textColor="@color/brownish_grey"
-                android:text="@string/action_edit_profile"/>
-        </LinearLayout>
-    </RelativeLayout>
-    <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="@color/pale_grey"
-        />
-
-
 
 </LinearLayout>
+
+
+
+
+
+

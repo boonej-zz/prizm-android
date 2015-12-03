@@ -56,6 +56,7 @@ public class HomePostView extends RelativeLayout {
     private ImageView mLikesImageView;
     private ImageView mCategoryImageView;
     private View mCommentButton;
+    private TextView mHashTagTextView;
 
     private HomePostViewDelegate mDelegate;
 
@@ -90,6 +91,7 @@ public class HomePostView extends RelativeLayout {
         boolean loadPhotos = mPost == null || !post.uniqueId.equals(mPost.uniqueId);
         mPost = post;
         setViews();
+        mHashTagTextView.setText(mPost.hashTags);
 
         mCreatorTextView.setText(mPost.creatorName);
         mDateAgoTextView.setText(String.format("%s ago", mPost.timeSince));
@@ -191,6 +193,7 @@ public class HomePostView extends RelativeLayout {
                 }
             }
         });
+        mHashTagTextView = (TextView)findViewById(R.id.hash_tag_view);
     }
 
     private static class ImageHandler extends Handler {

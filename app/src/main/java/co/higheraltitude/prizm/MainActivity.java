@@ -251,9 +251,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 Fragment f = getSupportFragmentManager().findFragmentByTag("android:switcher:" +
                         R.id.main_pager + ":" + mViewPager.getCurrentItem());
                 if (f instanceof HomeFeedFragment) {
-                    ((HomeFeedFragment)f).scrollToTop();
+                    ((HomeFeedFragment) f).scrollToTop();
                 } else if (f instanceof MessageGroupFragment) {
-                    ((MessageGroupFragment)f).scrollToTop();
+                    ((MessageGroupFragment) f).scrollToTop();
                 }
             }
         });
@@ -271,6 +271,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         };
     }
+
 
     private void finalizeConfiguration() {
         if (checkPlayServices()) {

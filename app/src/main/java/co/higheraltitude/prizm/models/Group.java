@@ -53,6 +53,10 @@ public class Group implements Parcelable {
     private static String FORMAT_MUTE_POST_1 = "/organizations/%s/groups/%s/mutes";
     private static String FORMAT_MUTE_DELETE_1 = "/organizations/%s/groups/%s/mutes/%s";
 
+    public Group() {
+
+    }
+
     public Group(Parcel in) {
         HashMap<String, String> map = map();
         Collection<String> properties = map.values();

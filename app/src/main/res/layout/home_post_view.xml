@@ -83,11 +83,30 @@
                     />
             </LinearLayout>
         </RelativeLayout>
-        <ImageView
-            android:id="@+id/post_image_view"
+        <RelativeLayout
             android:layout_width="fill_parent"
-            android:layout_height="340dp"
-            />
+            android:layout_height="340dp">
+            <ImageView
+                android:id="@+id/post_image_view"
+                android:layout_width="fill_parent"
+                android:layout_height="340dp"
+                />
+            <TextView
+                android:id="@+id/hash_tag_view"
+                android:layout_width="fill_parent"
+                android:layout_height="26dp"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/cover_gradient"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:textSize="@dimen/font_size_regular"
+                android:textColor="@color/cloudy_blue"
+
+                />
+        </RelativeLayout>
         <RelativeLayout
             android:layout_width="fill_parent"
             android:background="@android:color/white"

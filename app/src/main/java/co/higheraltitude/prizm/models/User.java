@@ -89,6 +89,9 @@ public class User implements Parcelable {
     public String contactLastName;
     public String contactEmail;
     public Boolean allMuted = false;
+    public int followersCount;
+    public int followingCount;
+    public int postsCount;
 
     public static String PrizmCurrentUserCacheKey = "current_user";
     private static final String PRIZM_LOGIN_ENDPOINT = "/oauth2/login";
@@ -221,6 +224,9 @@ public class User implements Parcelable {
             put("contact_last", "contactLastName");
             put("contact_email", "contactEmail");
             put("allMuted", "allMuted");
+            put("followers_count", "followersCount");
+            put("following_count", "followingCount");
+            put("posts_count", "postsCount");
         }};
         return map;
     }
@@ -333,6 +339,8 @@ public class User implements Parcelable {
                 style = R.style.PrizmOrange;
             } else if (user.theme.equals("black")) {
                 style = R.style.PrizmBlack;
+            } else if (user.theme.equals("future")) {
+                style = R.style.PrizmFuture;
             }
         }
         cache.storeInt("theme", style);

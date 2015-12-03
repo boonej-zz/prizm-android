@@ -54,6 +54,7 @@ public class CommentView extends RelativeLayout {
     private PrizmDiskCache mCache;
 
     private CommentViewDelegate mDelegate;
+    private Boolean needsUpdate;
 
 
     public static CommentView inflate(ViewGroup parent) {
@@ -90,6 +91,11 @@ public class CommentView extends RelativeLayout {
             hashTag = Pattern.compile("#[\\S]+");
         }
         PrizmCache cache = PrizmCache.getInstance();
+        if (mInstanceId == null) {
+            needsUpdate = false;
+        } else {
+            needsUpdate = !mInstanceId.equals(mComment.uniqueId);
+        }
         mInstanceId = mComment.uniqueId;
         setViews();
         String text = mComment.text;
@@ -142,7 +148,7 @@ public class CommentView extends RelativeLayout {
         mCommentText.setText(spanText);
         mCommentText.setMovementMethod(LinkMovementMethod.getInstance());
         mCreatorName.setText(mComment.creatorName);
-        mAvatarView.setImageResource(R.drawable.user_missing_avatar);
+
 
         mCommentTimeAgo.setText(String.format("%s ago - Like", mComment.timeSince));
         if (mComment.likesCount > 0) {
@@ -152,9 +158,11 @@ public class CommentView extends RelativeLayout {
             mCommentLikeText.setVisibility(INVISIBLE);
         }
 
-
-        ImageHandler ih = new ImageHandler(this, mAvatarView, mInstanceId, ImageHandler.PEEP_IMAGE_TYPE_AVATAR);
-        mCache.fetchBitmap(mComment.creatorProfilePhotoUrl, 125, ih);
+        if (needsUpdate) {
+            mAvatarView.setImageResource(R.drawable.user_missing_avatar);
+            ImageHandler ih = new ImageHandler(this, mAvatarView, mInstanceId, ImageHandler.PEEP_IMAGE_TYPE_AVATAR);
+            mCache.fetchBitmap(mComment.creatorProfilePhotoUrl, 125, ih);
+        }
 //
 //        avatarView.setOnClickListener(new OnClickListener() {
 //            @Override

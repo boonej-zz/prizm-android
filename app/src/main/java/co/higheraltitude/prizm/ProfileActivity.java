@@ -4,14 +4,17 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -19,24 +22,41 @@ import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.internal.view.menu.MenuView;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.OvershootInterpolator;
+import android.widget.AbsListView;
+import android.widget.ArrayAdapter;
+import android.widget.Filter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
 
 
 import net.sectorsieteg.avatars.AvatarDrawableFactory;
 
+import org.w3c.dom.Text;
+
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
@@ -45,28 +65,39 @@ import co.higheraltitude.prizm.fragments.ProfileInfoFragment;
 import co.higheraltitude.prizm.fragments.ProfileMainFragment;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
+import co.higheraltitude.prizm.models.Post;
 import co.higheraltitude.prizm.models.User;
+import co.higheraltitude.prizm.views.HomePostView;
+import co.higheraltitude.prizm.views.ProfileHeaderView;
+import co.higheraltitude.prizm.views.TriPostView;
 
 public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache.CacheRequestDelegate,
-        ViewPager.OnPageChangeListener {
+         TriPostView.TriPostViewDelegate, ProfileHeaderView.ProfileHeaderViewDelegate, HomePostView.HomePostViewDelegate {
 
 
     private ProgressBar progressBar = null;
     private User mUser = null;
-    private ImageView mCoverPhotoView = null;
-    private ViewPager mViewPager = null;
-    private View mBlackOverlay = null;
 
-    private View mEditProfileButton;
+
+
+    private ListView mPostsList;
+    private ProfilePostAdapter mPostAdapter;
+    private LinearLayout mMainLayout;
+    private ProfileHeaderView mHeaderView;
+    private int lastVisibleItem = 0;
+    private boolean isUpdating = false;
+    private boolean shouldSlide = false;
+    private boolean scrollingDown = false;
+    private boolean isLocationFiltering = false;
+    private boolean isTagFiltering = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Object theme = PrizmCache.getInstance().objectCache.get("theme");
         setTheme(User.getTheme());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
         Toolbar actionBar = (Toolbar)findViewById(R.id.profile_nav_bar);
-//        actionBar.hideOverflowMenu();
+
 
         setSupportActionBar(actionBar);
         actionBar.setNavigationIcon(R.drawable.backarrow_icon);
@@ -77,72 +108,121 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         User.fetchUserCore(mUser, this);
 
         progressBar = (ProgressBar)findViewById(R.id.progress_bar);
-        progressBar.setIndeterminate(true);
-        mEditProfileButton = findViewById(R.id.edit_profile_button);
-        if (mUser.uniqueID.equals(User.getCurrentUser().uniqueID)) {
-            mEditProfileButton.setVisibility(View.VISIBLE);
-        }
-        mViewPager = (ViewPager)findViewById(R.id.profile_view_pager);
-        mViewPager.setAdapter(new ProfilePager(getSupportFragmentManager(), ProfileActivity.this));
-        mViewPager.addOnPageChangeListener(this);
-
-        configureViews();
-    }
-
-    private void configureViews() {
-        mCoverPhotoView = (ImageView)findViewById(R.id.profile_cover_photo);
-        mBlackOverlay = findViewById(R.id.black_overlay);
 
 
+        mMainLayout = (LinearLayout)findViewById(R.id.main_layout);
+        mPostsList = (ListView)findViewById(R.id.post_list);
 
-        if (mUser != null) {
-
-
-
-
-
-//        BitmapFactory.Options options = new BitmapFactory.Options();
-//        options.inMutable = false;
-//        Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.profile_default_avatar, options);
-//        AvatarDrawableFactory avatarDrawableFactory = new AvatarDrawableFactory(getResources());
-//        Drawable avatarDrawable = avatarDrawableFactory.getBorderedRoundedAvatarDrawable(Bitmap.createScaledBitmap(bmp, 128, 128, false));
-//        avatarView.setImageDrawable(avatarDrawable);
-
-            PrizmDiskCache cache = PrizmDiskCache.getInstance(getApplicationContext());
-            if (mUser.coverPhotoURL != null && !mUser.coverPhotoURL.isEmpty()) {
-
-                cache.fetchBitmap(mUser.coverPhotoURL, mCoverPhotoView.getWidth(), new CoverGradientHandler(mCoverPhotoView,
-                        (ImageView) findViewById(R.id.cover_photo_gradient)));
-
+        mHeaderView = ProfileHeaderView.inflate(mPostsList);
+        mHeaderView.setFragmentManager(getSupportFragmentManager());
+        mHeaderView.setDelegate(this);
+        mPostsList.addHeaderView(mHeaderView);
+        mPostsList.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                int firstPosition = view.getFirstVisiblePosition();
+                lastVisibleItem = firstPosition;
             }
 
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                scrollingDown = lastVisibleItem < firstVisibleItem;
+                if (scrollingDown) {
+                    if (view.getLastVisiblePosition() >= view.getCount() - 4) {
+                        fetchOlderPosts();
+                    }
+                }
+            }
+        });
+        configureViews();
+        loadPosts();
+    }
+
+    private void showProgressBar() {
+        progressBar.setIndeterminate(true);
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    private void hideProgressBar() {
+        progressBar.setIndeterminate(false);
+        progressBar.setVisibility(View.GONE);
+    }
+
+    private boolean listIsAtTop()   {
+        if (mPostsList != null) {
+            if (mPostsList.getChildCount() == 0) return true;
+            return mPostsList.getChildAt(0).getTop() == 0;
+        }
+        return false;
+    }
+
+
+    private void configureViews() {
+
+        mHeaderView.setUser(mUser);
+
+    }
+
+    public void loadPosts() {
+        mPostAdapter = new ProfilePostAdapter(getApplicationContext(), new ArrayList<Post>());
+        mPostsList.setAdapter(mPostAdapter);
+        showProgressBar();
+        isUpdating = true;
+        Post.fetchProfileFeed(mUser.uniqueID, null, null, new PostDelegate());
+    }
+
+    private void fetchOlderPosts()
+    {
+        if (! isUpdating) {
+            String date = "";
+            if (mPostAdapter.getCount() > 0) {
+                Post lastPost = mPostAdapter.getItem(mPostAdapter.getActualCount() - 1);
+                date = lastPost.createDate;
+            }
+            isUpdating = true;
+            showProgressBar();
+            Post.fetchProfileFeed(mUser.uniqueID, date, null,  new PostDelegate());
         }
     }
 
-    public void editProfileClicked(View view) {
-        Intent intent = new Intent(getApplicationContext(), EditProfile.class);
-        startActivity(intent);
-    }
-
-    private class CoverGradientHandler extends Handler {
-
-        private ImageView mImageView;
-        private  ImageView mGradientView;
-
-        public CoverGradientHandler(ImageView imageView, ImageView gradientView) {
-            mImageView = imageView;
-            mGradientView = gradientView;
+    private class PostDelegate implements PrizmDiskCache.CacheRequestDelegate {
+        @Override
+        public void cached(String path, Object object) {
+            update(object);
         }
 
         @Override
-        public void handleMessage(Message message) {
-            if (message.obj != null) {
-                mGradientView.setVisibility(View.VISIBLE);
-                Bitmap bmp = (Bitmap)message.obj;
-                mImageView.setImageBitmap(bmp);
+        public void cacheUpdated(String path, Object object) {
+            update(object);
+
+        }
+
+
+
+        private void update(Object object) {
+            if (object instanceof ArrayList) {
+                ArrayList<Post> posts = (ArrayList<Post>)object;
+                for (Post post : posts) {
+                    boolean inserted = false;
+                    for (int i = 0; i != mPostAdapter.getActualCount(); ++i) {
+                        Post o = mPostAdapter.getItem(i);
+                        if (post.uniqueId.equals(o.uniqueId)) {
+                            inserted = true;
+                        }
+                    }
+                    if (!inserted) {
+                        mPostAdapter.addPost(post);
+                    }
+                }
+                isUpdating = false;
             }
+            mPostAdapter.notifyDataSetChanged();
+
         }
     }
+
+
+
 
 
 
@@ -168,37 +248,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         return super.onOptionsItemSelected(item);
     }
 
-    private class LoadImage extends AsyncTask<String, String, Bitmap> {
-        private String field;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
 
-        protected Bitmap doInBackground(String... args) {
-            Bitmap coverImage = null;
-            try {
-                coverImage = BitmapFactory.decodeStream((InputStream) new URL(args[0]).getContent());
-                field = args[1];
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return coverImage;
-        }
-
-        protected void onPostExecute(Bitmap image) {
-            if(image != null){
-                if (field == "cover") {
-                    mCoverPhotoView.setImageBitmap(image);
-                } else if (field == "avatar") {
-
-                }
-            }else{
-                Log.d("DEBUG", "Image Does Not exist or Network Error");
-            }
-        }
-    }
 
     @Override
     public void cached(String path, Object object) {
@@ -212,89 +262,287 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
 
     private void fillProfile(Object object) {
         mUser = (User)object;
-        ((ProfilePager)mViewPager.getAdapter()).setUser(mUser);
+
         configureViews();
         progressBar.setIndeterminate(false);
         progressBar.setVisibility(View.GONE);
     }
 
-    public class ProfilePager extends FragmentPagerAdapter {
 
-        final int PAGE_COUNT = 2;
 
-        private Context context;
 
-        public ProfilePager(FragmentManager fm, Context context) {
-            super(fm);
-            this.context = context;
+
+    @Override
+    public void postClicked(Post post) {
+        Intent intent = new Intent(getApplicationContext(), FullBleedPostActivity.class);
+        intent.putExtra(FullBleedPostActivity.EXTRA_POST, post);
+        startActivity(intent);
+    }
+
+    @Override
+    public void gridViewClicked() {
+        mPostAdapter.setViewType(mPostAdapter.VIEW_TYPE_GRID);
+        mPostAdapter.notifyDataSetInvalidated();
+    }
+
+    @Override
+    public void fullViewClicked() {
+        mPostAdapter.setViewType(mPostAdapter.VIEW_TYPE_FULL);
+        mPostAdapter.notifyDataSetInvalidated();
+    }
+
+    @Override
+    public void avatarButtonClicked(Post post) {
+        User user = new User();
+        user.uniqueID = post.creatorId;
+        user.profilePhotoURL = post.creatorProfilePhotoUrl;
+        user.type = post.creatorType;
+        user.subtype = post.creatorSubtype;
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
+        startActivity(intent);
+    }
+
+    @Override
+    public void likeButtonClicked(Post post) {
+        if (post.ownPost) {
+            Intent intent = new Intent(getApplicationContext(), LikesActivity.class);
+            intent.putExtra(LikesActivity.EXTRA_POST, post);
+            startActivity(intent);
+        } else {
+            if (post.isLiked) {
+                Post.unlikePost(post, new LikeHandler(mPostAdapter, mPostAdapter.getPosition(post)));
+            } else {
+                Post.likePost(post, new LikeHandler(mPostAdapter, mPostAdapter.getPosition(post)));
+            }
+        }
+    }
+
+    @Override
+    public void editProfileClicked() {
+        Intent intent = new Intent(getApplicationContext(), EditProfile.class);
+        startActivity(intent);
+    }
+
+    @Override
+    public void tagsFilterClicked(boolean selected) {
+        isTagFiltering = selected;
+        updateFilters();
+    }
+
+    @Override
+    public void locationFilterClicked(boolean selected) {
+        isLocationFiltering = selected;
+        updateFilters();
+    }
+
+    private void updateFilters() {
+        String filter;
+        if (isLocationFiltering && isTagFiltering) {
+            filter = mPostAdapter.FILTER_TYPE_ALL;
+        } else {
+            if (isLocationFiltering) {
+                filter = mPostAdapter.FILTER_TYPE_LOCATION;
+            } else if (isTagFiltering) {
+                filter = mPostAdapter.FILTER_TYPE_TAGS;
+            } else {
+                filter = mPostAdapter.FILTER_TYPE_NONE;
+            }
+        }
+        mPostAdapter.getFilter().filter(filter);
+    }
+
+    @Override
+    public void postImageClicked(Post post) {
+        Intent intent = new Intent(getApplicationContext(), FullBleedPostActivity.class);
+        intent.putExtra(FullBleedPostActivity.EXTRA_POST, post);
+        startActivity(intent);
+    }
+
+    private static class LikeHandler extends Handler
+    {
+        private ProfilePostAdapter mAdapter;
+        private int mPosition;
+        public LikeHandler(ProfilePostAdapter adapter, int position) {
+            mAdapter = adapter;
+            mPosition = position;
+        }
+        @Override
+        public void handleMessage(Message message) {
+            if (message.obj != null && message.obj instanceof  Post) {
+                Post p = (Post)message.obj;
+                Post o = mAdapter.getItem(mPosition);
+                mAdapter.remove(o);
+                mAdapter.insert(p, mPosition);
+            }
+        }
+    }
+
+
+
+    private class ProfilePostAdapter extends ArrayAdapter<Post> {
+        public final int VIEW_TYPE_GRID = 0;
+        public final int VIEW_TYPE_FULL = 1;
+        public final String FILTER_TYPE_NONE = "filter_none";
+        public final String FILTER_TYPE_TAGS = "filter_tags";
+        public final String FILTER_TYPE_LOCATION = "filter_location";
+        public final String FILTER_TYPE_ALL = "filter_all";
+        private int mViewType = 0;
+        private ArrayList<Post> baseList;
+        private ProfileFilter mFilter = new ProfileFilter();
+
+        public ProfilePostAdapter(Context c, ArrayList<Post> items) {
+            super(c, 0, items);
+            baseList = new ArrayList<>();
+            baseList.addAll(items);
+        }
+
+        public void setViewType(int viewType) {
+            mViewType = viewType;
+        }
+
+        public void addAllPosts(Collection<? extends  Post> collection) {
+            super.addAll(collection);
+            baseList.addAll(collection);
+        }
+
+        public void addPost(Post object){
+            baseList.add(object);
+            super.add(object);
+
+        }
+
+        public void insertPost(Post object, int index) {
+            baseList.add(index, object);
+            insert(object, index);
+
+        }
+
+        public void clearPosts() {
+            super.clear();
+            baseList.clear();
+        }
+
+        @Override
+        public Filter getFilter() {
+            return mFilter;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View returnView = convertView;
+            if (mViewType == VIEW_TYPE_GRID) {
+                ArrayList<Post> items = new ArrayList<>();
+                int start = position * 3;
+                int stop = start + 3;
+                if (stop > super.getCount()) {
+                    stop = super.getCount();
+                }
+                for (int i = start; i != stop; ++i) {
+                    items.add(getItem(i));
+                }
+                TriPostView itemView = null;
+                if (convertView != null && convertView instanceof TriPostView) {
+                    itemView = (TriPostView) convertView;
+
+                } else {
+                    itemView = TriPostView.inflate(parent);
+                }
+                itemView.setPosts(items);
+                itemView.setDelegate(ProfileActivity.this);
+
+
+                returnView =  itemView;
+            } else if (mViewType == VIEW_TYPE_FULL) {
+                Post post = getItem(position);
+                HomePostView itemView = null;
+                if (convertView != null && convertView instanceof HomePostView) {
+                    itemView = (HomePostView) convertView;
+                } else {
+                    itemView = HomePostView.inflate(parent);
+                }
+                itemView.setPost(post);
+                itemView.setDelegate(ProfileActivity.this);
+                returnView =  itemView;
+            }
+            return returnView;
+        }
+
+        public int getActualCount() {
+            return super.getCount();
         }
 
         @Override
         public int getCount() {
-            return PAGE_COUNT;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            if (position == 0) {
-                return new ProfileMainFragment();
-            } else {
-                if (mUser != null && mUser.type != null && mUser.type.equals("institution_verified")) {
-                    return new PartnerInfoFragment();
-                } else {
-                    return new ProfileInfoFragment();
+            int count = 0;
+            if (mViewType == VIEW_TYPE_GRID) {
+                count = super.getCount() / 3;
+                if (super.getCount() % 3 != 0) {
+                    count += 1;
                 }
+            } else if (mViewType == VIEW_TYPE_FULL) {
+                count = super.getCount();
             }
+            return count;
         }
 
-        public void setUser(User user) {
-            ((ProfileMainFragment)getItem(0)).setUser(user);
-            if (user.type != null && user.type.equals("institution_verified")) {
-                ((PartnerInfoFragment) getItem(1)).setUser(user);
-            } else {
-                ((ProfileInfoFragment) getItem(1)).setUser(user);
+        private class ProfileFilter extends Filter {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                FilterResults results = new FilterResults();
+
+                ArrayList<Post> filt = new ArrayList<>();
+                String filter = constraint.toString();
+                Iterator<Post> iterator = baseList.iterator();
+
+                while (iterator.hasNext()) {
+                    Post p = iterator.next();
+                    if (filter.equals(FILTER_TYPE_LOCATION)) {
+                        if (testLocation(p)) {
+                            filt.add(p);
+                        }
+                    } else if (filter.equals(FILTER_TYPE_TAGS)) {
+                        if (testTags(p)) {
+                            filt.add(p);
+                        }
+                    } else if (filter.equals(FILTER_TYPE_ALL)) {
+                        if (testLocation(p) && testTags(p)) {
+                            filt.add(p);
+                        }
+                    } else {
+                        filt.add(p);
+                    }
+                }
+
+                results.values = filt;
+                return results;
+            }
+
+            protected boolean testLocation(Post post) {
+                boolean tested =  post.locationLatitude != 0 || post.locationLongitude != 0;
+                return tested;
+            }
+
+            protected boolean testTags(Post post) {
+                if (post.text != null && !post.text.isEmpty()) {
+                    return post.text.toLowerCase().contains(mUser.uniqueID.toLowerCase());
+                }
+                return false;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                ArrayList<Post> filtered = (ArrayList<Post>)results.values;
+                if (filtered == null) {
+                    filtered = new ArrayList<>();
+                }
+
+                notifyDataSetChanged();
+                clear();
+                addAll(filtered);
+                notifyDataSetInvalidated();
             }
         }
-
-
-
-
-
-
-
-
-
-//        @Override
-//        public CharSequence getPageTitle(int position) {
-//            return titles[position];
-//        }
-
-
-    }
-
-    @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-    }
-
-    @Override
-    public void onPageSelected(int position) {
-        if (position == 0) {
-            mBlackOverlay.setVisibility(View.INVISIBLE);
-            Animation fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out);
-            mBlackOverlay.startAnimation(fadeOut);
-        } else {
-            if (mBlackOverlay.getVisibility() == View.INVISIBLE) {
-                mBlackOverlay.setVisibility(View.VISIBLE);
-                mBlackOverlay.setAlpha(0);
-                final OvershootInterpolator oi = new OvershootInterpolator();
-                ViewCompat.animate(mBlackOverlay).alpha(1.f).withLayer().setDuration(600).setInterpolator(oi).start();
-            }
-        }
-    }
-
-    @Override
-    public void onPageScrollStateChanged(int state) {
-
     }
 
 }

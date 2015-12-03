@@ -32,6 +32,8 @@ public class Post implements Parcelable{
     public static final String POST_HOME_FEED_FORMAT = "/users/%s/home";
     public static final String POST_LIKE_FORMAT = "/posts/%s/likes";
     public static final String POST_UNLIKE_FORMAT = "/posts/%s/likes/%s";
+    public static final String POST_SINGLE_FORMAT = "/posts/%s?requestor=%s";
+    public static final String POST_PROFILE_FORMAT = "/users/%s/posts?requestor=%s";
 
     public String uniqueId;
     public String category;
@@ -225,6 +227,27 @@ public class Post implements Parcelable{
 
     }
 
+    public static void fetchProfileFeed(String user, String before, String after,
+                                        final PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(POST_PROFILE_FORMAT, user, User.getCurrentUser().uniqueID);
+        if (before != null) {
+            path = path + "&before=" + before;
+        }
+        if (after != null) {
+            path = path + "&after=" + after;
+        }
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new PostListDelegate(delegate));
+    }
+
+    public static void fetchPost(String postId, final PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(POST_SINGLE_FORMAT, postId, User.getCurrentUser().uniqueID);
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new SinglePostDelegate(delegate));
+    }
+
     public static void likePost(Post post, final Handler handler) {
         String path = String.format(POST_LIKE_FORMAT, post.uniqueId);
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
@@ -262,6 +285,35 @@ public class Post implements Parcelable{
                 Message m = mHandler.obtainMessage(1, p);
                 mHandler.sendMessage(m);
             }
+        }
+    }
+
+    private static class SinglePostDelegate implements PrizmDiskCache.CacheRequestDelegate
+    {
+        private PrizmDiskCache.CacheRequestDelegate mDelegate;
+
+        public SinglePostDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
+            mDelegate = delegate;
+        }
+
+        @Override
+        public void cached(String path, Object object)
+        {
+            mDelegate.cached(path, process(object));
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object object)
+        {
+            mDelegate.cacheUpdated(path, process(object));
+        }
+
+        private Post process(Object object) {
+            Post p = null;
+            if (object instanceof JSONObject) {
+                p = new Post((JSONObject)object);
+            }
+            return p;
         }
     }
 

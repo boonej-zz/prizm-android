@@ -124,6 +124,15 @@
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
     </style>
 
+    <style name="PrizmFuture" parent="PrizmTheme">
+        <item name="android:windowBackground">@color/prizm_dominant_background</item>
+        <item name="colorPrimary">@color/fp_light_blue</item>
+        <item name="colorPrimaryDark">@color/fp_dark_blue</item>
+        <item name="colorAccent">@android:color/white</item>
+        <item name="android:textColor">@color/prizm_light_navy</item>
+        <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
+    </style>
+
     <style name="PrizmTextViewStyle">
         <item name="android:textColor">@color/prizm_dark_text</item>
     </style>

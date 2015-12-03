@@ -110,6 +110,21 @@
                     android:minHeight="340dp"
                     android:scaleType="fitCenter"
                     android:adjustViewBounds="true"/>
+                <TextView
+                    android:id="@+id/hash_tag_view"
+                    android:layout_width="fill_parent"
+                    android:layout_height="26dp"
+                    android:layout_alignParentBottom="true"
+                    android:background="@drawable/cover_gradient"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp"
+                    android:textSize="@dimen/font_size_regular"
+                    android:textColor="@color/cloudy_blue"
+
+                    />
 
             </RelativeLayout>
             <RelativeLayout
