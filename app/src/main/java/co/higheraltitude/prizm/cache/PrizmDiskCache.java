@@ -30,10 +30,12 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 import co.higheraltitude.prizm.network.PrizmAPIService;
@@ -74,7 +76,42 @@ public class PrizmDiskCache {
     }
 
     public void loadImage(String path, CacheRequestDelegate delegate) {
-        new BitmapReaderTask().execute(path, delegate);
+        Bitmap img = loadCachedImage(path);
+        if (img == null) {
+            new BitmapReaderTask().execute(path, delegate);
+        } else {
+            delegate.cached(path, img);
+        }
+
+    }
+
+    public void loadBestImage(String path, CacheRequestDelegate delegate) {
+        Bitmap img = loadCachedImage(path);
+        if (img == null) {
+            new BestAvailableTask().execute(path, delegate);
+        } else {
+            delegate.cached(path, img);
+        }
+    }
+
+    public Bitmap loadCachedImage(String path) {
+        String key = AeSimpleSHA1.SHA1(path);
+        Bitmap bitmap = null;
+        if (key != null) {
+            File file = new File(mContext.getCacheDir(), key);
+            if (file.exists()) {
+                byte[] fileData = new byte[(int) file.length()];
+                try {
+                    DataInputStream is = new DataInputStream(new FileInputStream(file));
+                    is.readFully(fileData);
+                    is.close();
+                    bitmap = BitmapFactory.decodeByteArray(fileData, 0, fileData.length);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+        return bitmap;
     }
 
     public void storeString(String key, String value) {
@@ -206,6 +243,80 @@ public class PrizmDiskCache {
         @Override
         protected void onPostExecute(Object result) {
             mDelegate.cached(mPath, result);
+        }
+    }
+
+    private static class BestAvailableTask extends AsyncTask<Object, Void, Bitmap> {
+        private CacheRequestDelegate mDelegate;
+        private String mPath;
+        private String mBestPath;
+
+        @Override
+        protected Bitmap doInBackground(Object... params) {
+            Bitmap bitmap = null;
+            mPath = (String)params[0];
+            mBestPath = PrizmDiskCache.getInstance(null).bestAvailableImage(mPath);
+            String key = AeSimpleSHA1.SHA1(mBestPath);
+            mDelegate = (CacheRequestDelegate)params[1];
+            if (key != null) {
+                File file = new File(mContext.getCacheDir(), key);
+                if (file.exists()) {
+//                    byte[] fileData = new byte[(int) file.length()];
+                    try {
+                        DataInputStream is = new DataInputStream(new FileInputStream(file));
+
+                        bitmap = BitmapFactory.decodeStream(is);
+                        Log.d("DEBUG", "Loading image from cache");
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                } else {
+                    InputStream is = null;
+                    Boolean validUrl = true;
+                    try {
+                        is = (InputStream) (new URL(mBestPath).getContent());
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        validUrl = false;
+                    }
+                    if (validUrl && is != null) {
+                        bitmap = BitmapFactory.decodeStream(is);
+                    }
+                    if (is != null) {
+                        try {
+                            is.close();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    if (bitmap != null) {
+                        if (bitmap.getWidth() > 1000) {
+                            double ratio = 1000.00 / (double) bitmap.getWidth();
+                            int height = (int) ((double) bitmap.getHeight() * ratio);
+                            bitmap = Bitmap.createScaledBitmap(bitmap, 1000, height, false);
+                        }
+                        try {
+                            file.createNewFile();
+                            FileOutputStream os = new FileOutputStream(file);
+                            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                            os.write(stream.toByteArray());
+                            os.close();
+                            stream.close();
+                            Log.d("DEBUG", "Downloaded new image.");
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+            return bitmap;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            mDelegate.cached(mPath, bitmap);
         }
     }
 
@@ -443,9 +554,37 @@ public class PrizmDiskCache {
         }
     }
 
+    public String bestAvailableImage(String path) {
+        String baseUrl = path.substring(0, path.length() - 4);
+        String finalUrl = String.format("%s_%s.jpg", baseUrl, String.valueOf(4));
+        return finalUrl;
+    }
+
+    public void fetchBestBitmap(final String path, int width, final Handler handler) {
+        loadImage(bestAvailableImage(path), new BitmapHandlerDelegate(width, handler));
+    }
+
     public void fetchBitmap(final String path, int width, final Handler handler) {
         loadImage(path, new BitmapHandlerDelegate(width, handler));
     }
+
+    public static boolean exists(String URLName){
+        try {
+            HttpURLConnection.setFollowRedirects(false);
+            // note : you may also need
+            //        HttpURLConnection.setInstanceFollowRedirects(false)
+            HttpURLConnection con =
+                    (HttpURLConnection) new URL(URLName).openConnection();
+            con.setRequestMethod("HEAD");
+            return (con.getResponseCode() == HttpURLConnection.HTTP_OK);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
 
     public void fetchBitmap(final String path, ImageView view) {
         loadImage(path, new BitmapViewDelegate(view));

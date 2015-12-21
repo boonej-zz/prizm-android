@@ -46,5 +46,7 @@
     <color name="cloudy_blue">#c0c1d5</color>
     <color name="fp_light_blue">#86d4ee</color>
     <color name="fp_dark_blue">#54c0e5</color>
+    <color name="warm_grey_20">#337C7C7C</color>
+    <color name="black">#1b1b1b</color>
 
 </resources>

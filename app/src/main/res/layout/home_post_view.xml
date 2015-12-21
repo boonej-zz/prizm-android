@@ -144,11 +144,11 @@
                 android:layout_marginLeft="85.3dp"
                 android:orientation="horizontal">
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:scaleType="fitCenter"
                     android:layout_gravity="center_vertical"
-                    android:src="@drawable/ic_chat_bubble_outline_black_24_px"
+                    android:src="@drawable/comment_icon"
                     />
                 <TextView
                     android:id="@+id/comment_count"
@@ -161,29 +161,29 @@
                     />
             </LinearLayout>
             <ImageView
-                android:layout_width="22.7dp"
-                android:layout_height="22.7dp"
+                android:layout_width="18dp"
+                android:layout_height="19.5dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_repeat_black_24_px_2"
+                android:src="@drawable/repost_icon"
                 android:layout_centerInParent="true"
                 />
             <ImageView
-                android:layout_width="17.3dp"
-                android:layout_height="17.3dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:scaleType="fitCenter"
                 android:layout_centerVertical="true"
-                android:src="@drawable/share"
+                android:src="@drawable/share_icon"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="82.7dp"
                 />
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="23.3dp"
+                android:layout_width="13.3dp"
+                android:layout_height="18.3dp"
                 android:scaleType="fitCenter"
                 android:layout_centerVertical="true"
-                android:src="@drawable/ic_location_on_black_24_px"
+                android:src="@drawable/locationpin_icon"
                 android:layout_alignParentRight="true"
-                android:layout_marginRight="8dp"
+                android:layout_marginRight="13dp"
                 />
 
         </RelativeLayout>

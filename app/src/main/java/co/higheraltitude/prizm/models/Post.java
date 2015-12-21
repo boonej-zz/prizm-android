@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -23,17 +24,34 @@ import java.util.Map;
 
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.network.PrizmAPIService;
+import retrofit.http.GET;
 
 /**
  * Created by boonej on 11/11/15.
  */
 public class Post implements Parcelable{
 
-    public static final String POST_HOME_FEED_FORMAT = "/users/%s/home";
-    public static final String POST_LIKE_FORMAT = "/posts/%s/likes";
-    public static final String POST_UNLIKE_FORMAT = "/posts/%s/likes/%s";
-    public static final String POST_SINGLE_FORMAT = "/posts/%s?requestor=%s";
-    public static final String POST_PROFILE_FORMAT = "/users/%s/posts?requestor=%s";
+    private static final String POST_HOME_FEED_FORMAT = "/users/%s/home";
+    private static final String POST_LIKE_FORMAT = "/posts/%s/likes";
+    private static final String POST_UNLIKE_FORMAT = "/posts/%s/likes/%s";
+    private static final String POST_SINGLE_FORMAT = "/posts/%s?requestor=%s";
+    private static final String POST_PROFILE_FORMAT = "/users/%s/posts?requestor=%s";
+    private static final String HASH_TAG_REQUEST_FORMAT = "/hashtags?filter=%s&format=tags_only&limit=5";
+    private static final String EXPLORE_FORMAT = "/posts?requestor=%s&limit=15";
+
+    public static final String CATEGORY_ASPIRATION = "aspiration";
+    public static final String CATEGORY_PASSION = "passion";
+    public static final String CATEGORY_INSPIRATION = "inspiration";
+    public static final String CATEGORY_EXPERIENCE = "experience";
+    public static final String CATEGORY_ACHIEVEMENT = "achievement";
+    public static final String CATEGORY_PRIVATE = "personal";
+
+    public static final String EXPLORE_TYPE_FEATURED = "featured";
+    public static final String EXPLORE_TYPE_POPULAR = "popular";
+
+    public static final String VISIBILITY_PRIVATE = "private";
+    public static final String VISIBILITY_PUBLIC = "public";
+    public static final String VISIBILITY_TRUST = "trust";
 
     public String uniqueId;
     public String category;
@@ -268,6 +286,78 @@ public class Post implements Parcelable{
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         cache.performCachedRequest(path, data, HttpMethod.GET, new User.UserListDelegate(delegate));
+    }
+
+    public static void createPost(MultiValueMap<String, String> parameters, final Handler handler) {
+        String path = "/posts";
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, parameters, HttpMethod.POST,
+                handler, true);
+    }
+
+    public static void searchHashtags(String searchText,
+                                      final PrizmDiskCache.CacheRequestDelegate delegate) {
+
+        String path = String.format(HASH_TAG_REQUEST_FORMAT, searchText);
+        MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, data, HttpMethod.GET, new PrizmTagDelegate(delegate));
+    }
+
+    public static void getExplore(@Nullable String mode, @Nullable String before,
+                                  @Nullable String after, @Nullable String tag,
+                                  final PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(EXPLORE_FORMAT, User.getCurrentUser().uniqueID);
+        if (mode != null) {
+            path = String.format("%s&mode=%s", path, mode);
+        }
+        if (before != null) {
+            path = String.format("%s&before=%s", path, before);
+        }
+        if (after != null) {
+            path = String.format("%s&after=%s", path, after);
+        }
+        if (after != null) {
+            path = String.format("%s&tag=%s", path, tag);
+        }
+
+        PrizmDiskCache.getInstance(null).performCachedRequest(path,
+                new LinkedMultiValueMap<String, String>(), HttpMethod.GET,
+                new PostListDelegate(delegate));
+    }
+
+    private static class PrizmTagDelegate implements PrizmDiskCache.CacheRequestDelegate {
+
+        private PrizmDiskCache.CacheRequestDelegate mDelegate;
+
+        public PrizmTagDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
+            mDelegate = delegate;
+        }
+
+        @Override
+        public void cached(String path, Object data) {
+            mDelegate.cached(path, process(data));
+        }
+
+        @Override
+        public void cacheUpdated(String path, Object data) {
+            mDelegate.cacheUpdated(path, process(data));
+        }
+
+        private ArrayList<String> process(Object object) {
+            ArrayList<String> data = new ArrayList<>();
+            if (object instanceof JSONArray) {
+                JSONArray arr = (JSONArray)object;
+                for (int i = 0; i != arr.length(); ++i) {
+                    try {
+                        String tag = arr.getString(i);
+                        data.add(tag);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            return data;
+        }
     }
 
     private static class SinglePostHandler extends Handler {

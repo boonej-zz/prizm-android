@@ -9,20 +9,20 @@
             android:layout_height="119.3dp"
             android:layout_weight="1"
             android:layout_marginRight="1dp"
-            android:scaleType="centerInside" />
+            android:scaleType="fitCenter" />
         <ImageView
             android:id="@+id/post_2"
             android:layout_width="0dp"
             android:layout_height="119.3dp"
             android:layout_weight="1"
-            android:scaleType="centerInside" />
+            android:scaleType="fitCenter" />
         <ImageView
             android:id="@+id/post_3"
             android:layout_width="0dp"
             android:layout_height="119.3dp"
             android:layout_marginLeft="1dp"
             android:layout_weight="1"
-            android:scaleType="centerInside" />
+            android:scaleType="fitCenter" />
     </LinearLayout>
 
 </co.higheraltitude.prizm.views.TriPostView>

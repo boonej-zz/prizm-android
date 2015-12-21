@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import net.sectorsieteg.avatars.AvatarDrawableFactory;
 
+import org.w3c.dom.Text;
+
 import java.util.UUID;
 
 import co.higheraltitude.prizm.R;
@@ -29,6 +31,7 @@ public class MenuItemView extends RelativeLayout {
 
     private TextView mTextView;
     private ImageView mImageView;
+    private TextView mBadgeView;
 
     private Boolean mSelected = false;
 
@@ -55,6 +58,7 @@ public class MenuItemView extends RelativeLayout {
     private void setViews() {
         mImageView = (ImageView)findViewById(R.id.menu_icon);
         mTextView = (TextView)findViewById(R.id.menu_item_text);
+        mBadgeView = (TextView)findViewById(R.id.menu_badge);
     }
 
     public void setText(String text) {
@@ -73,6 +77,15 @@ public class MenuItemView extends RelativeLayout {
             mTextView.setTextColor(Color.parseColor("#7C7C7C"));
         }
         setImage();
+    }
+
+    public void setBadgeCount(int count) {
+        if (count > 0) {
+            mBadgeView.setVisibility(VISIBLE);
+            mBadgeView.setText(String.valueOf(count));
+        } else {
+            mBadgeView.setVisibility(GONE);
+        }
     }
 
     private int setImage() {

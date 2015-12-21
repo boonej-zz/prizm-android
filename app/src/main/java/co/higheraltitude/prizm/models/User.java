@@ -48,6 +48,7 @@ import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.network.PrizmAPIService;
+import retrofit.http.POST;
 
 
 /**
@@ -92,6 +93,8 @@ public class User implements Parcelable {
     public int followersCount;
     public int followingCount;
     public int postsCount;
+    public Boolean isFollowing = false;
+    public Boolean isSelf = false;
 
     public static String PrizmCurrentUserCacheKey = "current_user";
     private static final String PRIZM_LOGIN_ENDPOINT = "/oauth2/login";
@@ -103,6 +106,9 @@ public class User implements Parcelable {
     private static final String PRIZM_ORG_USER_FORMAT = "/organizations/%s/members";
     private static final String PRIZM_DEVICE_REGISTER_FORMAT = "/users/%s/devices";
     private static final String USER_TAGS_FORMAT = "/users/%s/tags?tag=%s";
+    private static final String USER_FOLLOWING_FORMAT = "/users/%s/following?requestor=%s";
+    private static final String USER_FOLLOWERS_FORMAT = "/users/%s/followers?requestor=%s";
+    private static final String FOLLOW_USER_FORMAT = "/users/%s/followers";
 
     public static String ROLE_LEADER = "leader";
     public static String ROLE_OWNER = "owner";
@@ -227,6 +233,8 @@ public class User implements Parcelable {
             put("followers_count", "followersCount");
             put("following_count", "followingCount");
             put("posts_count", "postsCount");
+            put("is_following", "isFollowing");
+            put("is_self", "isSelf");
         }};
         return map;
     }
@@ -235,6 +243,10 @@ public class User implements Parcelable {
         firstName = _firstName;
         lastName = _lastName;
         email = _email;
+    }
+
+    public Boolean isCurrentUser() {
+        return uniqueID.equals(getCurrentUser().uniqueID);
     }
 
     public User(Parcel in) {
@@ -580,7 +592,8 @@ public class User implements Parcelable {
     public static void fetchUserCore(User user, final PrizmDiskCache.CacheRequestDelegate delegate) {
         PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
-        cache.performCachedRequest(PRIZM_USER_ENDPOINT + '/' + user.uniqueID, post, HttpMethod.GET,
+        cache.performCachedRequest(PRIZM_USER_ENDPOINT + '/' + user.uniqueID + "?requestor="
+                        + getCurrentUser().uniqueID, post, HttpMethod.GET,
                 new UserCoreDelegate(delegate));
     }
 
@@ -727,6 +740,42 @@ public class User implements Parcelable {
         MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
         PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
+    }
+
+    public static void fetchFollowers(String user, int skip, final PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(USER_FOLLOWERS_FORMAT, user, getCurrentUser().uniqueID);
+        if (skip > 0) {
+            path = path + "&skip=" + skip;
+        }
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
+    }
+
+    public static void fetchFollowing(String user, int skip, final PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(USER_FOLLOWING_FORMAT, user, getCurrentUser().uniqueID);
+        if (skip > 0) {
+            path = path + "&skip=" + skip;
+        }
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
+        cache.performCachedRequest(path, post, HttpMethod.GET, new UserListDelegate(delegate));
+    }
+
+    public static void followUser(String user, final Handler handler) {
+        String path = String.format(FOLLOW_USER_FORMAT, user);
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        post.add("requestor", getCurrentUser().uniqueID);
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.POST,
+                handler, true);
+    }
+
+    public static void unfollowUser(String user, final Handler handler) {
+        String path = String.format(FOLLOW_USER_FORMAT, user);
+        path = path + "/" + getCurrentUser().uniqueID;
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, post, HttpMethod.DELETE,
+                handler, true);
     }
 
     public static class UserListDelegate implements PrizmDiskCache.CacheRequestDelegate

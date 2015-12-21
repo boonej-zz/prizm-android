@@ -256,6 +256,32 @@
             android:screenOrientation="portrait"
             android:theme="@style/PrizmBlue" >
         </activity>
+        <activity
+            android:name=".FollowActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
+        <activity
+            android:name=".PostsActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
+        <activity
+            android:name=".CreatePostActivity"
+            android:label="Post"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
+        <activity
+            android:name=".ImageCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
+        <activity
+            android:name=".CameraActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullscreenTheme" >
+        </activity>
     </application>
 
 </manifest>

@@ -92,7 +92,7 @@ public class CommentView extends RelativeLayout {
         }
         PrizmCache cache = PrizmCache.getInstance();
         if (mInstanceId == null) {
-            needsUpdate = false;
+            needsUpdate = true;
         } else {
             needsUpdate = !mInstanceId.equals(mComment.uniqueId);
         }

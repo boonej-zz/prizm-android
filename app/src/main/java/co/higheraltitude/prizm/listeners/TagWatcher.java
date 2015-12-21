@@ -67,6 +67,11 @@ public class TagWatcher implements TextWatcher {
                 mTagStart = -1;
                 mCurrentTag = "";
             }
+            if (s.charAt(s.length() - 1) == ' ') {
+                mTypingTag = false;
+                mTagStart = -1;
+                mCurrentTag = "";
+            }
         }
         if (mTypingTag) {
             if (start < s.length()) {

@@ -85,4 +85,9 @@
         <item>Help &amp; feedback</item>
     </string-array>
 
+    <string-array name="photo_locations">
+        <item>Camera</item>
+        <item>Gallery</item>
+    </string-array>
+
 </resources>

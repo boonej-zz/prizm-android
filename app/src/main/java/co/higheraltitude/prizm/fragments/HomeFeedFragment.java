@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -24,6 +25,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.higheraltitude.prizm.CreatePostActivity;
 import co.higheraltitude.prizm.FullBleedPostActivity;
 import co.higheraltitude.prizm.LikesActivity;
 import co.higheraltitude.prizm.LoginActivity;
@@ -47,6 +49,8 @@ implements HomePostView.HomePostViewDelegate {
     private ListView mListView;
     private HomeFeedAdapter mAdapter;
     private ProgressBar mProgressBar;
+    private FloatingActionButton mFabButton;
+
 
     private int lastVisibleItem = 0;
     private boolean scrollingDown = false;
@@ -100,12 +104,21 @@ implements HomePostView.HomePostViewDelegate {
 
             }
         });
+        mFabButton = (FloatingActionButton)view.findViewById(R.id.floating_action_button);
+        mFabButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), CreatePostActivity.class);
+                startActivityForResult(intent, CreatePostActivity.RESULT_CREATE_POST);
+            }
+        });
 
     }
 
     public void scrollToTop() {
         mListView.smoothScrollToPositionFromTop(0, 0);
     }
+
 
     private boolean listIsAtTop()   {
         if (mListView != null) {
@@ -129,12 +142,12 @@ implements HomePostView.HomePostViewDelegate {
         }
     }
 
-    private void fetchPosts(boolean update)
+    public void fetchPosts(boolean update)
     {
         if (!isUpdating) {
             isUpdating = true;
             showProgressBar();
-            Post.fetchHomeFeed("", new HomeFeedDelegate(update));
+            Post.fetchHomeFeed(null, new HomeFeedDelegate(update));
         }
     }
     private void fetchOlderPosts()
@@ -224,7 +237,11 @@ implements HomePostView.HomePostViewDelegate {
                         }
                     }
                     if (!found) {
-                        mAdapter.add(p);
+                        if (mUpdateOnly) {
+                            mAdapter.insert(p, posts.indexOf(p));
+                        } else {
+                            mAdapter.add(p);
+                        }
                     }
                 }
             }
@@ -285,6 +302,15 @@ implements HomePostView.HomePostViewDelegate {
                 Post o = mAdapter.getItem(mPosition);
                 mAdapter.remove(o);
                 mAdapter.insert(p, mPosition);
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == CreatePostActivity.RESULT_CREATE_POST) {
+                fetchPosts(true);
             }
         }
     }

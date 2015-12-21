@@ -79,8 +79,46 @@ public class TriPostView extends RelativeLayout implements View.OnClickListener 
             position = 2;
         }
 
-        if (mDelegate != null) {
+        if (mDelegate != null && mPosts.size() > position) {
             mDelegate.postClicked(mPosts.get(position));
+        }
+    }
+
+    private void setPlaceHolderImage(int position){
+        Post p = mPosts.get(position);
+        int drawable = -1;
+        if (p.category.equals(Post.CATEGORY_ACHIEVEMENT)) {
+            drawable = R.drawable.achievement_icon;
+        } else if (p.category.equals(Post.CATEGORY_ASPIRATION)) {
+            drawable = R.drawable.aspitation_icon;
+        } else if (p.category.equals(Post.CATEGORY_EXPERIENCE)) {
+            drawable = R.drawable.experience_icon;
+        } else if (p.category.equals(Post.CATEGORY_INSPIRATION)) {
+            drawable = R.drawable.inspiration_icon;
+        } else if (p.category.equals(Post.CATEGORY_PASSION)) {
+            drawable = R.drawable.passion_icon;
+        } else if (p.category.equals(Post.CATEGORY_PRIVATE)) {
+            drawable = R.drawable.private_icon;
+        }
+        ImageView iv = null;
+        switch (position) {
+            case 0:
+                iv = mPostView1;
+                break;
+            case 1:
+                iv = mPostView2;
+                break;
+            case 2:
+                iv = mPostView3;
+                break;
+            default:
+                break;
+        }
+        if (drawable != -1 && iv != null) {
+            iv.setScaleType(ImageView.ScaleType.CENTER);
+            iv.setImageResource(drawable);
+        } else if (iv != null) {
+            iv.setImageBitmap(null);
         }
     }
 
@@ -98,9 +136,23 @@ public class TriPostView extends RelativeLayout implements View.OnClickListener 
         mPosts = list;
         if (needsUpdate) {
             int width = mPostView1.getWidth();
-            mPostView1.setImageBitmap(null);
-            mPostView2.setImageBitmap(null);
-            mPostView3.setImageBitmap(null);
+            if (mPosts.size() >2) {
+                setPlaceHolderImage(2);
+            }
+            if (mPosts.size() > 1) {
+                setPlaceHolderImage(1);
+
+            }
+            setPlaceHolderImage(0);
+            if (mPosts.size() < 3) {
+                mPostView3.setImageBitmap(null);
+                mPostView3.setOnClickListener(null);
+            }
+            if (mPosts.size() < 2) {
+                mPostView2.setImageBitmap(null);
+                mPostView2.setOnClickListener(null);
+            }
+
             for (int i = 0; i != list.size(); ++i) {
                 String path = list.get(i).filePath;
                 String[] parts = path.split("|");
@@ -109,17 +161,17 @@ public class TriPostView extends RelativeLayout implements View.OnClickListener 
                 }
                 switch (i) {
                     case 0:
-                        cache.fetchBitmap(path, width,
-                                new ImageHandler(this, mPostView1, mInstanceId));
+                        cache.fetchBestBitmap(path, width,
+                                new ImageHandler(this, mPostView1, mInstanceId, 0));
 
                         break;
                     case 1:
-                        cache.fetchBitmap(path, width,
-                                new ImageHandler(this, mPostView2, mInstanceId));
+                        cache.fetchBestBitmap(path, width,
+                                new ImageHandler(this, mPostView2, mInstanceId, 1));
                         break;
                     case 2:
-                        cache.fetchBitmap(path, width,
-                                new ImageHandler(this, mPostView3, mInstanceId));
+                        cache.fetchBestBitmap(path, width,
+                                new ImageHandler(this, mPostView3, mInstanceId, 2));
                         break;
                     default:
                         break;
@@ -137,17 +189,24 @@ public class TriPostView extends RelativeLayout implements View.OnClickListener 
         private String mInstanceId;
         private TriPostView mPostView;
         private ImageView mImageView;
+        private int mPosition;
 
-        public ImageHandler(TriPostView view, ImageView iv, String id) {
+        public ImageHandler(TriPostView view, ImageView iv, String id, int position) {
             mInstanceId = id;
             mPostView = view;
             mImageView = iv;
+            mPosition = position;
         }
 
         public void handleMessage(Message msg) {
             if (mPostView.mInstanceId.equals(mInstanceId)) {
                 Bitmap bmp = (Bitmap)msg.obj;
-                mImageView.setImageBitmap(bmp);
+                if (bmp != null) {
+                    mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    mImageView.setImageBitmap(bmp);
+                } else {
+                    mPostView.setPlaceHolderImage(mPosition);
+                }
             }
         }
     }

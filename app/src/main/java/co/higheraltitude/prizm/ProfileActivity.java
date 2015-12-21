@@ -1,70 +1,27 @@
 package co.higheraltitude.prizm;
 
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.Point;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.ContactsContract;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.internal.view.menu.MenuView;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.OvershootInterpolator;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
-import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
-
-
-import net.sectorsieteg.avatars.AvatarDrawableFactory;
-
-import org.w3c.dom.Text;
-
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-
-import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
-import co.higheraltitude.prizm.fragments.PartnerInfoFragment;
-import co.higheraltitude.prizm.fragments.ProfileInfoFragment;
-import co.higheraltitude.prizm.fragments.ProfileMainFragment;
 import co.higheraltitude.prizm.listeners.BackClickListener;
-import co.higheraltitude.prizm.listeners.MenuClickListener;
 import co.higheraltitude.prizm.models.Post;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.views.HomePostView;
@@ -73,13 +30,8 @@ import co.higheraltitude.prizm.views.TriPostView;
 
 public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache.CacheRequestDelegate,
          TriPostView.TriPostViewDelegate, ProfileHeaderView.ProfileHeaderViewDelegate, HomePostView.HomePostViewDelegate {
-
-
     private ProgressBar progressBar = null;
     private User mUser = null;
-
-
-
     private ListView mPostsList;
     private ProfilePostAdapter mPostAdapter;
     private LinearLayout mMainLayout;
@@ -108,8 +60,6 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         User.fetchUserCore(mUser, this);
 
         progressBar = (ProgressBar)findViewById(R.id.progress_bar);
-
-
         mMainLayout = (LinearLayout)findViewById(R.id.main_layout);
         mPostsList = (ListView)findViewById(R.id.post_list);
 
@@ -138,6 +88,11 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         loadPosts();
     }
 
+    protected void onResume() {
+        super.onResume();
+        configureViews();
+    }
+
     private void showProgressBar() {
         progressBar.setIndeterminate(true);
         progressBar.setVisibility(View.VISIBLE);
@@ -148,7 +103,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         progressBar.setVisibility(View.GONE);
     }
 
-    private boolean listIsAtTop()   {
+    private boolean listIsAtTop() {
         if (mPostsList != null) {
             if (mPostsList.getChildCount() == 0) return true;
             return mPostsList.getChildAt(0).getTop() == 0;
@@ -176,7 +131,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         if (! isUpdating) {
             String date = "";
             if (mPostAdapter.getCount() > 0) {
-                Post lastPost = mPostAdapter.getItem(mPostAdapter.getActualCount() - 1);
+                Post lastPost = mPostAdapter.baseList.get(mPostAdapter.baseList.size() - 1);
                 date = lastPost.createDate;
             }
             isUpdating = true;
@@ -194,7 +149,11 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         @Override
         public void cacheUpdated(String path, Object object) {
             update(object);
-
+            if (object instanceof ArrayList) {
+                if (((ArrayList<?>)object).size() > 0) {
+                    fetchOlderPosts();
+                }
+            }
         }
 
 
@@ -204,8 +163,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
                 ArrayList<Post> posts = (ArrayList<Post>)object;
                 for (Post post : posts) {
                     boolean inserted = false;
-                    for (int i = 0; i != mPostAdapter.getActualCount(); ++i) {
-                        Post o = mPostAdapter.getItem(i);
+                    for (Post o : mPostAdapter.baseList) {
                         if (post.uniqueId.equals(o.uniqueId)) {
                             inserted = true;
                         }
@@ -274,8 +232,11 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
 
     @Override
     public void postClicked(Post post) {
+        String pathString = PrizmDiskCache.getInstance(
+                getApplicationContext()).bestAvailableImage(post.filePath);
         Intent intent = new Intent(getApplicationContext(), FullBleedPostActivity.class);
         intent.putExtra(FullBleedPostActivity.EXTRA_POST, post);
+        intent.putExtra(FullBleedPostActivity.EXTRA_POST_IMAGE, pathString);
         startActivity(intent);
     }
 
@@ -331,9 +292,26 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
     }
 
     @Override
+    public void followUser(){
+        User.followUser(mUser.uniqueID, new Handler());
+    }
+
+    @Override
+    public void unfollowUser(){
+        User.unfollowUser(mUser.uniqueID, new Handler());
+    }
+
+    @Override
     public void locationFilterClicked(boolean selected) {
         isLocationFiltering = selected;
         updateFilters();
+    }
+
+    @Override
+    public void postButtonClicked() {
+        Intent intent = new Intent(getApplicationContext(), PostsActivity.class);
+        intent.putExtra(PostsActivity.EXTRA_USER, mUser);
+        startActivity(intent);
     }
 
     private void updateFilters() {
@@ -356,6 +334,23 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
     public void postImageClicked(Post post) {
         Intent intent = new Intent(getApplicationContext(), FullBleedPostActivity.class);
         intent.putExtra(FullBleedPostActivity.EXTRA_POST, post);
+
+        startActivity(intent);
+    }
+
+    @Override
+    public void followingClicked() {
+        Intent intent = new Intent(getApplicationContext(), FollowActivity.class);
+        intent.putExtra(FollowActivity.EXTRA_USER, mUser);
+        intent.putExtra(FollowActivity.EXTRA_VIEW_TYPE, FollowActivity.VIEW_TYPE_FOLLOWING);
+        startActivity(intent);
+    }
+
+    @Override
+    public void followersClicked() {
+        Intent intent = new Intent(getApplicationContext(), FollowActivity.class);
+        intent.putExtra(FollowActivity.EXTRA_USER, mUser);
+        intent.putExtra(FollowActivity.EXTRA_VIEW_TYPE, FollowActivity.VIEW_TYPE_FOLLOWERS);
         startActivity(intent);
     }
 
@@ -388,8 +383,9 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         public final String FILTER_TYPE_LOCATION = "filter_location";
         public final String FILTER_TYPE_ALL = "filter_all";
         private int mViewType = 0;
-        private ArrayList<Post> baseList;
+        public ArrayList<Post> baseList;
         private ProfileFilter mFilter = new ProfileFilter();
+        private String mCurrentFilter = FILTER_TYPE_NONE;
 
         public ProfilePostAdapter(Context c, ArrayList<Post> items) {
             super(c, 0, items);
@@ -408,7 +404,23 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
 
         public void addPost(Post object){
             baseList.add(object);
-            super.add(object);
+            if (mCurrentFilter == FILTER_TYPE_ALL) {
+                if (mFilter.testTags(object) && mFilter.testLocation(object)) {
+                    add(object);
+                }
+            } else if (mCurrentFilter.equals(FILTER_TYPE_TAGS)) {
+                if (mFilter.testTags(object)) {
+                    add(object);
+                }
+            } else if (mCurrentFilter.equals(FILTER_TYPE_LOCATION)) {
+                if (mFilter.testOwnPost(object) && mFilter.testLocation(object)) {
+                    add(object);
+                }
+            } else {
+                if (mFilter.testOwnPost(object)) {
+                    add(object);
+                }
+            }
 
         }
 
@@ -489,6 +501,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         private class ProfileFilter extends Filter {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
+                mCurrentFilter = constraint.toString();
                 FilterResults results = new FilterResults();
 
                 ArrayList<Post> filt = new ArrayList<>();
@@ -498,7 +511,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
                 while (iterator.hasNext()) {
                     Post p = iterator.next();
                     if (filter.equals(FILTER_TYPE_LOCATION)) {
-                        if (testLocation(p)) {
+                        if (testLocation(p) && testOwnPost(p)) {
                             filt.add(p);
                         }
                     } else if (filter.equals(FILTER_TYPE_TAGS)) {
@@ -510,7 +523,9 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
                             filt.add(p);
                         }
                     } else {
-                        filt.add(p);
+                        if (testOwnPost(p)) {
+                            filt.add(p);
+                        }
                     }
                 }
 
@@ -528,6 +543,10 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
                     return post.text.toLowerCase().contains(mUser.uniqueID.toLowerCase());
                 }
                 return false;
+            }
+
+            protected boolean testOwnPost(Post post) {
+                return post.creatorId.equals(mUser.uniqueID);
             }
 
             @Override

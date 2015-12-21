@@ -51,6 +51,7 @@ import com.vincentbrison.openlibraries.android.dualcache.lib.DualCacheContextUti
 
 import net.sectorsieteg.avatars.AvatarDrawableFactory;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.InputStream;
@@ -70,6 +71,7 @@ import co.higheraltitude.prizm.fragments.SurveyFragment;
 import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
 import co.higheraltitude.prizm.messaging.RegistrationIntentService;
+import co.higheraltitude.prizm.models.Peep;
 import co.higheraltitude.prizm.models.User;
 import co.higheraltitude.prizm.network.PrizmAPIService;
 import co.higheraltitude.prizm.views.MenuItemView;
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public static boolean DID_START;
     public static boolean MESSAGES_STARTED
             ;
+    private JSONArray mCounts;
 
     private static GoogleApiClient mGoogleApiClient;
     private static Location mLastLocation;
@@ -98,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     static final int DO_LOGIN = 1;
     static final int DO_SETTINGS = 9328;
+    public static MainActivity instance;
 
     // LAYOUT
     private DrawerLayout mDrawerLayout;
@@ -110,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private View mActivityButton;
     private ActionBarDrawerToggle mDrawerToggle;
     private TextView mActivityCountBadge;
+    private HomeFeedFragment mHomeFeedFragment;
 
     private Boolean isPremium;
 
@@ -120,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        instance = this;
         DualCacheContextUtils.setContext(getApplicationContext());
         PrizmAPIService.registerContext(getApplicationContext());
         mCache = PrizmCache.getInstance();
@@ -184,6 +190,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //        startActivity(intent);
     }
 
+    public void setTotalMessageCount(int count) {
+        if (mNavigationList != null) {
+            MenuItemView v = (MenuItemView) mNavigationList.getChildAt(4);
+            v.setBadgeCount(count);
+            if (count > 0) {
+                mToolbar.setNavigationIcon(R.drawable.menu_pending);
+            } else {
+                mToolbar.setNavigationIcon(R.drawable.menu);
+            }
+        }
+    }
+
 
 
     private void configureDrawer() {
@@ -211,6 +229,49 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
 
+    }
+
+    private void getCounts() {
+        Peep.getCounts(new GroupCountsHandler(this));
+    }
+
+    private static class GroupCountsHandler extends Handler {
+        private MainActivity mActivity;
+
+        public GroupCountsHandler(MainActivity activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.obj != null) {
+                if (msg.obj instanceof JSONArray) {
+                    JSONArray array = (JSONArray)msg.obj;
+                    mActivity.mCounts = array;
+                    mActivity.processCounts();
+                    Log.d("DEBUG", "Fetched Counts");
+
+                }
+            }
+        }
+
+    }
+
+    private void processCounts() {
+        int totalCount = 0;
+
+        if (mCounts != null) {
+            for (int i = 0; i != mCounts.length(); ++i) {
+                try {
+                    JSONObject object = mCounts.getJSONObject(i);
+                    int total = object.getInt("total");
+                    totalCount += total;
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+            setTotalMessageCount(totalCount);
+        }
     }
 
     private void configurePages() {
@@ -422,7 +483,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mActivityCountBadge = (TextView)findViewById(R.id.activity_count_badge);
         if (User.getCurrentUser() != null) {
             co.higheraltitude.prizm.models.Activity.fetchCounts(new MainActivity.NotificationCountHandler(mActivityCountBadge));
+            if (User.getCurrentUser().primaryOrganization != null) {
+                getCounts();
+            }
         }
+
 //        if (MESSAGES_STARTED || DID_START ) {
 //            this.finish();
 //        }
@@ -473,6 +538,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     Intent intent = this.getIntent();
                     finish();
                     startActivity(intent);
+                }
+            }
+        } else if (requestCode == CreatePostActivity.RESULT_CREATE_POST) {
+            if (resultCode == RESULT_OK) {
+                if (mHomeFeedFragment != null) {
+                    mHomeFeedFragment.fetchPosts(true);
                 }
             }
         }
@@ -553,6 +624,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             Fragment fragment = null;
             if (position == 0) {
                 fragment = new HomeFeedFragment();
+                mHomeFeedFragment = (HomeFeedFragment)fragment;
             } else if (position == 1) {
                 fragment = new ExploreFragment();
             } else if (position == 2) {

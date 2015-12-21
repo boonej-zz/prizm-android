@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +17,7 @@ import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -24,6 +26,8 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -48,6 +52,8 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
     private ProfileHeaderViewDelegate mDelegate;
 
     private View mEditProfileButton;
+    private View mEditProfileArea;
+    private View mPostsButton;
     private ImageView mCoverPhotoView = null;
     private ViewPager mViewPager = null;
     private View mBlackOverlay = null;
@@ -62,6 +68,15 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
     private boolean mGridSelected = true;
     private boolean mTagsFilterSelected = false;
     private boolean mLocationFilterSelected = false;
+    private View mFollowingButton;
+    private TextView mFollowingText;
+    private View mFollowersButton;
+    private TextView mFollowersText;
+    private View mFollowingArea;
+
+    private View mFollowButton;
+    private ImageView mFollowImage;
+    private TextView mFollowText;
 
     private User mUser;
 
@@ -71,6 +86,11 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
         void locationFilterClicked(boolean selected);
         void tagsFilterClicked(boolean selected);
         void editProfileClicked();
+        void followingClicked();
+        void followersClicked();
+        void followUser();
+        void unfollowUser();
+        void postButtonClicked();
     }
 
     public static ProfileHeaderView inflate(ViewGroup parent) {
@@ -91,16 +111,28 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
         super(context, attrs, defStyle);
     }
 
+    private void setFollowingImage(Boolean selected){
+        if (selected) {
+            mFollowText.setText(getResources().getString(R.string.action_following));
+            mFollowImage.setImageResource(R.drawable.following_icon);
+        } else {
+            mFollowText.setText(getResources().getString(R.string.action_follow));
+            mFollowImage.setImageResource(R.drawable.follow_icon);
+        }
+    }
+
     public void setDelegate(ProfileHeaderViewDelegate delegate) {
         mDelegate = delegate;
     }
 
     private void setViews() {
+        mFollowingArea = findViewById(R.id.follow_area);
         mCoverPhotoView = (ImageView)findViewById(R.id.profile_cover_photo);
         mBlackOverlay = findViewById(R.id.black_overlay);
         mPostsCount = (TextView)findViewById(R.id.posts_count);
         mFollowersCount = (TextView)findViewById(R.id.followers_count);
         mFollowingCount = (TextView)findViewById(R.id.following_count);
+        mEditProfileArea = findViewById(R.id.edit_profile_area);
         mEditProfileButton = findViewById(R.id.edit_profile_button);
         mEditProfileButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -149,9 +181,9 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
             public void onClick(View v) {
                 mTagsFilterSelected = !mTagsFilterSelected;
                 if (mTagsFilterSelected) {
-                    mTagsFilter.setImageResource(R.drawable.usertag_selected);
+                    mTagsFilter.setImageResource(R.drawable.usertag_icon_selected);
                 } else {
-                    mTagsFilter.setImageResource(R.drawable.usertag);
+                    mTagsFilter.setImageResource(R.drawable.usertag_icon);
                 }
                 if (mDelegate != null) {
                     mDelegate.tagsFilterClicked(mTagsFilterSelected);
@@ -163,20 +195,99 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
             public void onClick(View v) {
                 mLocationFilterSelected = !mLocationFilterSelected;
                 if (mLocationFilterSelected) {
-                    mLocationFilter.setImageResource(R.drawable.locationpin_selected);
+                    mLocationFilter.setImageResource(R.drawable.locationpin_icon_selected);
                 } else {
-                    mLocationFilter.setImageResource(R.drawable.locationpin);
+                    mLocationFilter.setImageResource(R.drawable.locationpin_icon);
                 }
                 if (mDelegate != null) {
                     mDelegate.locationFilterClicked(mLocationFilterSelected);
                 }
             }
         });
+        mFollowingButton = findViewById(R.id.following_button);
+        mFollowingText = (TextView)findViewById(R.id.following_text);
+        mFollowingButton.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    int brownGrey = Color.parseColor("#616161");
+                    mFollowingText.setTextColor(brownGrey);
+                    mFollowingCount.setTextColor(brownGrey);
+                } else if (event.getAction() == MotionEvent.ACTION_DOWN){
+                    int coolBlue = Color.parseColor("#5188b9");
+                    mFollowingText.setTextColor(coolBlue);
+                    mFollowingCount.setTextColor(coolBlue);
+                }
+                return false;
+            }
+        });
+        mFollowingButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.followingClicked();
+                }
+            }
+        });
+        mFollowersButton = findViewById(R.id.followers_button);
+        mFollowersText = (TextView)findViewById(R.id.followers_text);
+        mFollowersButton.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    int brownGrey = Color.parseColor("#616161");
+                    mFollowersText.setTextColor(brownGrey);
+                    mFollowersCount.setTextColor(brownGrey);
+                } else if (event.getAction() == MotionEvent.ACTION_DOWN){
+                    int coolBlue = Color.parseColor("#5188b9");
+                    mFollowersText.setTextColor(coolBlue);
+                    mFollowersCount.setTextColor(coolBlue);
+                }
+                return false;
+            }
+        });
+        mFollowersButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.followersClicked();
+                }
+            }
+        });
+        mFollowingButton = findViewById(R.id.follow_button);
+        mFollowImage = (ImageView)findViewById(R.id.follow_image);
+        mFollowText = (TextView)findViewById(R.id.follow_text);
+        mFollowingButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    if (mUser.isFollowing) {
+                        mDelegate.unfollowUser();
+                    } else {
+                        mDelegate.followUser();
+                    }
+                }
+                mUser.isFollowing = !mUser.isFollowing;
+                setFollowingImage(mUser.isFollowing);
+            }
+        });
+        mPostsButton = findViewById(R.id.posts_button);
+        mPostsButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mDelegate != null) {
+                    mDelegate.postButtonClicked();
+                }
+            }
+        });
+
+
     }
 
     public void onClick(View view) {
 
     }
+
 
 
     public void setFragmentManager(FragmentManager manager) {
@@ -188,7 +299,8 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
         mUser = user;
         ((ProfilePager)mViewPager.getAdapter()).setUser(mUser);
         if (mUser.uniqueID.equals(User.getCurrentUser().uniqueID)) {
-            mEditProfileButton.setVisibility(View.VISIBLE);
+            mEditProfileArea.setVisibility(View.VISIBLE);
+            mFollowingArea.setVisibility(View.GONE);
         }
         PrizmDiskCache cache = PrizmDiskCache.getInstance(getContext());
         if (mUser.coverPhotoURL != null && !mUser.coverPhotoURL.isEmpty()) {
@@ -200,6 +312,8 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
         mPostsCount.setText(String.valueOf(mUser.postsCount));
         mFollowersCount.setText(String.valueOf(mUser.followersCount));
         mFollowingCount.setText(String.valueOf(mUser.followingCount));
+        setFollowingImage(mUser.isFollowing);
+
     }
 
 
@@ -291,6 +405,7 @@ public class ProfileHeaderView extends RelativeLayout implements View.OnClickLis
             } else {
                 ((ProfileInfoFragment) getItem(1)).setUser(user);
             }
+            setFollowingImage(mUser.isFollowing);
 
         }
     }

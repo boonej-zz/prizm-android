@@ -39,34 +39,118 @@
 
         </RelativeLayout>
         <RelativeLayout
-            android:id="@+id/edit_profile_button"
+            android:id="@+id/edit_profile_area"
             android:layout_width="fill_parent"
             android:layout_height="46dp"
-
             android:visibility="gone"
-            android:background="?attr/selectableItemBackground">
+            android:background="@android:color/white">
             <LinearLayout
+                android:layout_marginLeft="17.8dp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
+                android:orientation="horizontal"
+                android:background="?attr/selectableItemBackground"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/trust_icon"
+                    android:layout_gravity="center_vertical"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="5dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/brownish_grey"
+                    android:text="@string/action_my_trust"/>
+
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/edit_profile_button"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:background="?attr/selectableItemBackground"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="17.7dp"
                 android:orientation="horizontal">
                 <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:src="@drawable/user_icon" android:layout_gravity="center_vertical"/>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
-                    android:layout_marginLeft="6.5dp"
-                    android:textSize="16sp"
+                    android:layout_marginLeft="4dp"
+                    android:textSize="12sp"
                     android:textColor="@color/brownish_grey"
                     android:text="@string/action_edit_profile"/>
+
             </LinearLayout>
         </RelativeLayout>
         <LinearLayout
+            android:id="@+id/follow_area"
+            android:layout_width="fill_parent"
+            android:background="@android:color/white"
+            android:orientation="horizontal"
+            android:layout_height="46dp">
+            <LinearLayout
+                android:id="@+id/follow_button"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_height="fill_parent">
+                <ImageView
+                    android:id="@+id/follow_image"
+                    android:layout_width="22dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/follow_icon"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="18dp"/>
+                <TextView
+                    android:id="@+id/follow_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="8.7dp"
+                    android:textSize="12sp"
+                    android:textColor="@color/brownish_grey"
+                    android:text="@string/action_follow"
+                    />
+            </LinearLayout>
+            <View
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1" />
+            <LinearLayout
+                android:id="@+id/trust_button"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/trust_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/action_trust"
+                    android:textSize="12sp"
+                    android:textColor="@color/brownish_grey"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginRight="7.3dp"/>
+                <ImageView
+                    android:id="@+id/trust_image"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/trust_icon"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginRight="21dp" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="1dp" android:background="@color/warm_grey_50"
+            android:alpha="0.2"
             android:orientation="horizontal" />
         <LinearLayout
             android:layout_width="fill_parent"
@@ -74,11 +158,13 @@
             android:background="@android:color/white"
             android:orientation="horizontal">
             <RelativeLayout
+                android:id="@+id/followers_button"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackground"
                 android:layout_height="fill_parent">
                 <TextView
+                    android:id="@+id/followers_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
@@ -99,11 +185,13 @@
                     android:text="254"/>
             </RelativeLayout>
             <RelativeLayout
+                android:id="@+id/following_button"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackground"
                 android:layout_height="fill_parent">
                 <TextView
+                    android:id="@+id/following_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
@@ -125,6 +213,7 @@
 
             </RelativeLayout>
             <RelativeLayout
+                android:id="@+id/posts_button"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackground"
@@ -156,6 +245,7 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="1dp" android:background="@color/warm_grey_50"
+            android:alpha="0.2"
             android:orientation="horizontal" />
         <LinearLayout
             android:layout_width="fill_parent"
@@ -194,7 +284,7 @@
                 android:layout_width="22dp"
                 android:layout_height="fill_parent"
                 android:layout_marginRight="24dp"
-                android:src="@drawable/usertag"
+                android:src="@drawable/usertag_icon"
                 android:scaleType="center"
                 android:layout_gravity="center_vertical"
                 />
@@ -209,7 +299,7 @@
                 android:layout_width="22dp"
                 android:layout_height="fill_parent"
                 android:layout_marginRight="24dp"
-                android:src="@drawable/locationpin"
+                android:src="@drawable/locationpin_icon"
                 android:scaleType="center"
                 android:layout_gravity="center_vertical"
                 />

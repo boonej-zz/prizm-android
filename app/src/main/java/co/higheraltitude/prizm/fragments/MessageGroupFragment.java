@@ -278,6 +278,7 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
 
 
     private void processCounts() {
+        int totalCount = 0;
         countArray = new int[mGroupAdapter.getCount()];
         for (int i = 0; i!= countArray.length; ++i) {
             countArray[i] = 0;
@@ -313,11 +314,16 @@ public class MessageGroupFragment extends android.support.v4.app.Fragment
                             countArray[0] = total;
                         }
                     }
-                    mGroupAdapter.setCounts(countArray);
+
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
+            mGroupAdapter.setCounts(countArray);
+            for (int i = 0; i != countArray.length; ++i){
+                totalCount += countArray[i];
+            }
+            MainActivity.instance.setTotalMessageCount(totalCount);
         }
     }
 

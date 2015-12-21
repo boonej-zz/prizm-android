@@ -120,7 +120,7 @@ public class HomePostView extends RelativeLayout {
             mPostViaText.setText(String.format("Post via %s", provider));
         }
         if (loadPhotos) {
-            mPostImageView.setImageBitmap(null);
+            setPlaceHolderImage();
             mAvatarView.setImageResource(R.drawable.user_missing_avatar);
 
             mCache.fetchBitmap(mPost.filePath, mPostImageView.getWidth(), new ImageHandler(this,
@@ -196,6 +196,29 @@ public class HomePostView extends RelativeLayout {
         mHashTagTextView = (TextView)findViewById(R.id.hash_tag_view);
     }
 
+    private void setPlaceHolderImage(){
+        int drawable = -1;
+        if (mPost.category.equals(Post.CATEGORY_ACHIEVEMENT)) {
+            drawable = R.drawable.achievementlg_icon;
+        } else if (mPost.category.equals(Post.CATEGORY_ASPIRATION)) {
+            drawable = R.drawable.aspitationlg_icon;
+        } else if (mPost.category.equals(Post.CATEGORY_EXPERIENCE)) {
+            drawable = R.drawable.experiencelg_icon;
+        } else if (mPost.category.equals(Post.CATEGORY_INSPIRATION)) {
+            drawable = R.drawable.inspirationlg_icon;
+        } else if (mPost.category.equals(Post.CATEGORY_PASSION)) {
+            drawable = R.drawable.passionlg_icon;
+        } else if (mPost.category.equals(Post.CATEGORY_PRIVATE)) {
+            drawable = R.drawable.privatelg_icon;
+        }
+        if (drawable != -1) {
+            mPostImageView.setScaleType(ImageView.ScaleType.CENTER);
+            mPostImageView.setImageResource(drawable);
+        } else {
+            mPostImageView.setImageBitmap(null);
+        }
+    }
+
     private static class ImageHandler extends Handler {
         private String mInstanceId;
         private HomePostView mPostView;
@@ -219,7 +242,12 @@ public class HomePostView extends RelativeLayout {
                     Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(bmp);
                     mImageView.setImageDrawable(avatarDrawable);
                 } else if (mType == POST_IMAGE_TYPE_IMAGE) {
-                    mImageView.setImageBitmap(bmp);
+                    if (bmp == null) {
+                        mPostView.setPlaceHolderImage();
+                    } else {
+                        mImageView.setImageBitmap(bmp);
+                        mImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    }
                 }
             }
         }

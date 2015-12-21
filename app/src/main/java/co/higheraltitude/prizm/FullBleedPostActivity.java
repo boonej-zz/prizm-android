@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.handlers.NonScrollListView;
+import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.listeners.TagWatcher;
 import co.higheraltitude.prizm.listeners.UserTagClickListener;
@@ -56,6 +57,7 @@ public class FullBleedPostActivity extends AppCompatActivity
 
     public static final String EXTRA_POST = "extra_post";
     public static final String EXTRA_POST_ID = "extra_post_id";
+    public static final String EXTRA_POST_IMAGE = "extra_post_image";
 
     private Post mPost;
 
@@ -84,6 +86,7 @@ public class FullBleedPostActivity extends AppCompatActivity
     private ListView mTagPickerList;
     private String mCurrentTag;
     private String mPostId;
+    private String mPostTempImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +97,7 @@ public class FullBleedPostActivity extends AppCompatActivity
         mCache = PrizmDiskCache.getInstance(getApplicationContext());
         mPost = getIntent().getParcelableExtra(EXTRA_POST);
         mPostId = getIntent().getStringExtra(EXTRA_POST_ID);
+        mPostTempImage = getIntent().getStringExtra(EXTRA_POST_IMAGE);
         configureViews();
 
         configureAdapter();
@@ -155,6 +159,10 @@ public class FullBleedPostActivity extends AppCompatActivity
                 finish();
             }
         });
+        if (mPostTempImage != null) {
+            mCache.fetchBitmap(mPostTempImage, mPostImageView.getWidth(),
+                    new ImageHandler(this, mPostImageView, ImageHandler.POST_IMAGE_TYPE_IMAGE, true));
+        }
         mCommentCount = (TextView)findViewById(R.id.comment_count);
         mPostText = (TextView)findViewById(R.id.post_text);
         mPostTextCreator = (TextView)findViewById(R.id.post_text_creator_name);
@@ -208,9 +216,9 @@ public class FullBleedPostActivity extends AppCompatActivity
         mDateAgoTextView.setText(String.format("%s ago", mPost.timeSince));
         setCategoryImage();
         mCache.fetchBitmap(mPost.creatorProfilePhotoUrl, mAvatarView.getWidth(),
-                new ImageHandler(this, mAvatarView, ImageHandler.POST_IMAGE_TYPE_AVATAR));
+                new ImageHandler(this, mAvatarView, ImageHandler.POST_IMAGE_TYPE_AVATAR, false));
         mCache.fetchBitmap(mPost.filePath, mPostImageView.getWidth(),
-                new ImageHandler(this, mPostImageView, ImageHandler.POST_IMAGE_TYPE_IMAGE));
+                new ImageHandler(this, mPostImageView, ImageHandler.POST_IMAGE_TYPE_IMAGE, false));
         mCommentCount.setText(String.valueOf(mPost.commentsCount));
         mLikesCount.setText(String.valueOf(mPost.likesCount));
         mHashTagsTextView.setText(mPost.hashTags);
@@ -309,7 +317,7 @@ public class FullBleedPostActivity extends AppCompatActivity
             mPostText.setText(spanText);
             mPostTextCreator.setText(mPost.creatorName);
             mCache.fetchBitmap(mPost.creatorProfilePhotoUrl, mPostTextAvatar.getWidth(),
-                    new ImageHandler(this, mPostTextAvatar, ImageHandler.POST_IMAGE_TYPE_AVATAR));
+                    new ImageHandler(this, mPostTextAvatar, ImageHandler.POST_IMAGE_TYPE_AVATAR, false));
         }
     }
 
@@ -392,11 +400,13 @@ public class FullBleedPostActivity extends AppCompatActivity
         private int mType;
         public static int POST_IMAGE_TYPE_AVATAR = 0;
         public static int POST_IMAGE_TYPE_IMAGE = 1;
+        private  boolean mMonochrome = false;
 
-        public ImageHandler(FullBleedPostActivity view, ImageView iv, int type) {
+        public ImageHandler(FullBleedPostActivity view, ImageView iv, int type, boolean monochrome) {
             mPostView = view;
             mImageView = iv;
             mType = type;
+            mMonochrome = monochrome;
         }
 
         public void handleMessage(Message msg) {
@@ -406,6 +416,9 @@ public class FullBleedPostActivity extends AppCompatActivity
                 Drawable avatarDrawable = avatarDrawableFactory.getRoundedAvatarDrawable(bmp);
                 mImageView.setImageDrawable(avatarDrawable);
             } else if (mType == POST_IMAGE_TYPE_IMAGE) {
+                if (mMonochrome) {
+                    bmp = ImageHelper.monochromeBitmap(bmp);
+                }
                 mImageView.setImageBitmap(bmp);
             }
         }

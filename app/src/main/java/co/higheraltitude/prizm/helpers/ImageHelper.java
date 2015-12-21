@@ -3,7 +3,11 @@ package co.higheraltitude.prizm.helpers;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.media.ExifInterface;
 import android.media.Image;
 import android.net.Uri;
@@ -67,6 +71,18 @@ public class ImageHelper {
             instance = new ImageHelper();
         }
         return instance;
+    }
+
+    public static Bitmap monochromeBitmap(Bitmap bmp) {
+        Bitmap bmpMonochrome = Bitmap.createBitmap(bmp.getWidth(), bmp.getHeight(),
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bmpMonochrome);
+        ColorMatrix ma = new ColorMatrix();
+        ma.setSaturation(0);
+        Paint paint = new Paint();
+        paint.setColorFilter(new ColorMatrixColorFilter(ma));
+        canvas.drawBitmap(bmp, 0, 0, paint);
+        return bmpMonochrome;
     }
 
     public static void registerContext(Context context) {
@@ -356,6 +372,67 @@ public class ImageHelper {
         return uploadImage(image, null);
     }
 
+
+    public String uploadPostImage(Bitmap bmp, final Handler handler) {
+        if (bmp.getWidth() > 1000) {
+            double ratio = 1000.00 / (double) bmp.getWidth();
+            int height = (int) ((double) bmp.getHeight() * ratio);
+            bmp = Bitmap.createScaledBitmap(bmp, 1000, height, true);
+        }
+        final Bitmap image = bmp;
+        final String path = UUID.randomUUID().toString();
+        String finalPath = "https://s3.amazonaws.com/haandroid/"+ path + ".jpg";
+        for (int i = 0; i!= 3; ++i) {
+            int ratio = 2*i;
+            String fileName = path;
+            Bitmap resizedBitmap = null;
+            if (i > 0) {
+                fileName = fileName + "_" + ratio;
+                int width = image.getWidth()/ratio;
+                int height = image.getWidth()/ratio;
+                resizedBitmap = Bitmap.createScaledBitmap(image, width, height,true);
+            } else {
+                resizedBitmap = image;
+            }
+            fileName = fileName + ".jpg";
+            final String finalM = fileName;
+            final Bitmap work = resizedBitmap;
+            Thread backgroundThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String fp = path;
+                    ByteArrayOutputStream os;
+                    try {
+                        os = new ByteArrayOutputStream();
+                        work.compress(Bitmap.CompressFormat.JPEG, 80, os);
+                        InputStream is = new ByteArrayInputStream(os.toByteArray());
+                        ObjectMetadata metadata = new ObjectMetadata();
+                        metadata.setContentType("image/jpeg");
+                        metadata.setContentLength(os.size());
+
+                        PutObjectRequest request = new PutObjectRequest("haandroid", finalM, is, metadata);
+                        AmazonS3Client client = s3Client();
+                        client.putObject(request.withCannedAcl(CannedAccessControlList.PublicRead));
+                        try {
+                            os.close();
+                            is.close();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
+                    if (handler != null) {
+                        handler.sendEmptyMessage(1);
+                    }
+                }
+            });
+            backgroundThread.start();
+        }
+        return finalPath;
+    }
+
+
     public String uploadImage(Bitmap bmp, final Handler handler) {
 //        saveTempFile(image, new UploadHandler());
 
@@ -366,7 +443,7 @@ public class ImageHelper {
         if (bmp.getWidth() > 1000) {
             double ratio = 1000.00 / (double) bmp.getWidth();
             int height = (int) ((double) bmp.getHeight() * ratio);
-            bmp = Bitmap.createBitmap(bmp, 0, 0, 1000, height);
+            bmp = Bitmap.createScaledBitmap(bmp, 1000, height, true);
         }
         final Bitmap image = bmp;
         final String path = UUID.randomUUID() + ".jpg";

@@ -10,6 +10,7 @@ buildscript {
 apply plugin: 'com.android.application'
 
 repositories {
+    mavenCentral()
     maven { url 'https://maven.fabric.io/public' }
     maven { url 'https://oss.sonatype.org/content/groups/public/' }
 }
@@ -24,8 +25,8 @@ android {
         applicationId "co.higheraltitude.prizm"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 60
-        versionName '0.7.6'
+        versionCode 69
+        versionName '0.7.8'
         multiDexEnabled true
     }
     buildTypes {
@@ -81,4 +82,5 @@ dependencies {
     compile 'com.amazonaws:aws-android-sdk-s3:2.2.7'
     compile 'org.ocpsoft.prettytime:prettytime:3.2.7.Final'
     compile 'com.google.code.gson:gson:2.3'
+    compile 'com.naver.android.helloyako:imagecropview:1.0.3'
 }

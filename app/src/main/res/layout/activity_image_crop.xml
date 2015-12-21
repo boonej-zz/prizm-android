@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/profile_nav_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:elevation="4dp">
+        <ImageButton
+            android:id="@+id/action_done_button"
+            android:layout_height="fill_parent"
+            android:layout_width="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:textAllCaps="false"
+            android:layout_gravity="right|center_vertical"
+            android:src="@drawable/creategroup_check_icon"
+            android:scaleType="center"
+            android:layout_marginRight="5.7dp"
+            />
+    </android.support.v7.widget.Toolbar>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:layout_weight="1">
+        <com.naver.android.helloyako.imagecrop.view.ImageCropView
+            xmlns:imagecrop="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible"
+            imagecrop:setInnerGridMode="on"
+            imagecrop:gridInnerStroke="1dp"
+            imagecrop:gridInnerColor="#66ffffff"
+            imagecrop:setOuterGridMode="on"
+            imagecrop:gridOuterStroke="1dp"
+            imagecrop:gridOuterColor="#ffffff"/>
+    </FrameLayout>
+</LinearLayout>

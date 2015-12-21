@@ -13,6 +13,7 @@
         style="?android:attr/progressBarStyleHorizontal"
         android:indeterminateDrawable="@drawable/progress_bar"
         android:indeterminateDuration="800"
+        android:elevation="4dp"
         android:indeterminate="true"/>
     <ListView
         android:id="@+id/home_feed_list_view"

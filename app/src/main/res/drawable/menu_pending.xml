@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:height="12.7dp" android:width="18dp" android:top="4dp">
+        <bitmap android:src="@drawable/menu"  />
+    </item>
+    <item android:height="9.3dp" android:width="9.3dp" android:left="14dp">
+        <shape android:shape="ring"
+            android:innerRadius="0dp"
+            android:thicknessRatio="2"
+            android:useLevel="false">
+            <solid android:color="@color/cool_blue" />
+        </shape>
+
+    </item>
+
+</layer-list>

@@ -37,6 +37,7 @@
                 android:textSize="14.7sp"
                 android:fontFamily="sans-serif-light"
                 android:textColor="@color/brownish_grey"
+                android:autoLink="all"
                 />
             <LinearLayout
                 android:layout_width="fill_parent"

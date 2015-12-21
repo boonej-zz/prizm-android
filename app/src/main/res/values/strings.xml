@@ -7,10 +7,8 @@
     <string name="drawer_open">Open</string>
     <string name="drawer_close">Close</string>
     <string name="sender_id">820769524937</string>
-
     <string name="app_name">Prizm</string>
     <string name="hello_world">Hello world!</string>
-
     <string name="action_settings">Settings</string>
     <string name="action_edit">Edit</string>
     <string name="action_logout">Logout</string>
@@ -24,6 +22,11 @@
     <string name="action_unmute">Unmute</string>
     <string name="action_edit_profile">Edit Profile</string>
     <string name="action_write_comment">Write a comment</string>
+    <string name="action_follow">Follow</string>
+    <string name="action_following">Following</string>
+    <string name="action_trust">Request Trust</string>
+    <string name="action_trusted">Trusted</string>
+    <string name="action_my_trust">Trust</string>
 
     <string name="label_group_name">Group Name</string>
     <string name="label_group_leader">Group Leader</string>
@@ -70,6 +73,7 @@
     <string name="ethnicity_prompt">Ethnicity</string>
     <string name="religion_prompt">Religion</string>
     <string name="type_prompt">Type</string>
+    <string name="caption_prompt">Caption your post&#8230;</string>
 
     <string name="title_activity_read_messages">ReadMessagesActivity</string>
 
@@ -80,6 +84,7 @@
     <string name="title_activity_new_group">Create Group</string>
     <string name="title_activity_edit_group">Edit Group</string>
     <string name="title_activity_view_members">Members</string>
+    <string name="title_photo_chooser">Upload a photo from:</string>
     <string name="viewers_viewed">Viewed</string>
     <string name="viewers_not_viewed">Not Viewed</string>
     <string name="notifications_activities">Notifications</string>
@@ -91,4 +96,24 @@
     <string name="welcome_paragraph_3">If you don\'t have a PROGRAM CODE, please check back soon for more public features.</string>
     <string name="welcome_paragraph_4">If you would like your organization to start using Prizm, get in touch! info@prizmapp.com</string>
 
+    <string name="string_options">Options</string>
+    <string name="string_category">Category</string>
+    <string name="category_aspiration">Aspiration</string>
+    <string name="category_passion">Passion</string>
+    <string name="category_achievement">Achievement</string>
+    <string name="category_experience">Experience</string>
+    <string name="category_inspiration">Inspiration</string>
+    <string name="category_private">Private</string>
+
+    <string name="error_scope_private">You must choose a different category before making this post public.</string>
+    <string name="error_no_camera">Uh oh&#8230; It looks like we can\'t access your camera.</string>
+    <string name="error_flash_unsupported">This camera mode does not support the flash feature.</string>
+    <string name="error_camera_mode_unsupported">This phone does not support switching camera modes.</string>
+    <string name="error_hdr_mode_unsupported">HDR images are currently unsupported.</string>
+    <string name="error_grid_mode_unsupported">Camera grid view is currently unsupported.</string>
+    <string name="error_timer_mode_unsupported">Camera timers are currently unsupported.</string>
+
+    <string name="explore_latest">Latest</string>
+    <string name="explore_popular">Popular</string>
+    <string name="explore_featured">Featured</string>
 </resources>
