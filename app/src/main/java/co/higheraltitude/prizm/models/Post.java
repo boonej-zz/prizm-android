@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
+import co.higheraltitude.prizm.fragments.SearchResultsFragment;
 import co.higheraltitude.prizm.network.PrizmAPIService;
 import retrofit.http.GET;
 
@@ -37,7 +38,9 @@ public class Post implements Parcelable{
     private static final String POST_SINGLE_FORMAT = "/posts/%s?requestor=%s";
     private static final String POST_PROFILE_FORMAT = "/users/%s/posts?requestor=%s";
     private static final String HASH_TAG_REQUEST_FORMAT = "/hashtags?filter=%s&format=tags_only&limit=5";
-    private static final String EXPLORE_FORMAT = "/posts?requestor=%s&limit=15";
+    private static final String HASH_TAG_COUNTS_FORMAT = "/hashtags/?filter=%s&format=counts&limit=15&skip=%s";
+    private static final String EXPLORE_FORMAT = "/posts?requestor=%s&limit=21";
+    private static final String BARE_POSTS_FORMAT = "/posts/%s";
 
     public static final String CATEGORY_ASPIRATION = "aspiration";
     public static final String CATEGORY_PASSION = "passion";
@@ -72,6 +75,7 @@ public class Post implements Parcelable{
     public boolean isLiked;
     public String creatorName;
     public boolean ownPost;
+    public String scope;
 
     private static HashMap<String, String> map() {
         HashMap<String, String> map = new HashMap<String, String>(){{
@@ -94,6 +98,7 @@ public class Post implements Parcelable{
             put("creator_name", "creatorName");
             put("is_liked", "isLiked");
             put("own_post", "ownPost");
+            put("scope", "scope");
         }};
         return map;
     }
@@ -297,10 +302,33 @@ public class Post implements Parcelable{
     public static void searchHashtags(String searchText,
                                       final PrizmDiskCache.CacheRequestDelegate delegate) {
 
-        String path = String.format(HASH_TAG_REQUEST_FORMAT, searchText);
+        searchHashtags(searchText, false, 0, delegate);
+    }
+
+    public static void searchHashtags(String searchText, Boolean counts, int skip,
+                                      final PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = counts?String.format(HASH_TAG_COUNTS_FORMAT, searchText,
+                String.valueOf(skip)):
+                String.format(HASH_TAG_REQUEST_FORMAT, searchText);
+
         MultiValueMap<String, String> data = new LinkedMultiValueMap<>();
         PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
-        cache.performCachedRequest(path, data, HttpMethod.GET, new PrizmTagDelegate(delegate));
+        cache.performCachedRequest(path, data, HttpMethod.GET, new PrizmTagDelegate(counts, delegate));
+    }
+
+    public static void updatePost(String id, MultiValueMap<String, String> parameters,
+                                  Handler handler) {
+        String path = String.format(BARE_POSTS_FORMAT, id);
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, parameters, HttpMethod.PUT,
+                handler, true);
+    }
+
+    public static void deletePost(String id,
+                                  Handler handler) {
+        String path = String.format(BARE_POSTS_FORMAT, id);
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
+        PrizmAPIService.getInstance().performAuthorizedRequest(path, parameters, HttpMethod.PUT,
+                handler, true);
     }
 
     public static void getExplore(@Nullable String mode, @Nullable String before,
@@ -316,9 +344,10 @@ public class Post implements Parcelable{
         if (after != null) {
             path = String.format("%s&after=%s", path, after);
         }
-        if (after != null) {
-            path = String.format("%s&tag=%s", path, tag);
+        if (tag != null) {
+            path = String.format("%s&hashtag=%s", path, tag);
         }
+
 
         PrizmDiskCache.getInstance(null).performCachedRequest(path,
                 new LinkedMultiValueMap<String, String>(), HttpMethod.GET,
@@ -328,19 +357,29 @@ public class Post implements Parcelable{
     private static class PrizmTagDelegate implements PrizmDiskCache.CacheRequestDelegate {
 
         private PrizmDiskCache.CacheRequestDelegate mDelegate;
+        private Boolean mCounts;
 
-        public PrizmTagDelegate(PrizmDiskCache.CacheRequestDelegate delegate) {
+        public PrizmTagDelegate(boolean counts, PrizmDiskCache.CacheRequestDelegate delegate) {
             mDelegate = delegate;
+            mCounts = counts;
         }
 
         @Override
         public void cached(String path, Object data) {
-            mDelegate.cached(path, process(data));
+            if (mCounts) {
+                mDelegate.cached(path, processCounts(data));
+            } else {
+                mDelegate.cached(path, process(data));
+            }
         }
 
         @Override
         public void cacheUpdated(String path, Object data) {
-            mDelegate.cacheUpdated(path, process(data));
+            if (mCounts) {
+                mDelegate.cacheUpdated(path, processCounts(data));
+            } else {
+                mDelegate.cacheUpdated(path, process(data));
+            }
         }
 
         private ArrayList<String> process(Object object) {
@@ -351,6 +390,25 @@ public class Post implements Parcelable{
                     try {
                         String tag = arr.getString(i);
                         data.add(tag);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            return data;
+        }
+
+        private ArrayList<Map<String, String>> processCounts(Object object) {
+            ArrayList<Map<String, String>> data = new ArrayList<>();
+            if (object instanceof JSONArray) {
+                JSONArray arr = (JSONArray)object;
+                for (int i = 0; i != arr.length(); ++i) {
+                    try {
+                        JSONObject tag = arr.getJSONObject(i);
+                        HashMap<String, String> map = new HashMap<>();
+                        map.put("tag", "#" + tag.getString("tag"));
+                        map.put("count", String.valueOf(tag.getInt("count")));
+                        data.add(map);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }

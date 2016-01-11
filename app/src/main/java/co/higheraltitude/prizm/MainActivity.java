@@ -34,6 +34,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -69,6 +70,7 @@ import co.higheraltitude.prizm.fragments.InsightFragment;
 import co.higheraltitude.prizm.fragments.MessageGroupFragment;
 import co.higheraltitude.prizm.fragments.SurveyFragment;
 import co.higheraltitude.prizm.helpers.ImageHelper;
+import co.higheraltitude.prizm.helpers.MixpanelHelper;
 import co.higheraltitude.prizm.listeners.MenuClickListener;
 import co.higheraltitude.prizm.messaging.RegistrationIntentService;
 import co.higheraltitude.prizm.models.Peep;
@@ -112,6 +114,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Toolbar mToolbar;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private View mActivityButton;
+    private ImageButton mSearchButton;
     private ActionBarDrawerToggle mDrawerToggle;
     private TextView mActivityCountBadge;
     private HomeFeedFragment mHomeFeedFragment;
@@ -137,12 +140,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         DID_START = false;
         buildGoogleApiClient();
         mGoogleApiClient.connect();
+
         ImageHelper.registerContext(getApplicationContext());
         TwitterAuthConfig authConfig = new TwitterAuthConfig(TWITTER_KEY, TWITTER_SECRET);
         FacebookSdk.sdkInitialize(getApplicationContext());
         Fabric.with(this, new Twitter(authConfig), new Crashlytics());
 //        Fabric.with(this, new Twitter(authConfig));
         configureReceiver();
+        MixpanelHelper.initialize(getApplicationContext());
+
 
         isPremium = false;
         if (User.getCurrentUser() != null) {
@@ -193,7 +199,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void setTotalMessageCount(int count) {
         if (mNavigationList != null) {
             MenuItemView v = (MenuItemView) mNavigationList.getChildAt(4);
-            v.setBadgeCount(count);
+            if (v != null) {
+                v.setBadgeCount(count);
+            }
             if (count > 0) {
                 mToolbar.setNavigationIcon(R.drawable.menu_pending);
             } else {
@@ -285,6 +293,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mToolbar = (Toolbar)findViewById(R.id.profile_nav_bar);
         setSupportActionBar(mToolbar);
         mActivityButton = findViewById(R.id.activity_button);
+        mSearchButton = (ImageButton)findViewById(R.id.action_search_button);
+        mSearchButton.setVisibility(View.GONE);
         mToolbar.setNavigationIcon(R.drawable.menu);
 //        mToolbar.setNavigationOnClickListener(new MenuClickListener(mDrawerLayout));
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.drawer_open,
@@ -303,6 +313,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), NotificationFeedActivity.class);
+                startActivity(intent);
+            }
+        });
+        mSearchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
                 startActivity(intent);
             }
         });
@@ -354,6 +371,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             mActivityButton.setVisibility(View.VISIBLE);
         } else {
             mActivityButton.setVisibility(View.GONE);
+        }
+        if (position == 1) {
+            mSearchButton.setVisibility(View.VISIBLE);
+        } else {
+            mSearchButton.setVisibility(View.GONE);
         }
         if (isPremium && position < 7) {
             ((MenuItemAdapter)parent.getAdapter()).setSelectedItem(position);
@@ -604,7 +626,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public class NavigationPager extends FragmentPagerAdapter {
 
-        final int PAGE_COUNT = isPremium?6:4;
+        final int PAGE_COUNT = isPremium?7:4;
 
         private Context context;
 
@@ -622,39 +644,46 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         public Fragment getItem(int position) {
             mNavigationList.setOnScrollListener(null);
             Fragment fragment = null;
-            if (position == 0) {
-                fragment = new HomeFeedFragment();
-                mHomeFeedFragment = (HomeFeedFragment)fragment;
-            } else if (position == 1) {
-                fragment = new ExploreFragment();
-            } else if (position == 2) {
-                fragment = new InsightFragment();
-            } else if (position == 3) {
-                fragment = new GraphFragment();
-            } else if (position == 4) {
-                if (mMessageFragment == null) {
-                    fragment = new MessageGroupFragment();
-                    Bundle args = new Bundle();
-                    User u = User.getCurrentUser();
-                    args.putParcelable("user", u);
-                    fragment.setArguments(args);
+            switch (position) {
+                case 0: {
+                    fragment = new HomeFeedFragment();
+                    mHomeFeedFragment = (HomeFeedFragment) fragment;
+                    break;
                 }
-            } else if (position == 5) {
-                fragment = new SurveyFragment();
+                case 1:
+                    fragment = new ExploreFragment();
+                    break;
+                case 2:
+                    fragment = new InsightFragment();
+                    break;
+                case 3:
+                    fragment = new GraphFragment();
+                    break;
+                case 4:
+                {
+                    if (mMessageFragment == null) {
+                        fragment = new MessageGroupFragment();
+                        Bundle args = new Bundle();
+                        User u = User.getCurrentUser();
+                        args.putParcelable("user", u);
+                        fragment.setArguments(args);
+                    } else {
+                        fragment = mMessageFragment;
+                    }
+                    break;
+                }
+                case 5:
+                    fragment = new SurveyFragment();
+                    break;
+                case 6:
+                    fragment = new GraphFragment();
+                    break;
+                default:
+                    break;
             }
 
             return fragment;
         }
-
-
-
-
-
-
-//        @Override
-//        public CharSequence getPageTitle(int position) {
-//            return titles[position];
-//        }
 
     }
 

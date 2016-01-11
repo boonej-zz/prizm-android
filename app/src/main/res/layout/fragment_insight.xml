@@ -3,38 +3,28 @@
     android:layout_height="match_parent"
     tools:context="co.higheraltitude.prizm.fragments.InsightFragment"
     android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/prizm_dominant_background">
 
-    <RelativeLayout
-        android:layout_marginTop="91.3dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_width="286dp"
-        android:layout_height="148.7dp"
-        android:layout_centerInParent="true"
-        android:background="@drawable/email_field_copy_4">
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="26.7dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-light"
-                android:textSize="24sp"
-                android:width="154.7dp"
-                android:text="FEATURE\n Coming Soon!"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="2dp"
-                />
-            <ImageView
-                android:layout_width="73.7dp"
-                android:layout_height="69.3dp"
-                android:layout_marginLeft="13.7dp"
-                android:src="@drawable/services"/>
-        </LinearLayout>
+    <android.support.design.widget.TabLayout
+        android:background="@color/white"
+        app:tabIndicatorColor="@color/cool_blue"
+        app:tabIndicatorHeight="4dp"
+        android:id="@+id/explore_tabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="4dp"
+        style="@style/PrizmRegistrationTab"
+
+        />
 
 
-    </RelativeLayout>
+    <android.support.v4.view.ViewPager
+        android:id="@+id/explore_pager"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+
+        />
+
 
 </LinearLayout>

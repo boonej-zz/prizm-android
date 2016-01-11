@@ -443,10 +443,12 @@ public class PrizmDiskCache {
         public static String SHA1(String text) {
             String encoded = text;
             try {
-                MessageDigest md = MessageDigest.getInstance("SHA-1");
-                md.update(text.getBytes("iso-8859-1"), 0, text.length());
-                byte[] sha1hash = md.digest();
-                encoded = convertToHex(sha1hash);
+                if (text != null) {
+                    MessageDigest md = MessageDigest.getInstance("SHA-1");
+                    md.update(text.getBytes("iso-8859-1"), 0, text.length());
+                    byte[] sha1hash = md.digest();
+                    encoded = convertToHex(sha1hash);
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

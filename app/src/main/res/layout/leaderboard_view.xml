@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<co.higheraltitude.prizm.views.LeaderboardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+    <LinearLayout android:layout_height="56dp" android:layout_width="fill_parent"
+        android:background="@android:color/white"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/position_label"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:background="@drawable/circle_1_dp"
+            android:layout_gravity="center_vertical"
+            android:gravity="center"
+            android:layout_marginLeft="18.3dp"
+            android:textSize="16.7dp"
+            android:textColor="@color/brownish_grey"
+            android:text="1"/>
+        <ImageView
+            android:id="@+id/user_avatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="15.7dp"
+            android:src="@drawable/user_missing_avatar"
+            android:scaleType="fitCenter"
+            />
+        <TextView
+            android:id="@+id/user_name"
+            android:layout_width="0dp"
+            android:singleLine="true"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="5.7dp"
+            android:textSize="16.7sp"
+            android:ellipsize="end"
+            android:textColor="@color/brownish_grey" />
+        <ImageView
+            android:id="@+id/reward_icon"
+            android:layout_width="27dp"
+            android:layout_height="24.7dp"
+            android:layout_gravity="right|center_vertical"
+            android:layout_marginRight="8.7dp"
+            android:src="@drawable/reward"/>
+        <TextView
+            android:id="@+id/points_label"
+            android:layout_width="68.3dp"
+            android:layout_marginRight="8dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right|center_vertical"
+            android:textSize="16.7dp"
+            android:textColor="@color/brownish_grey"
+            android:text="185 Pts"
+
+            />
+    </LinearLayout>
+
+</co.higheraltitude.prizm.views.LeaderboardView>

@@ -16,6 +16,18 @@
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             android:elevation="6dp"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
+            <ImageButton
+                android:id="@+id/action_search_button"
+                android:layout_height="fill_parent"
+                android:visibility="gone"
+                android:layout_width="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:textAllCaps="false"
+                android:layout_gravity="right|center_vertical"
+                android:src="@drawable/search_icon"
+                android:scaleType="center"
+                android:layout_marginRight="5.7dp"
+                />
             <RelativeLayout
                 android:id="@+id/activity_button"
                 android:layout_width="72dp"

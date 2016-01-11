@@ -47,6 +47,7 @@ import co.higheraltitude.prizm.MainActivity;
 import co.higheraltitude.prizm.R;
 import co.higheraltitude.prizm.cache.PrizmCache;
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
+import co.higheraltitude.prizm.helpers.MixpanelHelper;
 import co.higheraltitude.prizm.network.PrizmAPIService;
 import retrofit.http.POST;
 
@@ -109,10 +110,13 @@ public class User implements Parcelable {
     private static final String USER_FOLLOWING_FORMAT = "/users/%s/following?requestor=%s";
     private static final String USER_FOLLOWERS_FORMAT = "/users/%s/followers?requestor=%s";
     private static final String FOLLOW_USER_FORMAT = "/users/%s/followers";
+    private static final String SEARCH_USER_FORMAT = "/users?search=%s&limit=15";
 
     public static String ROLE_LEADER = "leader";
     public static String ROLE_OWNER = "owner";
     public static String ROLE_AMBASSADOR = "ambassador";
+
+    private static Boolean mRegisteredUser = false;
 
     public User() {
 
@@ -363,6 +367,31 @@ public class User implements Parcelable {
         return cache.readInt("theme");
     }
 
+    public Map<String, Object> getMixpanelProperties() {
+        HashMap<String, Object> map = new HashMap<>();
+        if (name != null)
+            map.put("$name", name);
+        if (firstName != null)
+            map.put("$first_name", firstName);
+        if (lastName != null)
+            map.put("$last_name", lastName);
+        if (email != null)
+            map.put("$email", email);
+        if (birthday != null)
+            map.put("Birthday", birthday);
+        if (gender != null)
+            map.put("Gender", gender);
+        if (city != null)
+            map.put("Origin", city);
+        if (state != null)
+            map.put("State", state);
+        if (zipPostal != null)
+            map.put("Zip", zipPostal);
+        map.put("Total Posts", postsCount);
+
+        return map;
+    }
+
     public static User getCurrentUser() {
         PrizmDiskCache cache = PrizmDiskCache.getInstance(null);
         User user = null;
@@ -377,6 +406,10 @@ public class User implements Parcelable {
         }
         if (user != null && user.theme != null) {
             setTheme(user);
+        }
+        if (user != null) {
+            MixpanelHelper.getTracker().identify(user.uniqueID);
+            MixpanelHelper.getTracker().registerSuperPropertiesMap(user.getMixpanelProperties());
         }
 
         return user;
@@ -595,6 +628,16 @@ public class User implements Parcelable {
         cache.performCachedRequest(PRIZM_USER_ENDPOINT + '/' + user.uniqueID + "?requestor="
                         + getCurrentUser().uniqueID, post, HttpMethod.GET,
                 new UserCoreDelegate(delegate));
+    }
+
+    public static void searchUsers(String text, int count, final PrizmDiskCache.CacheRequestDelegate delegate) {
+        String path = String.format(SEARCH_USER_FORMAT, text);
+        if (count > 0) {
+            path = path + "?skip=" + String.valueOf(count);
+        }
+        MultiValueMap<String, String> post = new LinkedMultiValueMap<>();
+        PrizmDiskCache.getInstance(null).performCachedRequest(path, post, HttpMethod.GET,
+                new UserListDelegate(delegate));
     }
 
     private static class UserCoreDelegate implements PrizmDiskCache.CacheRequestDelegate {

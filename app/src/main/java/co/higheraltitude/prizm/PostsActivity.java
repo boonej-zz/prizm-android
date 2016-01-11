@@ -2,6 +2,8 @@ package co.higheraltitude.prizm;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -12,8 +14,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,24 +27,40 @@ import co.higheraltitude.prizm.cache.PrizmDiskCache;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.models.Post;
 import co.higheraltitude.prizm.models.User;
+import co.higheraltitude.prizm.views.HomePostView;
 import co.higheraltitude.prizm.views.SingleGridImageView;
 import co.higheraltitude.prizm.views.TriPostView;
 
 public class PostsActivity extends AppCompatActivity
-        implements SingleGridImageView.SingleGridDelegate{
+        implements SingleGridImageView.SingleGridDelegate,
+        HomePostView.HomePostViewDelegate
+{
 
     public static final String EXTRA_USER = "extra_user";
+    public static final String EXTRA_HASHTAG = "extra_hashtag";
+    public static final String EXTRA_COUNT = "extra_count";
     private boolean isUpdating = false;
+    private String mHashtag;
 
     private User mUser;
 
     private ImageButton mPrivateFilterButton;
-    private GridView mListView;
+    private GridView mGridView;
+    private ListView mListView;
     private ProgressBar mProgressBar;
 
     private PostAdapter mAdapter;
     private int lastVisibleItem;
     private boolean scrollingDown;
+
+    private View mFilterToolbar;
+    private View mHashtagToolbar;
+    private Boolean displayingCards = false;
+    private ImageButton mCloseButton;
+    private TextView mCountLabel;
+    private String mCount;
+    private ImageView mCardButton;
+    private ImageView mGridButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +76,8 @@ public class PostsActivity extends AppCompatActivity
     private void loadIntentData() {
         Intent intent = getIntent();
         mUser = intent.getParcelableExtra(EXTRA_USER);
+        mHashtag = intent.getStringExtra(EXTRA_HASHTAG);
+        mCount = intent.getStringExtra(EXTRA_COUNT);
     }
 
     private void configureToolbar() {
@@ -64,15 +86,35 @@ public class PostsActivity extends AppCompatActivity
         setSupportActionBar(actionBar);
         actionBar.setNavigationIcon(R.drawable.backarrow_icon);
         actionBar.setNavigationOnClickListener(new BackClickListener(this));
-        setTitle(mUser.name);
+        if (mUser != null) {
+            setTitle(mUser.name);
+        } else if (mHashtag != null) {
+            setTitle("#" + mHashtag);
+            mCloseButton = (ImageButton)findViewById(R.id.action_close_button);
+            mCloseButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setResult(RESULT_CANCELED);
+                    finish();
+                }
+            });
+            mCloseButton.setVisibility(View.VISIBLE);
+
+        }
     }
 
     private void configureViews() {
         mPrivateFilterButton = (ImageButton)findViewById(R.id.private_filter_button);
-        mListView = (GridView)findViewById(R.id.list_view);
+        mGridView = (GridView)findViewById(R.id.grid_view);
+        mListView = (ListView)findViewById(R.id.list_view);
+        mListView.setVisibility(View.GONE);
         mAdapter = new PostAdapter(getApplicationContext(), new ArrayList<Post>());
+        mGridView.setAdapter(mAdapter);
         mListView.setAdapter(mAdapter);
         mProgressBar = (ProgressBar)findViewById(R.id.progress_bar);
+        mFilterToolbar = findViewById(R.id.filter_toolbar);
+        mHashtagToolbar = findViewById(R.id.hashtag_toolbar);
+        mCountLabel =(TextView)findViewById(R.id.count_view);
         mListView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -90,17 +132,32 @@ public class PostsActivity extends AppCompatActivity
                 }
             }
         });
+        if (mUser != null) {
+            mHashtagToolbar.setVisibility(View.GONE);
+        } else if (mHashtag != null) {
+            mFilterToolbar.setVisibility(View.GONE);
+            mCountLabel.setText(mCount);
+        }
+        mCardButton = (ImageView)findViewById(R.id.full_button);
+        mGridButton = (ImageView)findViewById(R.id.grid_button);
     }
 
     public void loadPosts() {
         ArrayList<String> filters = new ArrayList<String>();
-        if (mUser.isCurrentUser()) {
-            mPrivateFilterButton.setVisibility(View.VISIBLE);
-        }
-        mAdapter.setFilters(filters);
         showProgressBar();
         isUpdating = true;
-        Post.fetchProfileFeed(mUser.uniqueID, null, null, new PostDelegate());
+        if (mUser != null) {
+
+            if (mUser.isCurrentUser()) {
+                mPrivateFilterButton.setVisibility(View.VISIBLE);
+            }
+            mAdapter.setFilters(filters);
+
+            Post.fetchProfileFeed(mUser.uniqueID, null, null, new PostDelegate());
+        } else if (mHashtag != null) {
+            mAdapter.setFilters(filters);
+            Post.getExplore("latest", null, null, mHashtag, new PostDelegate());
+        }
     }
 
     private void fetchOlderPosts()
@@ -113,7 +170,11 @@ public class PostsActivity extends AppCompatActivity
             }
             isUpdating = true;
             showProgressBar();
-            Post.fetchProfileFeed(mUser.uniqueID, date, null,  new PostDelegate());
+            if (mUser != null) {
+                Post.fetchProfileFeed(mUser.uniqueID, date, null, new PostDelegate());
+            } else {
+                Post.getExplore("latest", date, null, mHashtag, new PostDelegate());
+            }
         }
     }
 
@@ -155,6 +216,50 @@ public class PostsActivity extends AppCompatActivity
     public void privateButtonClicked(View view) {
         view.setSelected(!view.isSelected());
         mAdapter.toggleFilter(Post.CATEGORY_PRIVATE);
+    }
+
+    public void gridButtonClicked(View view) {
+        displayingCards = false;
+        mListView.setVisibility(View.GONE);
+
+        mAdapter.notifyDataSetInvalidated();
+        mGridView.setVisibility(View.VISIBLE);
+        mGridButton.setImageResource(R.drawable.grid_view_selected);
+        mCardButton.setImageResource(R.drawable.full_view);
+    }
+
+    public void cardButtonClicked(View view) {
+        displayingCards = true;
+        mGridView.setVisibility(View.GONE);
+        mAdapter.notifyDataSetInvalidated();
+        mListView.setVisibility(View.VISIBLE);
+        mGridButton.setImageResource(R.drawable.grid_view);
+        mCardButton.setImageResource(R.drawable.full_view_selected);
+
+    }
+
+    @Override
+    public void postImageClicked(Post post) {
+        Intent intent = new Intent(getApplicationContext(), FullBleedPostActivity.class);
+        intent.putExtra(FullBleedPostActivity.EXTRA_POST, post);
+
+        startActivity(intent);
+    }
+
+
+    @Override
+    public void likeButtonClicked(Post post) {
+        if (post.ownPost) {
+            Intent intent = new Intent(getApplicationContext(), LikesActivity.class);
+            intent.putExtra(LikesActivity.EXTRA_POST, post);
+            startActivity(intent);
+        } else {
+            if (post.isLiked) {
+                Post.unlikePost(post, new LikeHandler(mAdapter, mAdapter.getPosition(post)));
+            } else {
+                Post.likePost(post, new LikeHandler(mAdapter, mAdapter.getPosition(post)));
+            }
+        }
     }
 
     private class PostAdapter extends ArrayAdapter<Post> {
@@ -224,6 +329,8 @@ public class PostsActivity extends AppCompatActivity
             return mFilter;
         }
 
+
+
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             View returnView = convertView;
@@ -237,19 +344,33 @@ public class PostsActivity extends AppCompatActivity
 //            for (int i = start; i != stop; ++i) {
 //                items.add(getItem(i));
 //            }
-            SingleGridImageView itemView = null;
-            if (convertView != null && convertView instanceof SingleGridImageView) {
-                itemView = (SingleGridImageView) convertView;
+            if (displayingCards) {
+                Post post = getItem(position);
+                HomePostView itemView = null;
+                if (convertView != null && convertView instanceof HomePostView) {
+                    itemView = (HomePostView) convertView;
+                } else {
+                    itemView = HomePostView.inflate(parent);
+                }
+                itemView.setPost(post);
+                itemView.setDelegate(PostsActivity.this);
+                returnView =  itemView;
 
             } else {
-                itemView = SingleGridImageView.inflate(parent);
-            }
-            itemView.setPost(getItem(position));
-            itemView.setDelegate(PostsActivity.this);
+                SingleGridImageView itemView = null;
+                if (convertView != null && convertView instanceof SingleGridImageView) {
+                    itemView = (SingleGridImageView) convertView;
+
+                } else {
+                    itemView = SingleGridImageView.inflate(parent);
+                }
+                itemView.setPost(getItem(position));
+                itemView.setDelegate(PostsActivity.this);
 //            itemView.setDelegate(PostsActivity.this);
 
 
-            returnView =  itemView;
+                returnView = itemView;
+            }
 
             return returnView;
         }
@@ -282,7 +403,7 @@ public class PostsActivity extends AppCompatActivity
             }
 
             protected boolean testFilters(Post post) {
-                if (!post.creatorId.equals(mUser.uniqueID)) {
+                if (mUser != null && !post.creatorId.equals(mUser.uniqueID)) {
                     return false;
                 } else {
                     if (mFilters.size() == 0) {
@@ -326,6 +447,18 @@ public class PostsActivity extends AppCompatActivity
         startActivity(intent);
     }
 
+    @Override
+    public void avatarButtonClicked(Post post) {
+        User user = new User();
+        user.uniqueID = post.creatorId;
+        user.profilePhotoURL = post.creatorProfilePhotoUrl;
+        user.type = post.creatorType;
+        user.subtype = post.creatorSubtype;
+        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+        intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
+        startActivity(intent);
+    }
+
     private class PostDelegate implements PrizmDiskCache.CacheRequestDelegate {
         @Override
         public void cached(String path, Object object) {
@@ -362,6 +495,25 @@ public class PostsActivity extends AppCompatActivity
             }
             mAdapter.notifyDataSetChanged();
             hideProgressBar();
+        }
+    }
+
+    private static class LikeHandler extends Handler
+    {
+        private PostAdapter mAdapter;
+        private int mPosition;
+        public LikeHandler(PostAdapter adapter, int position) {
+            mAdapter = adapter;
+            mPosition = position;
+        }
+        @Override
+        public void handleMessage(Message message) {
+            if (message.obj != null && message.obj instanceof  Post) {
+                Post p = (Post)message.obj;
+                Post o = mAdapter.getItem(mPosition);
+                mAdapter.remove(o);
+                mAdapter.insert(p, mPosition);
+            }
         }
     }
 }

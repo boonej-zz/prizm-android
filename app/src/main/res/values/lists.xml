@@ -90,4 +90,14 @@
         <item>Gallery</item>
     </string-array>
 
+    <string-array name="search_types">
+        <item>Users</item>
+        <item>Hashtags</item>
+    </string-array>
+
+    <string-array name="insight_pages">
+        <item>Inbox</item>
+        <item>Archive</item>
+    </string-array>
+
 </resources>

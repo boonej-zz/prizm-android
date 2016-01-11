@@ -14,6 +14,7 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
+import co.higheraltitude.prizm.FullBleedInsight;
 import co.higheraltitude.prizm.FullBleedPostActivity;
 import co.higheraltitude.prizm.LoginActivity;
 import co.higheraltitude.prizm.NotificationFeedActivity;
@@ -164,6 +165,10 @@ public class ActivitiesFragment extends Fragment implements AdapterView.OnItemCl
                 intent.putExtra(ReadMessagesActivity.EXTRA_GROUP, group);
             }
 
+        }
+        if (activity.insightId != null) {
+            intent = new Intent(getContext(), FullBleedInsight.class);
+            intent.putExtra(FullBleedInsight.EXTRA_INSIGHT_ID, activity.insightId);
         }
         if (intent != null) {
             getActivity().startActivity(intent);

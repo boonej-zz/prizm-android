@@ -27,6 +27,8 @@
     <string name="action_trust">Request Trust</string>
     <string name="action_trusted">Trusted</string>
     <string name="action_my_trust">Trust</string>
+    <string name="action_delete_post">Delete Post</string>
+    <string name="action_edit_post_text">Edit Post Text</string>
 
     <string name="label_group_name">Group Name</string>
     <string name="label_group_leader">Group Leader</string>
@@ -116,4 +118,16 @@
     <string name="explore_latest">Latest</string>
     <string name="explore_popular">Popular</string>
     <string name="explore_featured">Featured</string>
+    <string name="mixpanel_token">831cd11c7aedb1175765d2a9583c5cff</string>
+    <string name="activity_insight">Insight</string>
+
+    <string name="visibility_public">Public</string>
+    <string name="visibility_trust">Trust</string>
+    <string name="visibility_private">Private</string>
+
+    <string name="message_tag">Use # to add a tag and @ to add a person</string>
+    <string name="label_rank">Rank</string>
+    <string name="label_points">Points</string>
+    <string name="label_surveys">Surveys</string>
+    <string name="label_leaderboard">Leaderboard</string>
 </resources>

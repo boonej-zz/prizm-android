@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_first="true">
+        <bitmap android:src="@drawable/reward_1_icon" />
+    </item>
+    <item android:state_first="false" android:state_selected="true">
+        <bitmap android:src="@drawable/reward_2_icon" />
+    </item>
+    <item android:state_first="false" android:state_selected="false">
+        <bitmap android:src="@drawable/reward_3_icon" />
+    </item>
+</selector>

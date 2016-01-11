@@ -282,6 +282,24 @@
             android:screenOrientation="portrait"
             android:theme="@style/FullscreenTheme" >
         </activity>
+        <activity
+            android:name=".SearchActivity"
+            android:label="Search"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
+        <activity
+            android:name=".FullBleedInsight"
+            android:label="Insight"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
+        <activity
+            android:name=".EditPostTextActivity"
+            android:label="Edit Post"
+            android:screenOrientation="portrait"
+            android:theme="@style/PrizmBlue" >
+        </activity>
     </application>
 
 </manifest>

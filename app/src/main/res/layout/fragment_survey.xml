@@ -3,38 +3,180 @@
     android:layout_height="match_parent"
     tools:context="co.higheraltitude.prizm.fragments.SurveyFragment"
     android:orientation="vertical"
-    android:background="@color/prizm_dominant_background">
-
+    android:focusableInTouchMode="true"
+    android:focusable="true"
+    android:background="@android:color/white">
     <RelativeLayout
-        android:layout_marginTop="91.3dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_width="286dp"
-        android:layout_height="148.7dp"
-        android:layout_centerInParent="true"
-        android:background="@drawable/email_field_copy_4">
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:fillViewport="true">
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="26.7dp">
-            <TextView
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+            <LinearLayout
+                android:layout_gravity="center_horizontal"
                 android:layout_width="wrap_content"
+                android:background="@android:color/white"
+                android:layout_height="56dp">
+                <ImageView
+                    android:id="@+id/avatar_view"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:scaleType="centerInside"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/user_missing_avatar"
+                    />
+                <TextView
+                    android:id="@+id/user_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="16.7dp"
+                    android:textColor="@color/brownish_grey"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginLeft="10dp"
+
+                    />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-light"
-                android:textSize="24sp"
-                android:width="154.7dp"
-                android:text="FEATURE\n Coming Soon!"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="2dp"
+                android:background="@color/pale_grey"
+
+                android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="74dp"
+                    android:layout_marginLeft="19.7dp"
+                    android:layout_marginRight="22dp"
+                    android:layout_marginTop="28.7dp"
+                    android:orientation="horizontal">
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/label_rank"
+                            android:fontFamily="sans-serif-light"
+                            android:textSize="16.7sp"
+                            android:textColor="@color/brownish_grey"
+                            android:layout_gravity="center_horizontal"/>
+                        <TextView
+                            android:id="@+id/rank_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:textSize="25sp"
+                            android:textColor="@color/light_purple"
+                            android:layout_gravity="center_horizontal"
+                            android:text="1st"
+                            />
+                    </LinearLayout>
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="fill_parent"
+                        android:background="@color/warm_grey" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-light"
+                            android:text="@string/label_points"
+                            android:textSize="16.7sp"
+                            android:textColor="@color/brownish_grey"
+                            android:layout_gravity="center_horizontal"/>
+                        <TextView
+                            android:id="@+id/points_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:textSize="25sp"
+                            android:textColor="@color/bright_green"
+                            android:layout_gravity="center_horizontal"
+                            android:text="0"
+                            />
+                    </LinearLayout>
+
+                </LinearLayout>
+                <View
+                    android:layout_marginTop="12.3dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginLeft="19.7dp"
+                    android:layout_marginRight="22dp"
+                    android:background="@color/warm_grey"
+                    />
+                <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12.3dp"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-light"
+                        android:textSize="16.7sp"
+                        android:textColor="@color/brownish_grey"
+                        android:text="@string/label_surveys"
+                        android:layout_gravity="center_horizontal"
+                        />
+                    <TextView
+                        android:id="@+id/survey_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableLeft="@drawable/icon_survey"
+                        android:drawablePadding="8dp"
+                        android:textSize="21.3sp"
+                        android:textColor="@color/warm_grey"
+                        android:gravity="center_vertical"
+                        android:text="1"
+                        android:layout_gravity="center_horizontal"
+                        />
+
+                </LinearLayout>
+
+            </LinearLayout>
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="56dp"
+                android:gravity="center"
+                android:background="@color/white_grey"
+                android:textColor="@color/brownish_grey"
+                android:textSize="16.7sp"
+                android:text="@string/label_leaderboard"
                 />
-            <ImageView
-                android:layout_width="73.7dp"
-                android:layout_height="69.3dp"
-                android:layout_marginLeft="13.7dp"
-                android:src="@drawable/services"/>
+
+            <ListView
+                android:id="@+id/leaderboard"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:transcriptMode="normal"
+                />
         </LinearLayout>
-
-
+    </ScrollView>
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_marginTop="0dp"
+            android:layout_width="fill_parent"
+            android:layout_height="5dp"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:indeterminateDrawable="@drawable/progress_bar"
+            android:indeterminateDuration="800"
+            android:indeterminate="true" />
     </RelativeLayout>
 
 </LinearLayout>

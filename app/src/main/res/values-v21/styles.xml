@@ -59,7 +59,7 @@
         <item name="android:colorPrimary">@color/dusk_blue</item>
         <item name="android:colorPrimaryDark">@color/prizm_blue_dark</item>
         <item name="colorAccent">@android:color/white</item>
-        <item name="android:colorAccent">@android:color/white</item>
+        <item name="android:colorAccent">@color/cool_blue</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
@@ -74,7 +74,7 @@
         <item name="colorPrimaryDark">@color/grape_purple</item>
         <item name="android:colorPrimary">@color/grape</item>
         <item name="android:colorPrimaryDark">@color/grape_purple</item>
-        <item name="colorAccent">@android:color/white</item>
+        <item name="colorAccent">@color/cool_blue</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
@@ -87,7 +87,7 @@
         <item name="colorPrimaryDark">@color/evergreen</item>
         <item name="android:colorPrimary">@color/dark_turquoise</item>
         <item name="android:colorPrimaryDark">@color/evergreen</item>
-        <item name="colorAccent">@android:color/white</item>
+        <item name="colorAccent">@color/cool_blue</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
@@ -100,7 +100,7 @@
         <item name="colorPrimaryDark">@color/darkish_purple</item>
         <item name="android:colorPrimary">@color/warm_purple</item>
         <item name="android:colorPrimaryDark">@color/darkish_purple</item>
-        <item name="colorAccent">@android:color/white</item>
+        <item name="colorAccent">@color/cool_blue</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
@@ -113,7 +113,7 @@
         <item name="colorPrimaryDark">@color/copper</item>
         <item name="android:colorPrimary">@color/dull_orange</item>
         <item name="android:colorPrimaryDark">@color/copper</item>
-        <item name="colorAccent">@android:color/white</item>
+        <item name="colorAccent">@color/cool_blue</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
@@ -126,7 +126,7 @@
         <item name="colorPrimaryDark">@color/charcoal_grey_dark</item>
         <item name="android:colorPrimary">@color/charcoal_grey</item>
         <item name="android:colorPrimaryDark">@color/charcoal_grey_dark</item>
-        <item name="colorAccent">@android:color/white</item>
+        <item name="colorAccent">@color/cool_blue</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
@@ -140,8 +140,8 @@
         <item name="colorPrimaryDark">@color/red_dark</item>
         <item name="android:colorPrimary">@color/red_primary</item>
         <item name="android:colorPrimaryDark">@color/red_dark</item>
-        <item name="colorAccent">@android:color/white</item>
-        <item name="android:colorAccent">@android:color/white</item>
+        <item name="colorAccent">@color/cool_blue</item>
+        <item name="android:colorAccent">@color/cool_blue</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>
@@ -155,8 +155,8 @@
         <item name="colorPrimaryDark">@color/fp_dark_blue</item>
         <item name="android:colorPrimary">@color/fp_light_blue</item>
         <item name="android:colorPrimaryDark">@color/fp_dark_blue</item>
-        <item name="colorAccent">@android:color/white</item>
-        <item name="android:colorAccent">@android:color/white</item>
+        <item name="colorAccent">@color/cool_blue</item>
+        <item name="android:colorAccent">@color/cool_blue</item>
         <item name="android:textColor">@color/prizm_light_navy</item>
         <item name="android:buttonStyle">@style/PrizmButtonBlue</item>
         <item name="android:popupMenuStyle">@style/PrizmPopupStyle</item>

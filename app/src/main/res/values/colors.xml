@@ -48,5 +48,8 @@
     <color name="fp_dark_blue">#54c0e5</color>
     <color name="warm_grey_20">#337C7C7C</color>
     <color name="black">#1b1b1b</color>
+    <color name="white_grey">#eeeeee</color>
+    <color name="bright_green">#3aaf4c</color>
+    <color name="light_purple">#c789ea</color>
 
 </resources>

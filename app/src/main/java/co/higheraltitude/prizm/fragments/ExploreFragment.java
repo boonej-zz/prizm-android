@@ -42,6 +42,7 @@ public class ExploreFragment extends Fragment {
     }
 
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -54,7 +55,7 @@ public class ExploreFragment extends Fragment {
     private void loadViews(View view) {
         TabLayout tabLayout = (TabLayout)view.findViewById(R.id.explore_tabs);
         ViewPager viewPager = (ViewPager)view.findViewById(R.id.explore_pager);
-        viewPager.setAdapter(new ExplorePager(getActivity().getSupportFragmentManager()));
+        viewPager.setAdapter(new ExplorePager(getChildFragmentManager()));
         tabLayout.setupWithViewPager(viewPager);
     }
 

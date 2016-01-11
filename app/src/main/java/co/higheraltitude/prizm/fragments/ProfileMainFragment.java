@@ -67,9 +67,9 @@ public class ProfileMainFragment extends Fragment {
 
     public void setUser(User user) {
         mUser = user;
-        if (mView != null) {
+        if (mView != null && mUser != null) {
             configureViews(mView);
-            if (mUser.role != null && user.role.equals("ambassador")) {
+            if (mUser.role != null && mUser.role.equals("ambassador")) {
                 mBadgeView.setImageResource(R.drawable.ambassador_badge);
             } else if (mUser.role != null && user.role.equals("leader")) {
                 mBadgeView.setImageResource(R.drawable.leader_badge);

@@ -1,0 +1,25 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="co.higheraltitude.prizm.fragments.InsightFeedFragment"
+    android:background="@color/prizm_dominant_background">
+
+    <ListView
+        android:id="@+id/list_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:background="@color/pale_grey"
+        android:divider="@android:color/transparent"
+       />
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_marginTop="0dp"
+        android:layout_width="fill_parent"
+        android:layout_height="5dp"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:indeterminateDrawable="@drawable/progress_bar"
+        android:indeterminateDuration="800"
+        android:indeterminate="true" />
+</RelativeLayout>

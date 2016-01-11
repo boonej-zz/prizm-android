@@ -4,6 +4,7 @@ import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -14,15 +15,19 @@ import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ClickableSpan;
+import android.util.TypedValue;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Filter;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ScrollView;
@@ -31,6 +36,8 @@ import android.widget.Toast;
 
 import net.sectorsieteg.avatars.AvatarDrawableFactory;
 
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
@@ -40,6 +47,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
+import co.higheraltitude.prizm.custom.ToggleButton;
 import co.higheraltitude.prizm.handlers.NonScrollListView;
 import co.higheraltitude.prizm.helpers.ImageHelper;
 import co.higheraltitude.prizm.listeners.BackClickListener;
@@ -73,6 +81,10 @@ public class FullBleedPostActivity extends AppCompatActivity
     private ImageView mCategoryImageView;
     private TextView mHashTagsTextView;
     private View mCommentButton;
+    private View mEditPostPane;
+    private ImageButton mEditPostButton;
+
+
     private PrizmDiskCache mCache;
     private TextView mPostTextCreator;
     private TextView mPostText;
@@ -84,9 +96,23 @@ public class FullBleedPostActivity extends AppCompatActivity
     private EditText mCreateCommentText;
     private UserTagAdapter mUserTagAdapter;
     private ListView mTagPickerList;
+    private ToggleButton mAspirationButton;
+    private ToggleButton mInspirationButton;
+    private ToggleButton mAchievementButton;
+    private ToggleButton mPassionButton;
+    private ToggleButton mExperienceButton;
+    private ToggleButton mPrivateButton;
+    private ToggleButton mTrustButton;
+    private ToggleButton mPublicButton;
+    private ToggleButton mPrivateSButton;
+
     private String mCurrentTag;
     private String mPostId;
     private String mPostTempImage;
+
+    private boolean mEditPostVisible = false;
+    private ArrayList<ToggleButton> mCategoryList;
+    private ArrayList<ToggleButton> mScopeList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,6 +204,9 @@ public class FullBleedPostActivity extends AppCompatActivity
         mScrollView = (ScrollView)findViewById(R.id.comments_scroll_view);
         mCreateCommentText = (EditText)findViewById(R.id.new_comment_text);
         mCreateCommentText.addTextChangedListener(new TagWatcher(mCreateCommentText, this));
+        mEditPostButton = (ImageButton)findViewById(R.id.edit_post_button);
+        mEditPostPane = findViewById(R.id.edit_pane);
+
         mCreateCommentText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -189,8 +218,33 @@ public class FullBleedPostActivity extends AppCompatActivity
                 return true;
             }
         });
+        if (mPost.ownPost) {
+           mEditPostButton.setVisibility(View.VISIBLE);
+        }
         mTagPickerList = (ListView)findViewById(R.id.tag_picker_list);
         mHashTagsTextView = (TextView)findViewById(R.id.hash_tag_view);
+        mAspirationButton = (ToggleButton)findViewById(R.id.aspiration_button);
+        mPassionButton = (ToggleButton)findViewById(R.id.passion_button);
+        mExperienceButton = (ToggleButton)findViewById(R.id.experience_button);
+        mAchievementButton = (ToggleButton)findViewById(R.id.achievement_button);
+        mInspirationButton = (ToggleButton)findViewById(R.id.inspiration_button);
+        mPrivateButton = (ToggleButton)findViewById(R.id.private_button);
+
+        mCategoryList = new ArrayList<>();
+        mCategoryList.add(mAspirationButton);
+        mCategoryList.add(mAchievementButton);
+        mCategoryList.add(mExperienceButton);
+        mCategoryList.add(mPassionButton);
+        mCategoryList.add(mInspirationButton);
+        mCategoryList.add(mPrivateButton);
+
+        mScopeList = new ArrayList<>();
+        mPublicButton = (ToggleButton)findViewById(R.id.public_scope_button);
+        mTrustButton = (ToggleButton)findViewById(R.id.trust_scope_button);
+        mPrivateSButton = (ToggleButton)findViewById(R.id.private_scope_button);
+        mScopeList.add(mPublicButton);
+        mScopeList.add(mTrustButton);
+        mScopeList.add(mPrivateSButton);
 
 
     }
@@ -233,6 +287,39 @@ public class FullBleedPostActivity extends AppCompatActivity
         } else {
             mLikesImageView.setImageResource(R.drawable.like_icon);
         }
+        switch (mPost.category) {
+            case Post.CATEGORY_ACHIEVEMENT:
+                mAchievementButton.setSelected(true);
+                break;
+            case Post.CATEGORY_ASPIRATION:
+                mAspirationButton.setSelected(true);
+                break;
+            case Post.CATEGORY_EXPERIENCE:
+                mExperienceButton.setSelected(true);
+                break;
+            case Post.CATEGORY_INSPIRATION:
+                mInspirationButton.setSelected(true);
+                break;
+            case Post.CATEGORY_PASSION:
+                mPassionButton.setSelected(true);
+                break;
+            case Post.CATEGORY_PRIVATE:
+                mPrivateButton.setSelected(true);
+                break;
+        }
+
+        if (mPost.scope != null) {
+            if (mPost.scope.equals("public")) {
+                mPublicButton.setSelected(true);
+                mPublicButton.setTextColor(getResources().getColor(R.color.cool_blue));
+            } else if (mPost.scope.equals("private")) {
+                mPrivateButton.setSelected(true);
+                mPrivateButton.setTextColor(getResources().getColor(R.color.cool_blue));
+            } else {
+                mTrustButton.setSelected(true);
+                mTrustButton.setTextColor(getResources().getColor(R.color.cool_blue));
+            }
+        }
         setPostText();
     }
 
@@ -248,6 +335,146 @@ public class FullBleedPostActivity extends AppCompatActivity
                 Post.likePost(mPost, new LikeHandler(this));
             }
         }
+    }
+
+    public void aspirationButtonClicked(View view) {
+        deselectAllCategories(view);
+        updateCategory(Post.CATEGORY_ASPIRATION);
+    }
+
+    public void passionButtonClicked(View view) {
+        deselectAllCategories(view);
+        updateCategory(Post.CATEGORY_PASSION);
+    }
+
+    public void experienceButtonClicked(View view) {
+        deselectAllCategories(view);
+        updateCategory(Post.CATEGORY_EXPERIENCE);
+    }
+
+    public void achievementButtonClicked(View view) {
+        deselectAllCategories(view);
+        updateCategory(Post.CATEGORY_ACHIEVEMENT);
+    }
+
+    public void inspirationButtonClicked(View view) {
+        deselectAllCategories(view);
+        updateCategory(Post.CATEGORY_INSPIRATION);
+    }
+
+    public void privateButtonClicked(View view) {
+        deselectAllCategories(view);
+        updateCategory(Post.CATEGORY_PRIVATE);
+    }
+
+    public void publicScopeClicked(View view) {
+        if (mPost.category.equals(Post.CATEGORY_PRIVATE)) {
+            Toast.makeText(getApplicationContext(), "Uh oh... you need to change the posts category " +
+                    "before you can make it public.", Toast.LENGTH_SHORT).show();
+        } else {
+            ((Button)view).setTextColor(getResources().getColor(R.color.cool_blue));
+            deselectAllScopes(view);
+            updateScope("public");
+        }
+    }
+
+    public void trustScopeClicked(View view) {
+        deselectAllScopes(view);
+        ((Button)view).setTextColor(getResources().getColor(R.color.cool_blue));
+        updateScope("trust");
+    }
+
+    public void privateScopeClicked(View view) {
+        ((Button)view).setTextColor(getResources().getColor(R.color.cool_blue));
+        deselectAllScopes(view);
+        updateScope("private");
+    }
+
+    public void deleteButtonClicked(View view) {
+        Post.deletePost(mPost.uniqueId, new DeletePostHandler(this));
+    }
+
+    public void editTextButtonClicked(View view) {
+        Intent intent = new Intent(getApplicationContext(), EditPostTextActivity.class);
+        intent.putExtra(EditPostTextActivity.EXTRA_POST, mPost);
+        startActivityForResult(intent, EditPostTextActivity.RESULT_EDIT_POST_TEXT);
+    }
+
+    private void deselectAllCategories(View view) {
+        for (ToggleButton button : mCategoryList) {
+            if (button != view) {
+                button.setSelected(false);
+            }
+        }
+    }
+
+    private void deselectAllScopes(View view) {
+        for (ToggleButton button : mScopeList) {
+            if (button != view) {
+                button.setSelected(false);
+                button.setTextColor(getResources().getColor(R.color.brownish_grey));
+            }
+        }
+    }
+
+    protected void updateCategory(String value) {
+        MultiValueMap<String, String>  params = new LinkedMultiValueMap<>();
+        params.add("category", value);
+        Post.updatePost(mPost.uniqueId, params, new Handler());
+    }
+
+    protected void updateScope(String value) {
+        MultiValueMap<String, String>  params = new LinkedMultiValueMap<>();
+        params.add("scope", value);
+        Post.updatePost(mPost.uniqueId, params, new Handler());
+    }
+
+    public void editPostClicked(View view) {
+        if (mEditPostVisible) {
+            Animation a = AnimationUtils.loadAnimation(
+                    getApplicationContext(), R.anim.slide_down_pane);
+            a.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    mEditPostPane.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            });
+            mEditPostPane.startAnimation(a);
+
+        } else {
+            Animation a = AnimationUtils.loadAnimation(
+                    getApplicationContext(), R.anim.slide_up_pane);
+            a.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                    mEditPostPane.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            });
+            mEditPostPane.startAnimation(a);
+
+        }
+
+        mEditPostVisible = !mEditPostVisible;
     }
 
     private void setCategoryImage()
@@ -327,6 +554,19 @@ public class FullBleedPostActivity extends AppCompatActivity
         Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
         intent.putExtra(LoginActivity.EXTRA_PROFILE, user);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == EditPostTextActivity.RESULT_EDIT_POST_TEXT) {
+                Post p = data.getParcelableExtra(EditPostTextActivity.EXTRA_POST);
+                if (p != null) {
+                    mPost = p;
+                    layoutPost();
+                }
+            }
+        }
     }
 
 
@@ -645,6 +885,21 @@ public class FullBleedPostActivity extends AppCompatActivity
                 }
                 notifyDataSetInvalidated();
             }
+        }
+    }
+
+    private static class DeletePostHandler extends Handler {
+        private Activity mActivity;
+        public DeletePostHandler(Activity activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void handleMessage(Message message) {
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_POST, ((FullBleedPostActivity)mActivity).mPost);
+            mActivity.setResult(RESULT_OK, intent);
+            mActivity.finish();
         }
     }
 }

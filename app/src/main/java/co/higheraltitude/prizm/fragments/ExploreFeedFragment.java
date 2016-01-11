@@ -58,6 +58,13 @@ public class ExploreFeedFragment extends Fragment implements SingleGridImageView
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        mPostAdapter.notifyDataSetInvalidated();
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -73,6 +80,7 @@ public class ExploreFeedFragment extends Fragment implements SingleGridImageView
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
                 int firstPosition = view.getFirstVisiblePosition();
+
                 if (lastVisibleItem > firstPosition) {
                     shouldSlide = false;
                     scrollingDown = false;
@@ -82,7 +90,7 @@ public class ExploreFeedFragment extends Fragment implements SingleGridImageView
                 } else if (listIsAtTop()) {
                     fetchPosts(true, false);
                 } else {
-                    if (view.getLastVisiblePosition() >= view.getCount() - 5) {
+                    if (view.getLastVisiblePosition() >= view.getCount() - 20) {
                         fetchPosts(false, true);
                     }
                 }

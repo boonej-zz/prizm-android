@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import co.higheraltitude.prizm.cache.PrizmDiskCache;
+import co.higheraltitude.prizm.helpers.MixpanelHelper;
 import co.higheraltitude.prizm.listeners.BackClickListener;
 import co.higheraltitude.prizm.models.Post;
 import co.higheraltitude.prizm.models.User;
@@ -50,7 +51,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         setContentView(R.layout.activity_profile);
         Toolbar actionBar = (Toolbar)findViewById(R.id.profile_nav_bar);
 
-
+        MixpanelHelper.getTracker().track("Profile Viewed");
         setSupportActionBar(actionBar);
         actionBar.setNavigationIcon(R.drawable.backarrow_icon);
         actionBar.setNavigationOnClickListener(new BackClickListener(this));
@@ -156,8 +157,6 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
             }
         }
 
-
-
         private void update(Object object) {
             if (object instanceof ArrayList) {
                 ArrayList<Post> posts = (ArrayList<Post>)object;
@@ -237,7 +236,7 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         Intent intent = new Intent(getApplicationContext(), FullBleedPostActivity.class);
         intent.putExtra(FullBleedPostActivity.EXTRA_POST, post);
         intent.putExtra(FullBleedPostActivity.EXTRA_POST_IMAGE, pathString);
-        startActivity(intent);
+        startActivityForResult(intent, 69);
     }
 
     @Override
@@ -352,6 +351,19 @@ public class ProfileActivity extends AppCompatActivity implements PrizmDiskCache
         intent.putExtra(FollowActivity.EXTRA_USER, mUser);
         intent.putExtra(FollowActivity.EXTRA_VIEW_TYPE, FollowActivity.VIEW_TYPE_FOLLOWERS);
         startActivity(intent);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == 69) {
+                Post p = data.getParcelableExtra(FullBleedPostActivity.EXTRA_POST);
+                if (p != null) {
+                    mPostAdapter.remove(p);
+                    mPostAdapter.notifyDataSetChanged();
+                }
+            }
+        }
     }
 
     private static class LikeHandler extends Handler

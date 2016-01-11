@@ -17,8 +17,21 @@
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         android:elevation="4dp"
         >
+        <ImageButton
+            android:id="@+id/action_close_button"
+            android:layout_height="fill_parent"
+            android:visibility="gone"
+            android:layout_width="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:textAllCaps="false"
+            android:layout_gravity="right|center_vertical"
+            android:src="@drawable/close_cancel_white_icon"
+            android:scaleType="center"
+            android:layout_marginRight="5.7dp"
+            />
     </android.support.v7.widget.Toolbar>
     <LinearLayout
+        android:id="@+id/filter_toolbar"
         android:layout_width="fill_parent"
         android:layout_height="46dp"
         android:background="@android:color/white"
@@ -80,6 +93,49 @@
             android:visibility="gone"
             />
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/hashtag_toolbar"
+        android:layout_width="fill_parent"
+        android:layout_height="46dp">
+        <ImageView
+            android:id="@+id/grid_button"
+            android:layout_width="23.3dp"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="13dp"
+            android:src="@drawable/grid_view_selected"
+            android:layout_gravity="center_vertical"
+            android:onClick="gridButtonClicked"
+            android:scaleType="center"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="19.3dp"
+            android:background="@color/warm_grey_50"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="22.7dp"/>
+        <ImageView
+            android:id="@+id/full_button"
+            android:layout_width="23.3dp"
+            android:layout_height="fill_parent"
+            android:layout_marginLeft="22.3dp"
+            android:src="@drawable/full_view"
+            android:scaleType="center"
+            android:onClick="cardButtonClicked"
+            android:layout_gravity="center_vertical" />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1" />
+        <TextView
+            android:id="@+id/count_view"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_gravity="right|center_vertical"
+            android:gravity="center"
+            android:textColor="@color/brownish_grey"
+            android:textSize="@dimen/font_size_regular"
+            android:layout_marginRight="19dp"
+            />
+    </LinearLayout>
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
@@ -93,7 +149,7 @@
             android:elevation="4dp"
             android:indeterminate="true"/>
         <GridView
-            android:id="@+id/list_view"
+            android:id="@+id/grid_view"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:divider="@android:color/transparent"
@@ -103,6 +159,11 @@
             android:verticalSpacing="1dp"
             android:horizontalSpacing="1dp"
             android:stretchMode="columnWidth"/>
+        <ListView
+            android:id="@+id/list_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:divider="@android:color/transparent" />
     </RelativeLayout>
 
 
